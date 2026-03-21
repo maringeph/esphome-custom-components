@@ -1,0 +1,393 @@
+# =============================================================================
+# DS100 SmartMeter Template
+# =============================================================================
+# Dieses Template kann für verschiedene DS100 SmartMeter verwendet werden.
+#
+# Verwendung in der Haupt-YAML:
+#   packages:
+#     smartmeter_serverschrank:
+#       !include
+#         file: smartmeter_ds100.yml
+#         vars:
+#           device_name: "SmartMeter"
+#           device_id: smartmeter
+#           modbus_id: modbus_smartmeter
+#           modbus_address: "1"
+# =============================================================================
+
+substitutions:
+  # Diese Werte können beim Einbinden mit 'vars:' überschrieben werden
+  device_name: "SmartMeter"
+  device_id: smartmeter
+  modbus_id: modbus_smartmeter
+  modbus_address: "1"
+
+# Gerätedefinition
+esphome:
+  devices:
+    - name: ${device_name}
+      id: device_${device_id}
+
+# =============================================================================
+# SENSOREN
+# =============================================================================
+sensor:
+  - platform: ds100_meter
+    id: ${device_id}
+    device_id: device_${device_id}
+    modbus_id: ${modbus_id}
+    address: ${modbus_address}
+    #update_interval: 1s
+    update_interval_livedata: 5s
+    update_interval_demand: 60s
+    update_interval_statistics: 60s
+
+    # LIVEDATA - Neue Struktur mit total, l1, l2, l3
+    livedata:
+      # Total/Average Werte (wie eine Phase behandelt)
+      total:
+        active_power:
+          name: "${device_name}: Wirkleistung"
+          id: ${device_id}_total_power
+        apparent_power:
+          name: "${device_name}: Scheinleistung"
+          id: ${device_id}_apparent_power
+          disabled_by_default: true
+        reactive_power:
+          name: "${device_name}: Blindleistung"
+          id: ${device_id}_reactive_power
+          disabled_by_default: true
+        power_factor:
+          name: "${device_name}: Leistungsfaktor Ø"
+          id: ${device_id}_power_factor
+          disabled_by_default: true
+        frequency:
+          name: "${device_name}: Frequenz Ø"
+          id: ${device_id}_frequency
+          disabled_by_default: true
+        current:
+          name: "${device_name}: Strom Ø"
+          id: ${device_id}_current_avg
+          disabled_by_default: true
+        voltage:
+          name: "${device_name}: Spannung Ø"
+          id: ${device_id}_voltage_l_n_avg
+          disabled_by_default: true
+
+      # Phase L1
+      l1:
+        voltage:
+          name: "${device_name}: Spannung L1"
+          id: ${device_id}_voltage_l1
+        current:
+          name: "${device_name}: Strom L1"
+          id: ${device_id}_current_l1
+        active_power:
+          name: "${device_name}: Wirkleistung L1"
+          id: ${device_id}_active_power_l1
+        apparent_power:
+          name: "${device_name}: Scheinleistung L1"
+          id: ${device_id}_apparent_power_l1
+          disabled_by_default: true
+        reactive_power:
+          name: "${device_name}: Blindleistung L1"
+          id: ${device_id}_reactive_power_l1
+          disabled_by_default: true
+        frequency:
+          name: "${device_name}: Frequenz L1"
+          id: ${device_id}_frequency_l1
+          disabled_by_default: true
+        power_factor:
+          name: "${device_name}: Leistungsfaktor L1"
+          id: ${device_id}_power_factor_l1
+          disabled_by_default: true
+
+      # Phase L2
+      l2:
+        voltage:
+          name: "${device_name}: Spannung L2"
+          id: ${device_id}_voltage_l2
+        current:
+          name: "${device_name}: Strom L2"
+          id: ${device_id}_current_l2
+        active_power:
+          name: "${device_name}: Wirkleistung L2"
+          id: ${device_id}_active_power_l2
+        apparent_power:
+          name: "${device_name}: Scheinleistung L2"
+          id: ${device_id}_apparent_power_l2
+          disabled_by_default: true
+        reactive_power:
+          name: "${device_name}: Blindleistung L2"
+          id: ${device_id}_reactive_power_l2
+          disabled_by_default: true
+        frequency:
+          name: "${device_name}: Frequenz L2"
+          id: ${device_id}_frequency_l2
+          disabled_by_default: true
+        power_factor:
+          name: "${device_name}: Leistungsfaktor L2"
+          id: ${device_id}_power_factor_l2
+          disabled_by_default: true
+
+      # Phase L3
+      l3:
+        voltage:
+          name: "${device_name}: Spannung L3"
+          id: ${device_id}_voltage_l3
+        current:
+          name: "${device_name}: Strom L3"
+          id: ${device_id}_current_l3
+        active_power:
+          name: "${device_name}: Wirkleistung L3"
+          id: ${device_id}_active_power_l3
+        apparent_power:
+          name: "${device_name}: Scheinleistung L3"
+          id: ${device_id}_apparent_power_l3
+          disabled_by_default: true
+        reactive_power:
+          name: "${device_name}: Blindleistung L3"
+          id: ${device_id}_reactive_power_l3
+          disabled_by_default: true
+        frequency:
+          name: "${device_name}: Frequenz L3"
+          id: ${device_id}_frequency_l3
+          disabled_by_default: true
+        power_factor:
+          name: "${device_name}: Leistungsfaktor L3"
+          id: ${device_id}_power_factor_l3
+          disabled_by_default: true
+
+      # Neutral current (always 0?)
+      current_n:
+        name: "${device_name}: Strom N"
+        id: ${device_id}_current_n
+        disabled_by_default: true
+
+      # Line-to-line voltages
+      voltage_l1_l2:
+        name: "${device_name}: Spannung L1-L2"
+        id: ${device_id}_voltage_l1_l2
+        disabled_by_default: true
+      voltage_l2_l3:
+        name: "${device_name}: Spannung L2-L3"
+        id: ${device_id}_voltage_l2_l3
+        disabled_by_default: true
+      voltage_l3_l1:
+        name: "${device_name}: Spannung L3-L1"
+        id: ${device_id}_voltage_l3_l1
+        disabled_by_default: true
+
+      # Average voltages
+      voltage_l_l_avg:
+        name: "${device_name}: Spannung L-L Ø"
+        id: ${device_id}_voltage_l_l_avg
+        disabled_by_default: true
+
+    # MAXIMUM DEMAND - Total + Phasen (Wirkleistung + Blindleistung)
+    maximum_demand:
+      total:
+        total_active_maximum_demand:
+          name: "${device_name}: Max Wirkleistung"
+          id: ${device_id}_max_demand
+          disabled_by_default: true
+        total_reactive_maximum_demand:
+          name: "${device_name}: Max Blindleistung"
+          id: ${device_id}_max_reactive_demand
+          disabled_by_default: true
+
+      l1:
+        total_active_maximum_demand:
+          name: "${device_name}: Max Wirkleistung L1"
+          id: ${device_id}_max_demand_l1
+          disabled_by_default: true
+        total_reactive_maximum_demand:
+          name: "${device_name}: Max Blindleistung L1"
+          id: ${device_id}_max_reactive_demand_l1
+          disabled_by_default: true
+
+      l2:
+        total_active_maximum_demand:
+          name: "${device_name}: Max Wirkleistung L2"
+          id: ${device_id}_max_demand_l2
+          disabled_by_default: true
+        total_reactive_maximum_demand:
+          name: "${device_name}: Max Blindleistung L2"
+          id: ${device_id}_max_reactive_demand_l2
+          disabled_by_default: true
+
+      l3:
+        total_active_maximum_demand:
+          name: "${device_name}: Max Wirkleistung L3"
+          id: ${device_id}_max_demand_l3
+          disabled_by_default: true
+        total_reactive_maximum_demand:
+          name: "${device_name}: Max Blindleistung L3"
+          id: ${device_id}_max_reactive_demand_l3
+          disabled_by_default: true
+
+    # STATISTIKEN - Neue Struktur mit total, l1, l2, l3
+    statistics:
+      total:
+        active_energy:
+          name: "${device_name}: Wirkenergie Total"
+          id: ${device_id}_active_energy
+        reactive_energy:
+          name: "${device_name}: Blindenergie Total"
+          id: ${device_id}_reactive_energy
+          disabled_by_default: true
+
+      l1:
+        active_energy:
+          name: "${device_name}: Wirkenergie L1"
+          id: ${device_id}_active_energy_l1
+        reactive_energy:
+          name: "${device_name}: Blindenergie L1"
+          id: ${device_id}_reactive_energy_l1
+          disabled_by_default: true
+
+      l2:
+        active_energy:
+          name: "${device_name}: Wirkenergie L2"
+          id: ${device_id}_active_energy_l2
+        reactive_energy:
+          name: "${device_name}: Blindenergie L2"
+          id: ${device_id}_reactive_energy_l2
+          disabled_by_default: true
+
+      l3:
+        active_energy:
+          name: "${device_name}: Wirkenergie L3"
+          id: ${device_id}_active_energy_l3
+        reactive_energy:
+          name: "${device_name}: Blindenergie L3"
+          id: ${device_id}_reactive_energy_l3
+          disabled_by_default: true
+
+# =============================================================================
+# TEXT SENSORS - Geräteinformationen (per on_boot lesen)
+# =============================================================================
+text_sensor:
+  - platform: ds100_meter
+    ds100_meter_id: ${device_id}
+    device_id: device_${device_id}
+    serial_number:
+      name: "${device_name}: Seriennummer"
+      id: ${device_id}_serial_number
+    software_version:
+      name: "${device_name}: Software Version"
+      id: ${device_id}_software_version
+    hardware_version:
+      name: "${device_name}: Hardware Version"
+      id: ${device_id}_hardware_version
+    firmware_checksum:
+      name: "${device_name}: Firmware Prüfsumme"
+      id: ${device_id}_firmware_checksum
+
+# =============================================================================
+# BUTTONS - Reset Funktionen
+# =============================================================================
+button:
+  - platform: ds100_meter
+    ds100_meter_id: ${device_id}
+    device_id: device_${device_id}
+    reset_maximum_demand:
+      name: "${device_name}: Reset Maximum Demand"
+      id: ${device_id}_reset_max_demand
+
+# =============================================================================
+# SELECT - Einstellungen
+# =============================================================================
+select:
+  - platform: ds100_meter
+    ds100_meter_id: ${device_id}
+    device_id: device_${device_id}
+    baud_rate:
+      name: "${device_name}: Baudrate"
+      id: ${device_id}_baud_rate
+      disabled_by_default: true
+    parity:
+      name: "${device_name}: Parität"
+      id: ${device_id}_parity
+      disabled_by_default: true
+    stop_bits:
+      name: "${device_name}: Stoppbits"
+      id: ${device_id}_stop_bits
+      disabled_by_default: true
+    # TODO: Weitere Einstellungen implementieren
+    # data_bits:
+    #   name: "${device_name}: Datenbits"
+    #   id: ${device_id}_data_bits
+    # ct:
+    #   name: "${device_name}: CT-Verhältnis"
+    #   id: ${device_id}_ct
+    # pt:
+    #   name: "${device_name}: PT-Verhältnis"
+    #   id: ${device_id}_pt
+    # voltage_connection:
+    #   name: "${device_name}: Spannungsverbindung"
+    #   id: ${device_id}_voltage_connection
+    # wiring_mode:
+    #   name: "${device_name}: Schaltungsmodus"
+    #   id: ${device_id}_wiring_mode
+    # demand_source:
+    #   name: "${device_name}: Bedarfsquelle"
+    #   id: ${device_id}_demand_source
+    # demand_period:
+    #   name: "${device_name}: Bedarfsperiode"
+    #   id: ${device_id}_demand_period
+    # tariff_mode:
+    #   name: "${device_name}: Tarifmodus"
+    #   id: ${device_id}_tariff_mode
+    # measurement_mode:
+    #   name: "${device_name}: Messmodus"
+    #   id: ${device_id}_measurement_mode
+    # work_mode:
+    #   name: "${device_name}: Arbeitsmodus"
+    #   id: ${device_id}_work_mode
+
+# =============================================================================
+# NUMBER - Einstellungen
+# =============================================================================
+number:
+  - platform: ds100_meter
+    ds100_meter_id: ${device_id}
+    device_id: device_${device_id}
+    address:
+      name: "${device_name}: Modbus Adresse"
+      id: ${device_id}_address
+      disabled_by_default: true
+    scrolling_time:
+      name: "${device_name}: Scroll-Zeit"
+      id: ${device_id}_scrolling_time
+    demand_period:
+      name: "${device_name}: Bedarfsperiode"
+      id: ${device_id}_demand_period
+    password:
+      name: "${device_name}: Passwort"
+      id: ${device_id}_password
+    # TODO: Weitere Einstellungen implementieren
+    # response_delay:
+    #   name: "${device_name}: Antwortverzögerung"
+    #   id: ${device_id}_response_delay
+    # backlight:
+    #   name: "${device_name}: Hintergrundbeleuchtung"
+    #   id: ${device_id}_backlight
+    # display_mode:
+    #   name: "${device_name}: Anzeigemodus"
+    #   id: ${device_id}_display_mode
+    # display_time:
+    #   name: "${device_name}: Anzeigezeit"
+    #   id: ${device_id}_display_time
+    # current_transformer:
+    #   name: "${device_name}: Stromwandler"
+    #   id: ${device_id}_current_transformer
+    # voltage_transformer:
+    #   name: "${device_name}: Spannungswandler"
+    #   id: ${device_id}_voltage_transformer
+    # pulse_width:
+    #   name: "${device_name}: Impulsbreite"
+    #   id: ${device_id}_pulse_width
+    # pulse_constant:
+    #   name: "${device_name}: Impulskonstante"
+    #   id: ${device_id}_pulse_constant

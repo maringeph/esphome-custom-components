@@ -1,0 +1,10 @@
+/.build/
+/.esphome/
+/.vscode
+**/.pioenvs/
+**/.piolibdeps/
+**/lib/
+**/src/
+**/platformio.ini
+**/__pycache__
+/secrets.yaml

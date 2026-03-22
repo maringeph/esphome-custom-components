@@ -22,7 +22,6 @@ from esphome.components import (
     time,
 )
 from esphome.components.modbus_controller import ModbusController, modbus_controller_ns
-from esphome.components.modbus_controller.const import CONF_MODBUS_CONTROLLER_ID
 from esphome.const import (
     CONF_ID,
     CONF_NAME,

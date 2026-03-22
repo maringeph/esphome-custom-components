@@ -1,0 +1,192 @@
+# =============================================================================
+# Deye Inverter Package - Minimal Example
+# =============================================================================
+# Dieses Beispiel-Package bietet nur die wichtigsten Entities für einen
+# typischen Heim-Einsatz. Ideal für Einsteiger und einfache Setups.
+#
+# Verwendung in der Haupt-YAML:
+#   packages:
+#     inverter:
+#       !include
+#         file: packages/deye_inverter/example.yaml
+#         vars:
+#           device_name: "Deye Inverter"
+#           device_id: deye_wr
+#           modbus_id: modbus_deye
+#           modbus_address: "1"
+# =============================================================================
+
+substitutions:
+  device_name: "Deye Inverter"
+  device_id: deye_wr
+  modbus_id: modbus_deye
+  modbus_address: "1"
+
+# Gerätedefinition
+esphome:
+  devices:
+    - name: ${device_name}
+      id: device_${device_id}
+
+# =============================================================================
+# SENSOREN
+# =============================================================================
+sensor:
+  - platform: deye_inverter
+    id: ${device_id}
+    device_id: device_${device_id}
+    modbus_id: ${modbus_id}
+    address: ${modbus_address}
+
+    update_interval_live: 1s
+    update_interval_statistics: 5s
+
+    # -------------------------------------------------------------------------
+    # BATTERIE
+    # -------------------------------------------------------------------------
+    battery:
+      voltage:
+        name: "${device_name}: Battery Voltage"
+        id: ${device_id}_battery_voltage
+      current:
+        name: "${device_name}: Battery Current"
+        id: ${device_id}_battery_current
+      power:
+        name: "${device_name}: Battery Power"
+        id: ${device_id}_battery_power
+      soc:
+        name: "${device_name}: Battery SOC"
+        id: ${device_id}_battery_soc
+      temperature:
+        name: "${device_name}: Battery Temperature"
+        id: ${device_id}_battery_temperature
+
+    # -------------------------------------------------------------------------
+    # PV STRINGS (nur Leistung)
+    # -------------------------------------------------------------------------
+    pv1:
+      power:
+        name: "${device_name}: PV1 Power"
+        id: ${device_id}_pv1_power
+    pv2:
+      power:
+        name: "${device_name}: PV2 Power"
+        id: ${device_id}_pv2_power
+
+    # -------------------------------------------------------------------------
+    # GRID
+    # -------------------------------------------------------------------------
+    grid:
+      power_total:
+        name: "${device_name}: Grid Power Total"
+        id: ${device_id}_grid_power_total
+      frequency:
+        name: "${device_name}: Grid Frequency"
+        id: ${device_id}_grid_frequency
+
+    # -------------------------------------------------------------------------
+    # LOAD GRID
+    # -------------------------------------------------------------------------
+    load_grid:
+      power_total:
+        name: "${device_name}: Load Grid Power Total"
+        id: ${device_id}_load_grid_power_total
+
+    # -------------------------------------------------------------------------
+    # TEMPERATUREN
+    # -------------------------------------------------------------------------
+    temperatures:
+      heatsink:
+        name: "${device_name}: Heatsink Temperature"
+        id: ${device_id}_temp_heatsink
+
+    # -------------------------------------------------------------------------
+    # STATISTIKEN (nur täglich)
+    # -------------------------------------------------------------------------
+    statistics:
+      daily:
+        production:
+          name: "${device_name}: Daily Production"
+          id: ${device_id}_daily_production
+        battery_charge:
+          name: "${device_name}: Daily Battery Charge"
+          id: ${device_id}_daily_battery_charge
+        battery_discharge:
+          name: "${device_name}: Daily Battery Discharge"
+          id: ${device_id}_daily_battery_discharge
+        grid_import:
+          name: "${device_name}: Daily Grid Import"
+          id: ${device_id}_daily_grid_import
+        consumption:
+          name: "${device_name}: Daily Consumption"
+          id: ${device_id}_daily_consumption
+
+# =============================================================================
+# TEXT SENSOR
+# =============================================================================
+text_sensor:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+    running_status:
+      name: "${device_name}: Running Status"
+      id: ${device_id}_running_status
+
+# =============================================================================
+# BINARY SENSOREN
+# =============================================================================
+binary_sensor:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+    status:
+      relay_inverter:
+        name: "${device_name}: Inverter Relay"
+        id: ${device_id}_relay_inverter
+    warnings:
+      fan_failure:
+        name: "${device_name}: Fan Failure Warning"
+        id: ${device_id}_warn_fan
+
+# =============================================================================
+# EINSTELLUNGEN
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# GRID EINSTELLUNGEN
+# -------------------------------------------------------------------------
+switch:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+    settings_grid:
+      grid_charge:
+        name: "${device_name}: Grid Charge"
+        id: ${device_id}_grid_charge
+      solar_sell:
+        name: "${device_name}: Solar Sell"
+        id: ${device_id}_solar_sell
+
+# -------------------------------------------------------------------------
+# BATTERIE EINSTELLUNGEN
+# -------------------------------------------------------------------------
+select:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+    settings_battery:
+      battery_type:
+        name: "${device_name}: Battery Type"
+        id: ${device_id}_battery_type
+
+number:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+    settings_battery:
+      max_charge_current:
+        name: "${device_name}: Max Charge Current"
+        id: ${device_id}_max_charge_current
+      max_discharge_current:
+        name: "${device_name}: Max Discharge Current"
+        id: ${device_id}_max_discharge_current

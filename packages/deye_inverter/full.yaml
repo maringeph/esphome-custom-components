@@ -1,0 +1,1520 @@
+# =============================================================================
+# Deye Inverter Package - COMPLETE
+# =============================================================================
+# This package includes ALL 577 entities of the Deye inverter component.
+#
+# Verwendung in der Haupt-YAML:
+#   packages:
+#     wechselrichter_01:
+#       !include
+#         file: packages/deye_inverter/full.yaml
+#         vars:
+#           device_name: "Wechselrichter 01"
+#           device_id: wr01
+#           modbus_id: modbus_wr1
+#           modbus_address: "1"
+# =============================================================================
+
+substitutions:
+  device_name: "Deye Wechselrichter"
+  device_id: deye_wr
+  modbus_id: modbus_deye
+  modbus_address: "1"
+
+# Gerätedefinition
+esphome:
+  devices:
+    - name: ${device_name}
+      id: device_${device_id}
+
+# =============================================================================
+# SENSOREN - ALLE ENTITIES AKTIVIERT
+# =============================================================================
+sensor:
+  - platform: deye_inverter
+    id: ${device_id}
+    device_id: device_${device_id}
+    modbus_id: ${modbus_id}
+    address: ${modbus_address}
+
+    # Update Intervalle
+    update_interval_live: 1s
+    update_interval_statistics: 5s
+    update_interval_device_info: 60s
+
+    # =========================================================================
+    # DEVICE INFO (2 entities) - Static values, read once
+    # =========================================================================
+    device_info:
+      device_type:
+        name: "${device_name}: Gerätetyp"
+        id: ${device_id}_device_type
+      modbus_address:
+        name: "${device_name}: Modbus Adresse"
+        id: ${device_id}_modbus_address
+
+    # =========================================================================
+    # BATTERIE (6 entities)
+    # =========================================================================
+    battery:
+      voltage:
+        name: "${device_name}: Batterie Spannung"
+        id: ${device_id}_battery_voltage
+      current:
+        name: "${device_name}: Batterie Strom"
+        id: ${device_id}_battery_current
+      power:
+        name: "${device_name}: Batterie Leistung"
+        id: ${device_id}_battery_power
+      soc:
+        name: "${device_name}: Batterie SOC"
+        id: ${device_id}_battery_soc
+      temperature:
+        name: "${device_name}: Batterie Temperatur"
+        id: ${device_id}_battery_temperature
+      capacity:
+        name: "${device_name}: Batterie Kapazität"
+        id: ${device_id}_battery_capacity
+
+    # =========================================================================
+    # BATTERY MODULE 1 (14 entities) - Primary module, enabled by default
+    # =========================================================================
+    battery_module_1:
+      voltage:
+        name: "${device_name}: BM1 Spannung"
+        id: ${device_id}_bm1_voltage
+      current:
+        name: "${device_name}: BM1 Strom"
+        id: ${device_id}_bm1_current
+      soc:
+        name: "${device_name}: BM1 SOC"
+        id: ${device_id}_bm1_soc
+      temperature:
+        name: "${device_name}: BM1 Temperatur"
+        id: ${device_id}_bm1_temperature
+      status:
+        name: "${device_name}: BM1 Status"
+        id: ${device_id}_bm1_status
+      fault_code:
+        name: "${device_name}: BM1 Fehlercode"
+        id: ${device_id}_bm1_fault_code
+      cycle_count:
+        name: "${device_name}: BM1 Zyklen"
+        id: ${device_id}_bm1_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM1 Kapazität Verbleibend"
+        id: ${device_id}_bm1_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM1 Kapazität Gesamt"
+        id: ${device_id}_bm1_capacity_total
+      power:
+        name: "${device_name}: BM1 Leistung"
+        id: ${device_id}_bm1_power
+      cell_max_voltage:
+        name: "${device_name}: BM1 Zell Max Spannung"
+        id: ${device_id}_bm1_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM1 Zell Min Spannung"
+        id: ${device_id}_bm1_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM1 Zell Max Temp"
+        id: ${device_id}_bm1_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM1 Zell Min Temp"
+        id: ${device_id}_bm1_cell_min_temp
+
+    # =========================================================================
+    # BATTERY MODULES 2-9 (14 entities each) - Disabled by default
+    # =========================================================================
+    battery_module_2:
+      voltage:
+        name: "${device_name}: BM2 Spannung"
+        id: ${device_id}_bm2_voltage
+      current:
+        name: "${device_name}: BM2 Strom"
+        id: ${device_id}_bm2_current
+      soc:
+        name: "${device_name}: BM2 SOC"
+        id: ${device_id}_bm2_soc
+      temperature:
+        name: "${device_name}: BM2 Temperatur"
+        id: ${device_id}_bm2_temperature
+      status:
+        name: "${device_name}: BM2 Status"
+        id: ${device_id}_bm2_status
+      fault_code:
+        name: "${device_name}: BM2 Fehlercode"
+        id: ${device_id}_bm2_fault_code
+      cycle_count:
+        name: "${device_name}: BM2 Zyklen"
+        id: ${device_id}_bm2_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM2 Kapazität Verbleibend"
+        id: ${device_id}_bm2_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM2 Kapazität Gesamt"
+        id: ${device_id}_bm2_capacity_total
+      power:
+        name: "${device_name}: BM2 Leistung"
+        id: ${device_id}_bm2_power
+      cell_max_voltage:
+        name: "${device_name}: BM2 Zell Max Spannung"
+        id: ${device_id}_bm2_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM2 Zell Min Spannung"
+        id: ${device_id}_bm2_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM2 Zell Max Temp"
+        id: ${device_id}_bm2_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM2 Zell Min Temp"
+        id: ${device_id}_bm2_cell_min_temp
+    battery_module_3:
+      voltage:
+        name: "${device_name}: BM3 Spannung"
+        id: ${device_id}_bm3_voltage
+      current:
+        name: "${device_name}: BM3 Strom"
+        id: ${device_id}_bm3_current
+      soc:
+        name: "${device_name}: BM3 SOC"
+        id: ${device_id}_bm3_soc
+      temperature:
+        name: "${device_name}: BM3 Temperatur"
+        id: ${device_id}_bm3_temperature
+      status:
+        name: "${device_name}: BM3 Status"
+        id: ${device_id}_bm3_status
+      fault_code:
+        name: "${device_name}: BM3 Fehlercode"
+        id: ${device_id}_bm3_fault_code
+      cycle_count:
+        name: "${device_name}: BM3 Zyklen"
+        id: ${device_id}_bm3_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM3 Kapazität Verbleibend"
+        id: ${device_id}_bm3_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM3 Kapazität Gesamt"
+        id: ${device_id}_bm3_capacity_total
+      power:
+        name: "${device_name}: BM3 Leistung"
+        id: ${device_id}_bm3_power
+      cell_max_voltage:
+        name: "${device_name}: BM3 Zell Max Spannung"
+        id: ${device_id}_bm3_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM3 Zell Min Spannung"
+        id: ${device_id}_bm3_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM3 Zell Max Temp"
+        id: ${device_id}_bm3_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM3 Zell Min Temp"
+        id: ${device_id}_bm3_cell_min_temp
+    battery_module_4:
+      voltage:
+        name: "${device_name}: BM4 Spannung"
+        id: ${device_id}_bm4_voltage
+      current:
+        name: "${device_name}: BM4 Strom"
+        id: ${device_id}_bm4_current
+      soc:
+        name: "${device_name}: BM4 SOC"
+        id: ${device_id}_bm4_soc
+      temperature:
+        name: "${device_name}: BM4 Temperatur"
+        id: ${device_id}_bm4_temperature
+      status:
+        name: "${device_name}: BM4 Status"
+        id: ${device_id}_bm4_status
+      fault_code:
+        name: "${device_name}: BM4 Fehlercode"
+        id: ${device_id}_bm4_fault_code
+      cycle_count:
+        name: "${device_name}: BM4 Zyklen"
+        id: ${device_id}_bm4_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM4 Kapazität Verbleibend"
+        id: ${device_id}_bm4_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM4 Kapazität Gesamt"
+        id: ${device_id}_bm4_capacity_total
+      power:
+        name: "${device_name}: BM4 Leistung"
+        id: ${device_id}_bm4_power
+      cell_max_voltage:
+        name: "${device_name}: BM4 Zell Max Spannung"
+        id: ${device_id}_bm4_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM4 Zell Min Spannung"
+        id: ${device_id}_bm4_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM4 Zell Max Temp"
+        id: ${device_id}_bm4_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM4 Zell Min Temp"
+        id: ${device_id}_bm4_cell_min_temp
+    battery_module_5:
+      voltage:
+        name: "${device_name}: BM5 Spannung"
+        id: ${device_id}_bm5_voltage
+      current:
+        name: "${device_name}: BM5 Strom"
+        id: ${device_id}_bm5_current
+      soc:
+        name: "${device_name}: BM5 SOC"
+        id: ${device_id}_bm5_soc
+      temperature:
+        name: "${device_name}: BM5 Temperatur"
+        id: ${device_id}_bm5_temperature
+      status:
+        name: "${device_name}: BM5 Status"
+        id: ${device_id}_bm5_status
+      fault_code:
+        name: "${device_name}: BM5 Fehlercode"
+        id: ${device_id}_bm5_fault_code
+      cycle_count:
+        name: "${device_name}: BM5 Zyklen"
+        id: ${device_id}_bm5_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM5 Kapazität Verbleibend"
+        id: ${device_id}_bm5_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM5 Kapazität Gesamt"
+        id: ${device_id}_bm5_capacity_total
+      power:
+        name: "${device_name}: BM5 Leistung"
+        id: ${device_id}_bm5_power
+      cell_max_voltage:
+        name: "${device_name}: BM5 Zell Max Spannung"
+        id: ${device_id}_bm5_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM5 Zell Min Spannung"
+        id: ${device_id}_bm5_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM5 Zell Max Temp"
+        id: ${device_id}_bm5_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM5 Zell Min Temp"
+        id: ${device_id}_bm5_cell_min_temp
+    battery_module_6:
+      voltage:
+        name: "${device_name}: BM6 Spannung"
+        id: ${device_id}_bm6_voltage
+      current:
+        name: "${device_name}: BM6 Strom"
+        id: ${device_id}_bm6_current
+      soc:
+        name: "${device_name}: BM6 SOC"
+        id: ${device_id}_bm6_soc
+      temperature:
+        name: "${device_name}: BM6 Temperatur"
+        id: ${device_id}_bm6_temperature
+      status:
+        name: "${device_name}: BM6 Status"
+        id: ${device_id}_bm6_status
+      fault_code:
+        name: "${device_name}: BM6 Fehlercode"
+        id: ${device_id}_bm6_fault_code
+      cycle_count:
+        name: "${device_name}: BM6 Zyklen"
+        id: ${device_id}_bm6_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM6 Kapazität Verbleibend"
+        id: ${device_id}_bm6_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM6 Kapazität Gesamt"
+        id: ${device_id}_bm6_capacity_total
+      power:
+        name: "${device_name}: BM6 Leistung"
+        id: ${device_id}_bm6_power
+      cell_max_voltage:
+        name: "${device_name}: BM6 Zell Max Spannung"
+        id: ${device_id}_bm6_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM6 Zell Min Spannung"
+        id: ${device_id}_bm6_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM6 Zell Max Temp"
+        id: ${device_id}_bm6_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM6 Zell Min Temp"
+        id: ${device_id}_bm6_cell_min_temp
+    battery_module_7:
+      voltage:
+        name: "${device_name}: BM7 Spannung"
+        id: ${device_id}_bm7_voltage
+      current:
+        name: "${device_name}: BM7 Strom"
+        id: ${device_id}_bm7_current
+      soc:
+        name: "${device_name}: BM7 SOC"
+        id: ${device_id}_bm7_soc
+      temperature:
+        name: "${device_name}: BM7 Temperatur"
+        id: ${device_id}_bm7_temperature
+      status:
+        name: "${device_name}: BM7 Status"
+        id: ${device_id}_bm7_status
+      fault_code:
+        name: "${device_name}: BM7 Fehlercode"
+        id: ${device_id}_bm7_fault_code
+      cycle_count:
+        name: "${device_name}: BM7 Zyklen"
+        id: ${device_id}_bm7_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM7 Kapazität Verbleibend"
+        id: ${device_id}_bm7_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM7 Kapazität Gesamt"
+        id: ${device_id}_bm7_capacity_total
+      power:
+        name: "${device_name}: BM7 Leistung"
+        id: ${device_id}_bm7_power
+      cell_max_voltage:
+        name: "${device_name}: BM7 Zell Max Spannung"
+        id: ${device_id}_bm7_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM7 Zell Min Spannung"
+        id: ${device_id}_bm7_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM7 Zell Max Temp"
+        id: ${device_id}_bm7_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM7 Zell Min Temp"
+        id: ${device_id}_bm7_cell_min_temp
+    battery_module_8:
+      voltage:
+        name: "${device_name}: BM8 Spannung"
+        id: ${device_id}_bm8_voltage
+      current:
+        name: "${device_name}: BM8 Strom"
+        id: ${device_id}_bm8_current
+      soc:
+        name: "${device_name}: BM8 SOC"
+        id: ${device_id}_bm8_soc
+      temperature:
+        name: "${device_name}: BM8 Temperatur"
+        id: ${device_id}_bm8_temperature
+      status:
+        name: "${device_name}: BM8 Status"
+        id: ${device_id}_bm8_status
+      fault_code:
+        name: "${device_name}: BM8 Fehlercode"
+        id: ${device_id}_bm8_fault_code
+      cycle_count:
+        name: "${device_name}: BM8 Zyklen"
+        id: ${device_id}_bm8_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM8 Kapazität Verbleibend"
+        id: ${device_id}_bm8_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM8 Kapazität Gesamt"
+        id: ${device_id}_bm8_capacity_total
+      power:
+        name: "${device_name}: BM8 Leistung"
+        id: ${device_id}_bm8_power
+      cell_max_voltage:
+        name: "${device_name}: BM8 Zell Max Spannung"
+        id: ${device_id}_bm8_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM8 Zell Min Spannung"
+        id: ${device_id}_bm8_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM8 Zell Max Temp"
+        id: ${device_id}_bm8_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM8 Zell Min Temp"
+        id: ${device_id}_bm8_cell_min_temp
+    battery_module_9:
+      voltage:
+        name: "${device_name}: BM9 Spannung"
+        id: ${device_id}_bm9_voltage
+      current:
+        name: "${device_name}: BM9 Strom"
+        id: ${device_id}_bm9_current
+      soc:
+        name: "${device_name}: BM9 SOC"
+        id: ${device_id}_bm9_soc
+      temperature:
+        name: "${device_name}: BM9 Temperatur"
+        id: ${device_id}_bm9_temperature
+      status:
+        name: "${device_name}: BM9 Status"
+        id: ${device_id}_bm9_status
+      fault_code:
+        name: "${device_name}: BM9 Fehlercode"
+        id: ${device_id}_bm9_fault_code
+      cycle_count:
+        name: "${device_name}: BM9 Zyklen"
+        id: ${device_id}_bm9_cycle_count
+      capacity_remaining:
+        name: "${device_name}: BM9 Kapazität Verbleibend"
+        id: ${device_id}_bm9_capacity_remaining
+      capacity_total:
+        name: "${device_name}: BM9 Kapazität Gesamt"
+        id: ${device_id}_bm9_capacity_total
+      power:
+        name: "${device_name}: BM9 Leistung"
+        id: ${device_id}_bm9_power
+      cell_max_voltage:
+        name: "${device_name}: BM9 Zell Max Spannung"
+        id: ${device_id}_bm9_cell_max_voltage
+      cell_min_voltage:
+        name: "${device_name}: BM9 Zell Min Spannung"
+        id: ${device_id}_bm9_cell_min_voltage
+      cell_max_temp:
+        name: "${device_name}: BM9 Zell Max Temp"
+        id: ${device_id}_bm9_cell_max_temp
+      cell_min_temp:
+        name: "${device_name}: BM9 Zell Min Temp"
+        id: ${device_id}_bm9_cell_min_temp
+
+    # =========================================================================
+    # PV STRINGS 1-4 (12 entities)
+    # =========================================================================
+    pv1:
+      voltage:
+        name: "${device_name}: PV1 Spannung"
+        id: ${device_id}_pv1_voltage
+      current:
+        name: "${device_name}: PV1 Strom"
+        id: ${device_id}_pv1_current
+      power:
+        name: "${device_name}: PV1 Leistung"
+        id: ${device_id}_pv1_power
+    pv2:
+      voltage:
+        name: "${device_name}: PV2 Spannung"
+        id: ${device_id}_pv2_voltage
+      current:
+        name: "${device_name}: PV2 Strom"
+        id: ${device_id}_pv2_current
+      power:
+        name: "${device_name}: PV2 Leistung"
+        id: ${device_id}_pv2_power
+    pv3:
+      voltage:
+        name: "${device_name}: PV3 Spannung"
+        id: ${device_id}_pv3_voltage
+        disabled_by_default: true
+      current:
+        name: "${device_name}: PV3 Strom"
+        id: ${device_id}_pv3_current
+        disabled_by_default: true
+      power:
+        name: "${device_name}: PV3 Leistung"
+        id: ${device_id}_pv3_power
+        disabled_by_default: true
+    pv4:
+      voltage:
+        name: "${device_name}: PV4 Spannung"
+        id: ${device_id}_pv4_voltage
+        disabled_by_default: true
+      current:
+        name: "${device_name}: PV4 Strom"
+        id: ${device_id}_pv4_current
+        disabled_by_default: true
+      power:
+        name: "${device_name}: PV4 Leistung"
+        id: ${device_id}_pv4_power
+        disabled_by_default: true
+
+    # =========================================================================
+    # GRID PORT (Netzanschluss) - Extended (27 entities)
+    # =========================================================================
+    grid:
+      voltage_l1:
+        name: "${device_name}: Grid Spannung L1"
+        id: ${device_id}_grid_voltage_l1
+      voltage_l2:
+        name: "${device_name}: Grid Spannung L2"
+        id: ${device_id}_grid_voltage_l2
+      voltage_l3:
+        name: "${device_name}: Grid Spannung L3"
+        id: ${device_id}_grid_voltage_l3
+      voltage_l1_l2:
+        name: "${device_name}: Grid Spannung L1-L2"
+        id: ${device_id}_grid_voltage_l1_l2
+        disabled_by_default: true
+      voltage_l2_l3:
+        name: "${device_name}: Grid Spannung L2-L3"
+        id: ${device_id}_grid_voltage_l2_l3
+        disabled_by_default: true
+      voltage_l3_l1:
+        name: "${device_name}: Grid Spannung L3-L1"
+        id: ${device_id}_grid_voltage_l3_l1
+        disabled_by_default: true
+      current_l1:
+        name: "${device_name}: Grid Strom L1"
+        id: ${device_id}_grid_current_l1
+      current_l2:
+        name: "${device_name}: Grid Strom L2"
+        id: ${device_id}_grid_current_l2
+      current_l3:
+        name: "${device_name}: Grid Strom L3"
+        id: ${device_id}_grid_current_l3
+      power_l1:
+        name: "${device_name}: Grid Leistung L1"
+        id: ${device_id}_grid_power_l1
+      power_l2:
+        name: "${device_name}: Grid Leistung L2"
+        id: ${device_id}_grid_power_l2
+      power_l3:
+        name: "${device_name}: Grid Leistung L3"
+        id: ${device_id}_grid_power_l3
+      power_total:
+        name: "${device_name}: Grid Leistung Gesamt"
+        id: ${device_id}_grid_power_total
+      frequency:
+        name: "${device_name}: Grid Frequenz"
+        id: ${device_id}_grid_frequency
+      internal_ct_l1_power:
+        name: "${device_name}: Grid Interner CT L1 Leistung"
+        id: ${device_id}_grid_internal_ct_l1_power
+      internal_ct_l2_power:
+        name: "${device_name}: Grid Interner CT L2 Leistung"
+        id: ${device_id}_grid_internal_ct_l2_power
+      internal_ct_l3_power:
+        name: "${device_name}: Grid Interner CT L3 Leistung"
+        id: ${device_id}_grid_internal_ct_l3_power
+      internal_total_power:
+        name: "${device_name}: Grid Interne Gesamtleistung"
+        id: ${device_id}_grid_internal_total_power
+      external_ct_l1_power:
+        name: "${device_name}: Grid Externer CT L1 Leistung"
+        id: ${device_id}_grid_external_ct_l1_power
+      external_ct_l2_power:
+        name: "${device_name}: Grid Externer CT L2 Leistung"
+        id: ${device_id}_grid_external_ct_l2_power
+      external_ct_l3_power:
+        name: "${device_name}: Grid Externer CT L3 Leistung"
+        id: ${device_id}_grid_external_ct_l3_power
+      out_of_grid_total_power:
+        name: "${device_name}: Grid Out-of-Grid Gesamtleistung"
+        id: ${device_id}_grid_out_of_grid_total_power
+      grid_meter_apparent_power:
+        name: "${device_name}: Grid Zähler Scheinleistung"
+        id: ${device_id}_grid_meter_apparent_power
+      grid_meter_power_factor:
+        name: "${device_name}: Grid Zähler Leistungsfaktor"
+        id: ${device_id}_grid_meter_power_factor
+      grid_meter_current_l1:
+        name: "${device_name}: Grid Zähler Strom L1"
+        id: ${device_id}_grid_meter_current_l1
+      grid_meter_current_l2:
+        name: "${device_name}: Grid Zähler Strom L2"
+        id: ${device_id}_grid_meter_current_l2
+      grid_meter_current_l3:
+        name: "${device_name}: Grid Zähler Strom L3"
+        id: ${device_id}_grid_meter_current_l3
+      grid_side_a_phase_power:
+        name: "${device_name}: Grid Seite A Phase Leistung"
+        id: ${device_id}_grid_side_a_phase_power
+      grid_side_b_phase_power:
+        name: "${device_name}: Grid Seite B Phase Leistung"
+        id: ${device_id}_grid_side_b_phase_power
+      grid_side_c_phase_power:
+        name: "${device_name}: Grid Seite C Phase Leistung"
+        id: ${device_id}_grid_side_c_phase_power
+      grid_side_total_power:
+        name: "${device_name}: Grid Seite Gesamtleistung"
+        id: ${device_id}_grid_side_total_power
+      total_grid_power:
+        name: "${device_name}: Grid Gesamtleistung"
+        id: ${device_id}_total_grid_power
+
+    # =========================================================================
+    # LOAD GRID PORT (7 entities)
+    # =========================================================================
+    load_grid:
+      voltage_l1:
+        name: "${device_name}: Load Grid Spannung L1"
+        id: ${device_id}_load_grid_voltage_l1
+      voltage_l2:
+        name: "${device_name}: Load Grid Spannung L2"
+        id: ${device_id}_load_grid_voltage_l2
+      voltage_l3:
+        name: "${device_name}: Load Grid Spannung L3"
+        id: ${device_id}_load_grid_voltage_l3
+      power_l1:
+        name: "${device_name}: Load Grid Leistung L1"
+        id: ${device_id}_load_grid_power_l1
+      power_l2:
+        name: "${device_name}: Load Grid Leistung L2"
+        id: ${device_id}_load_grid_power_l2
+      power_l3:
+        name: "${device_name}: Load Grid Leistung L3"
+        id: ${device_id}_load_grid_power_l3
+      power_total:
+        name: "${device_name}: Load Grid Leistung Gesamt"
+        id: ${device_id}_load_grid_power_total
+
+    # =========================================================================
+    # LOAD GRID PORT - Erweitert (10 entities)
+    # =========================================================================
+    load_grid_port:
+      load_port_voltage_l1:
+        name: "${device_name}: Load Port Spannung L1"
+        id: ${device_id}_load_port_voltage_l1
+      load_port_voltage_l2:
+        name: "${device_name}: Load Port Spannung L2"
+        id: ${device_id}_load_port_voltage_l2
+      load_port_voltage_l3:
+        name: "${device_name}: Load Port Spannung L3"
+        id: ${device_id}_load_port_voltage_l3
+      load_port_current_l1:
+        name: "${device_name}: Load Port Strom L1"
+        id: ${device_id}_load_port_current_l1
+      load_port_current_l2:
+        name: "${device_name}: Load Port Strom L2"
+        id: ${device_id}_load_port_current_l2
+      load_port_current_l3:
+        name: "${device_name}: Load Port Strom L3"
+        id: ${device_id}_load_port_current_l3
+      load_port_power_l1:
+        name: "${device_name}: Load Port Leistung L1"
+        id: ${device_id}_load_port_power_l1
+      load_port_power_l2:
+        name: "${device_name}: Load Port Leistung L2"
+        id: ${device_id}_load_port_power_l2
+      load_port_power_l3:
+        name: "${device_name}: Load Port Leistung L3"
+        id: ${device_id}_load_port_power_l3
+      load_real_power:
+        name: "${device_name}: Load Wirkleistung"
+        id: ${device_id}_load_real_power
+      load_apparent_power:
+        name: "${device_name}: Load Scheinleistung"
+        id: ${device_id}_load_apparent_power
+      load_frequency:
+        name: "${device_name}: Load Frequenz"
+        id: ${device_id}_load_frequency
+
+    # =========================================================================
+    # LOAD UPS PORT (8 entities)
+    # =========================================================================
+    load_ups:
+      voltage_l1:
+        name: "${device_name}: Load UPS Spannung L1"
+        id: ${device_id}_load_ups_voltage_l1
+      voltage_l2:
+        name: "${device_name}: Load UPS Spannung L2"
+        id: ${device_id}_load_ups_voltage_l2
+      voltage_l3:
+        name: "${device_name}: Load UPS Spannung L3"
+        id: ${device_id}_load_ups_voltage_l3
+      power_l1:
+        name: "${device_name}: Load UPS Leistung L1"
+        id: ${device_id}_load_ups_power_l1
+      power_l2:
+        name: "${device_name}: Load UPS Leistung L2"
+        id: ${device_id}_load_ups_power_l2
+      power_l3:
+        name: "${device_name}: Load UPS Leistung L3"
+        id: ${device_id}_load_ups_power_l3
+      power_total:
+        name: "${device_name}: Load UPS Leistung Gesamt"
+        id: ${device_id}_load_ups_power_total
+      frequency:
+        name: "${device_name}: Load UPS Frequenz"
+        id: ${device_id}_load_ups_frequency
+
+    # =========================================================================
+    # GENERATOR PORT (10 entities)
+    # =========================================================================
+    generator:
+      voltage_l1:
+        name: "${device_name}: Generator Spannung L1"
+        id: ${device_id}_gen_voltage_l1
+      voltage_l2:
+        name: "${device_name}: Generator Spannung L2"
+        id: ${device_id}_gen_voltage_l2
+      voltage_l3:
+        name: "${device_name}: Generator Spannung L3"
+        id: ${device_id}_gen_voltage_l3
+      current_l1:
+        name: "${device_name}: Generator Strom L1"
+        id: ${device_id}_gen_current_l1
+      current_l2:
+        name: "${device_name}: Generator Strom L2"
+        id: ${device_id}_gen_current_l2
+      current_l3:
+        name: "${device_name}: Generator Strom L3"
+        id: ${device_id}_gen_current_l3
+      power_l1:
+        name: "${device_name}: Generator Leistung L1"
+        id: ${device_id}_gen_power_l1
+      power_l2:
+        name: "${device_name}: Generator Leistung L2"
+        id: ${device_id}_gen_power_l2
+      power_l3:
+        name: "${device_name}: Generator Leistung L3"
+        id: ${device_id}_gen_power_l3
+      power_total:
+        name: "${device_name}: Generator Leistung Gesamt"
+        id: ${device_id}_gen_power_total
+      frequency:
+        name: "${device_name}: Generator Frequenz"
+        id: ${device_id}_gen_frequency
+
+    # =========================================================================
+    # GENERATOR PORT - Erweitert (10 entities)
+    # =========================================================================
+    generator_port:
+      gen_port_voltage_l1:
+        name: "${device_name}: Gen Port Spannung L1"
+        id: ${device_id}_gen_port_voltage_l1
+      gen_port_voltage_l2:
+        name: "${device_name}: Gen Port Spannung L2"
+        id: ${device_id}_gen_port_voltage_l2
+      gen_port_voltage_l3:
+        name: "${device_name}: Gen Port Spannung L3"
+        id: ${device_id}_gen_port_voltage_l3
+      gen_port_current_l1:
+        name: "${device_name}: Gen Port Strom L1"
+        id: ${device_id}_gen_port_current_l1
+      gen_port_current_l2:
+        name: "${device_name}: Gen Port Strom L2"
+        id: ${device_id}_gen_port_current_l2
+      gen_port_current_l3:
+        name: "${device_name}: Gen Port Strom L3"
+        id: ${device_id}_gen_port_current_l3
+      gen_port_power_l1:
+        name: "${device_name}: Gen Port Leistung L1"
+        id: ${device_id}_gen_port_power_l1
+      gen_port_power_l2:
+        name: "${device_name}: Gen Port Leistung L2"
+        id: ${device_id}_gen_port_power_l2
+      gen_port_power_l3:
+        name: "${device_name}: Gen Port Leistung L3"
+        id: ${device_id}_gen_port_power_l3
+      gen_port_power_total:
+        name: "${device_name}: Gen Port Leistung Gesamt"
+        id: ${device_id}_gen_port_power_total
+      gen_port_frequency:
+        name: "${device_name}: Gen Port Frequenz"
+        id: ${device_id}_gen_port_frequency
+
+    # =========================================================================
+    # INVERTER AC AUSGANG (9 entities)
+    # =========================================================================
+    inverter:
+      voltage_l1:
+        name: "${device_name}: Inverter Spannung L1"
+        id: ${device_id}_inv_voltage_l1
+      voltage_l2:
+        name: "${device_name}: Inverter Spannung L2"
+        id: ${device_id}_inv_voltage_l2
+      voltage_l3:
+        name: "${device_name}: Inverter Spannung L3"
+        id: ${device_id}_inv_voltage_l3
+      real_power_l1:
+        name: "${device_name}: Inverter Wirkleistung L1"
+        id: ${device_id}_inv_real_power_l1
+      real_power_l2:
+        name: "${device_name}: Inverter Wirkleistung L2"
+        id: ${device_id}_inv_real_power_l2
+      real_power_l3:
+        name: "${device_name}: Inverter Wirkleistung L3"
+        id: ${device_id}_inv_real_power_l3
+      real_power:
+        name: "${device_name}: Inverter Wirkleistung"
+        id: ${device_id}_inv_real_power
+      apparent_power:
+        name: "${device_name}: Inverter Scheinleistung"
+        id: ${device_id}_inv_apparent_power
+      frequency:
+        name: "${device_name}: Inverter Frequenz"
+        id: ${device_id}_inv_frequency
+
+    # =========================================================================
+    # TEMPERATUREN (2 entities)
+    # =========================================================================
+    temperatures:
+      heatsink:
+        name: "${device_name}: Temperatur Kühlkörper"
+        id: ${device_id}_temp_heatsink
+      dc_transformer:
+        name: "${device_name}: Temperatur DC Transformer"
+        id: ${device_id}_temp_dc_transformer
+
+    # =========================================================================
+    # DC SEITE - Zusätzliche Kanäle (7 entities)
+    # =========================================================================
+    dc:
+      dc5_current:
+        name: "${device_name}: DC5 Strom"
+        id: ${device_id}_dc5_current
+        disabled_by_default: true
+      dc6_voltage:
+        name: "${device_name}: DC6 Spannung"
+        id: ${device_id}_dc6_voltage
+        disabled_by_default: true
+      dc6_current:
+        name: "${device_name}: DC6 Strom"
+        id: ${device_id}_dc6_current
+        disabled_by_default: true
+      dc7_voltage:
+        name: "${device_name}: DC7 Spannung"
+        id: ${device_id}_dc7_voltage
+        disabled_by_default: true
+      dc7_current:
+        name: "${device_name}: DC7 Strom"
+        id: ${device_id}_dc7_current
+        disabled_by_default: true
+      dc8_voltage:
+        name: "${device_name}: DC8 Spannung"
+        id: ${device_id}_dc8_voltage
+        disabled_by_default: true
+      dc8_current:
+        name: "${device_name}: DC8 Strom"
+        id: ${device_id}_dc8_current
+        disabled_by_default: true
+
+    # =========================================================================
+    # STATISTIKEN - Täglich (15 entities)
+    # =========================================================================
+    statistics:
+      daily:
+        production:
+          name: "${device_name}: Tageserzeugung"
+          id: ${device_id}_daily_production
+        battery_charge:
+          name: "${device_name}: Tägliche Batterie-Ladung"
+          id: ${device_id}_daily_battery_charge
+        battery_discharge:
+          name: "${device_name}: Tägliche Batterie-Entladung"
+          id: ${device_id}_daily_battery_discharge
+        grid_import:
+          name: "${device_name}: Täglicher Netzbezug"
+          id: ${device_id}_daily_grid_import
+        grid_export:
+          name: "${device_name}: Tägliche Netzeinspeisung"
+          id: ${device_id}_daily_grid_export
+        consumption:
+          name: "${device_name}: Täglicher Verbrauch"
+          id: ${device_id}_daily_consumption
+        pv_production:
+          name: "${device_name}: Tägliche PV-Erzeugung"
+          id: ${device_id}_daily_pv_production
+        pv1_production:
+          name: "${device_name}: Tägliche PV1 Erzeugung"
+          id: ${device_id}_daily_pv1_production
+          disabled_by_default: true
+        pv2_production:
+          name: "${device_name}: Tägliche PV2 Erzeugung"
+          id: ${device_id}_daily_pv2_production
+          disabled_by_default: true
+        pv3_production:
+          name: "${device_name}: Tägliche PV3 Erzeugung"
+          id: ${device_id}_daily_pv3_production
+          disabled_by_default: true
+        pv4_production:
+          name: "${device_name}: Tägliche PV4 Erzeugung"
+          id: ${device_id}_daily_pv4_production
+          disabled_by_default: true
+        generator_on_time:
+          name: "${device_name}: Tägliche Generator-Laufzeit"
+          id: ${device_id}_daily_generator_on_time
+        daily_active_power_generation:
+          name: "${device_name}: Tägliche Aktive Leistungserzeugung"
+          id: ${device_id}_daily_active_power_generation
+        active_power_generation_today:
+          name: "${device_name}: Aktive Leistungserzeugung Heute"
+          id: ${device_id}_active_power_generation_today
+        daily_grid_connection_time:
+          name: "${device_name}: Tägliche Grid-Verbindungszeit"
+          id: ${device_id}_daily_grid_connection_time
+      # =====================================================================
+      # STATISTIKEN - Gesamt (15 entities)
+      # =====================================================================
+      total:
+        production:
+          name: "${device_name}: Gesamterzeugung"
+          id: ${device_id}_total_production
+        battery_charge:
+          name: "${device_name}: Gesamte Batterie-Ladung"
+          id: ${device_id}_total_battery_charge
+        battery_discharge:
+          name: "${device_name}: Gesamte Batterie-Entladung"
+          id: ${device_id}_total_battery_discharge
+        grid_import:
+          name: "${device_name}: Gesamter Netzbezug"
+          id: ${device_id}_total_grid_import
+        grid_export:
+          name: "${device_name}: Gesamte Netzeinspeisung"
+          id: ${device_id}_total_grid_export
+        consumption:
+          name: "${device_name}: Gesamtverbrauch"
+          id: ${device_id}_total_consumption
+        pv_production:
+          name: "${device_name}: Gesamte PV-Erzeugung"
+          id: ${device_id}_total_pv_production
+        total_active_power_generation:
+          name: "${device_name}: Gesamterzeugung Wirkleistung"
+          id: ${device_id}_total_active_power_generation
+          value_type: U_DWORD_R
+          scale: 0.1
+        total_reactive_power_generation:
+          name: "${device_name}: Gesamterzeugung Blindleistung"
+          id: ${device_id}_total_reactive_power_generation
+          value_type: U_DWORD_R
+          scale: 0.1
+        total_battery_charge:
+          name: "${device_name}: Gesamte Batterie-Ladung (32-bit)"
+          id: ${device_id}_total_battery_charge_32
+          value_type: U_DWORD_R
+          scale: 0.1
+        total_battery_discharge:
+          name: "${device_name}: Gesamte Batterie-Entladung (32-bit)"
+          id: ${device_id}_total_battery_discharge_32
+          value_type: U_DWORD_R
+          scale: 0.1
+        total_grid_import:
+          name: "${device_name}: Gesamter Netzbezug (32-bit)"
+          id: ${device_id}_total_grid_import_32
+          value_type: U_DWORD_R
+          scale: 0.1
+        total_grid_export:
+          name: "${device_name}: Gesamte Netzeinspeisung (32-bit)"
+          id: ${device_id}_total_grid_export_32
+          value_type: U_DWORD_R
+          scale: 0.1
+        total_consumption:
+          name: "${device_name}: Gesamtverbrauch (32-bit)"
+          id: ${device_id}_total_consumption_32
+          value_type: U_DWORD_R
+          scale: 0.1
+
+    # =========================================================================
+    # STATUS - Rohwerte (10 entities) - Raw sensor values, not decoded
+    # =========================================================================
+    status:
+      running_status:
+        name: "${device_name}: Betriebsstatus Raw"
+        id: ${device_id}_running_status_raw
+        disabled_by_default: true
+      turn_off_on_status:
+        name: "${device_name}: Ein/Aus Status Raw"
+        id: ${device_id}_turn_off_on_status_raw
+        disabled_by_default: true
+      ac_inv_relay:
+        name: "${device_name}: AC Inv Relais Raw"
+        id: ${device_id}_ac_inv_relay_raw
+        disabled_by_default: true
+      warning_1_raw:
+        name: "${device_name}: Warnung 1 Raw"
+        id: ${device_id}_warning_1_raw
+        disabled_by_default: true
+      warning_2_raw:
+        name: "${device_name}: Warnung 2 Raw"
+        id: ${device_id}_warning_2_raw
+        disabled_by_default: true
+      error_1_raw:
+        name: "${device_name}: Fehler 1 Raw"
+        id: ${device_id}_error_1_raw
+        disabled_by_default: true
+      error_2_raw:
+        name: "${device_name}: Fehler 2 Raw"
+        id: ${device_id}_error_2_raw
+        disabled_by_default: true
+      error_3_raw:
+        name: "${device_name}: Fehler 3 Raw"
+        id: ${device_id}_error_3_raw
+        disabled_by_default: true
+      error_4_raw:
+        name: "${device_name}: Fehler 4 Raw"
+        id: ${device_id}_error_4_raw
+        disabled_by_default: true
+      communication_board_failure:
+        name: "${device_name}: Kommunikationsboard Fehler"
+        id: ${device_id}_communication_board_failure
+        disabled_by_default: true
+
+# =============================================================================
+# TEXT SENSOREN (5 entities)
+# =============================================================================
+text_sensor:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+    running_status:
+      name: "${device_name}: Betriebsstatus"
+      id: ${device_id}_running_status_text
+    device_type:
+      name: "${device_name}: Gerätetyp"
+      id: ${device_id}_device_type_text
+    serial_number:
+      name: "${device_name}: Seriennummer"
+      id: ${device_id}_serial_number
+    firmware_version:
+      name: "${device_name}: Firmware Version"
+      id: ${device_id}_firmware_version
+    hardware_version:
+      name: "${device_name}: Hardware Version"
+      id: ${device_id}_hardware_version
+
+# =============================================================================
+# BINARY SENSOREN - ALLE (21 entities)
+# =============================================================================
+binary_sensor:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+
+    # -------------------------------------------------------------------------
+    # STATUS (Register 551 - 6 entities)
+    # -------------------------------------------------------------------------
+    status:
+      grid_connected:
+        name: "${device_name}: Grid Verbunden"
+        id: ${device_id}_grid_connected
+      generator_connected:
+        name: "${device_name}: Generator Verbunden"
+        id: ${device_id}_generator_connected
+      solar_sell_status:
+        name: "${device_name}: Solar-Verkauf Status"
+        id: ${device_id}_solar_sell_status
+      time_of_use_status:
+        name: "${device_name}: Zeitgesteuerte Nutzung Status"
+        id: ${device_id}_time_of_use_status
+      battery_charging:
+        name: "${device_name}: Batterie Laden"
+        id: ${device_id}_battery_charging
+      battery_discharging:
+        name: "${device_name}: Batterie Entladen"
+        id: ${device_id}_battery_discharging
+
+    # -------------------------------------------------------------------------
+    # RELAY GRID (Register 552 - 2 entities)
+    # -------------------------------------------------------------------------
+    relay_grid:
+      relay_grid_relay:
+        name: "${device_name}: Relais Grid"
+        id: ${device_id}_relay_grid_relay
+      relay_grid_run:
+        name: "${device_name}: Grid Laufend"
+        id: ${device_id}_relay_grid_run
+
+    # -------------------------------------------------------------------------
+    # RELAY GENERATOR (Register 552 - 2 entities)
+    # -------------------------------------------------------------------------
+    relay_generator:
+      relay_gen_relay:
+        name: "${device_name}: Relais Generator"
+        id: ${device_id}_relay_gen_relay
+      relay_gen_run:
+        name: "${device_name}: Generator Laufend"
+        id: ${device_id}_relay_gen_run
+
+    # -------------------------------------------------------------------------
+    # RELAY LOAD (Register 552 - 3 entities)
+    # -------------------------------------------------------------------------
+    relay_load:
+      relay_inverter_run:
+        name: "${device_name}: Inverter Laufend"
+        id: ${device_id}_relay_inverter_run
+      relay_status:
+        name: "${device_name}: Relais Status"
+        id: ${device_id}_relay_status
+      relay_ac_relay:
+        name: "${device_name}: Relais AC"
+        id: ${device_id}_relay_ac_relay
+
+    # -------------------------------------------------------------------------
+    # WARNUNGEN (Register 553, 554 - 10 entities)
+    # -------------------------------------------------------------------------
+    warnings:
+      warning_battery_low:
+        name: "${device_name}: Warnung Batterie niedrig"
+        id: ${device_id}_warn_battery_low
+      warning_battery_shutdown:
+        name: "${device_name}: Warnung Batterie Abschaltung"
+        id: ${device_id}_warn_battery_shutdown
+      warning_battery_over_voltage:
+        name: "${device_name}: Warnung Batterie Überspannung"
+        id: ${device_id}_warn_battery_over_voltage
+      warning_battery_soc_low:
+        name: "${device_name}: Warnung Batterie SOC niedrig"
+        id: ${device_id}_warn_battery_soc_low
+      warning_pv_over_voltage:
+        name: "${device_name}: Warnung PV Überspannung"
+        id: ${device_id}_warn_pv_over_voltage
+      warning_grid_voltage_high:
+        name: "${device_name}: Warnung Grid Spannung hoch"
+        id: ${device_id}_warn_grid_voltage_high
+      warning_grid_voltage_low:
+        name: "${device_name}: Warnung Grid Spannung niedrig"
+        id: ${device_id}_warn_grid_voltage_low
+      warning_grid_freq_high:
+        name: "${device_name}: Warnung Grid Frequenz hoch"
+        id: ${device_id}_warn_grid_freq_high
+      warning_grid_freq_low:
+        name: "${device_name}: Warnung Grid Frequenz niedrig"
+        id: ${device_id}_warn_grid_freq_low
+      warning_temp_high:
+        name: "${device_name}: Warnung Temperatur hoch"
+        id: ${device_id}_warn_temp_high
+      warning_overload:
+        name: "${device_name}: Warnung Überlast"
+        id: ${device_id}_warn_overload
+
+# =============================================================================
+# SWITCHES - ALLE (41 entities)
+# =============================================================================
+switch:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+
+    # -------------------------------------------------------------------------
+    # SETTINGS GRID (10 entities)
+    # -------------------------------------------------------------------------
+    settings_grid:
+      grid_charge:
+        name: "${device_name}: Netz-Ladung"
+        id: ${device_id}_grid_charge
+      solar_sell:
+        name: "${device_name}: Solar-Verkauf"
+        id: ${device_id}_solar_sell
+      grid_peak_shaving:
+        name: "${device_name}: Grid Peak Shaving"
+        id: ${device_id}_grid_peak_shaving
+      gen_peak_shaving:
+        name: "${device_name}: Generator Peak Shaving"
+        id: ${device_id}_gen_peak_shaving
+      on_grid_always_on:
+        name: "${device_name}: On-Grid Always On"
+        id: ${device_id}_on_grid_always_on
+      microinverter_export_to_grid:
+        name: "${device_name}: Microinverter Export to Grid"
+        id: ${device_id}_microinverter_export_to_grid
+      zero_export_power:
+        name: "${device_name}: Zero Export Leistung"
+        id: ${device_id}_zero_export_power
+      max_solar_sell_power:
+        name: "${device_name}: Max Solar Verkaufsleistung"
+        id: ${device_id}_max_solar_sell_power
+      grid_max_power:
+        name: "${device_name}: Grid Max Leistung"
+        id: ${device_id}_grid_max_power
+      restore_connection_time:
+        name: "${device_name}: Wiederherstellungszeit"
+        id: ${device_id}_restore_connection_time
+
+    # -------------------------------------------------------------------------
+    # SETTINGS SYSTEM (4 entities) - Debug/Factory settings (60-97)
+    # -------------------------------------------------------------------------
+    settings_system:
+      sys_beeper:
+        name: "${device_name}: System Beeper"
+        id: ${device_id}_sys_beeper
+      sys_lcd_backlight:
+        name: "${device_name}: System LCD Backlight"
+        id: ${device_id}_sys_lcd_backlight
+      sys_dst_enable:
+        name: "${device_name}: System DST Enable"
+        id: ${device_id}_sys_dst_enable
+      sys_remote_lock:
+        name: "${device_name}: System Remote Lock"
+        id: ${device_id}_sys_remote_lock
+
+    # -------------------------------------------------------------------------
+    # SETTINGS DEVICE (2 entities) - CT direction check, Solar Arc Fault
+    # -------------------------------------------------------------------------
+    settings_device:
+      external_ct_direction_check:
+        name: "${device_name}: External CT Direction Check"
+        id: ${device_id}_external_ct_direction_check
+      solar_arc_fault_mode:
+        name: "${device_name}: Solar Arc Fault Modus"
+        id: ${device_id}_solar_arc_fault_mode
+
+    # -------------------------------------------------------------------------
+    # SETTINGS TIME OF USE (26 entities)
+    # -------------------------------------------------------------------------
+    settings_time_of_use:
+      # Time of Use Enable
+      time_of_use:
+        name: "${device_name}: Zeitgesteuerte Nutzung"
+        id: ${device_id}_time_of_use
+
+      # Solar/General Charge Enable (Bit 0)
+      time_point_1_charge_enable:
+        name: "${device_name}: ZP1 Solar Ladung"
+        id: ${device_id}_tp1_charge_enable
+      time_point_2_charge_enable:
+        name: "${device_name}: ZP2 Solar Ladung"
+        id: ${device_id}_tp2_charge_enable
+      time_point_3_charge_enable:
+        name: "${device_name}: ZP3 Solar Ladung"
+        id: ${device_id}_tp3_charge_enable
+      time_point_4_charge_enable:
+        name: "${device_name}: ZP4 Solar Ladung"
+        id: ${device_id}_tp4_charge_enable
+      time_point_5_charge_enable:
+        name: "${device_name}: ZP5 Solar Ladung"
+        id: ${device_id}_tp5_charge_enable
+      time_point_6_charge_enable:
+        name: "${device_name}: ZP6 Solar Ladung"
+        id: ${device_id}_tp6_charge_enable
+
+      # Grid Charge Enable (Bit 1)
+      time_point_1_grid_charge_enable:
+        name: "${device_name}: ZP1 Grid Ladung"
+        id: ${device_id}_tp1_grid_charge_enable
+      time_point_2_grid_charge_enable:
+        name: "${device_name}: ZP2 Grid Ladung"
+        id: ${device_id}_tp2_grid_charge_enable
+      time_point_3_grid_charge_enable:
+        name: "${device_name}: ZP3 Grid Ladung"
+        id: ${device_id}_tp3_grid_charge_enable
+      time_point_4_grid_charge_enable:
+        name: "${device_name}: ZP4 Grid Ladung"
+        id: ${device_id}_tp4_grid_charge_enable
+      time_point_5_grid_charge_enable:
+        name: "${device_name}: ZP5 Grid Ladung"
+        id: ${device_id}_tp5_grid_charge_enable
+      time_point_6_grid_charge_enable:
+        name: "${device_name}: ZP6 Grid Ladung"
+        id: ${device_id}_tp6_grid_charge_enable
+
+      # Generator Charge Enable (Bit 2)
+      time_point_1_gen_charge_enable:
+        name: "${device_name}: ZP1 Generator Ladung"
+        id: ${device_id}_tp1_gen_charge_enable
+      time_point_2_gen_charge_enable:
+        name: "${device_name}: ZP2 Generator Ladung"
+        id: ${device_id}_tp2_gen_charge_enable
+      time_point_3_gen_charge_enable:
+        name: "${device_name}: ZP3 Generator Ladung"
+        id: ${device_id}_tp3_gen_charge_enable
+      time_point_4_gen_charge_enable:
+        name: "${device_name}: ZP4 Generator Ladung"
+        id: ${device_id}_tp4_gen_charge_enable
+      time_point_5_gen_charge_enable:
+        name: "${device_name}: ZP5 Generator Ladung"
+        id: ${device_id}_tp5_gen_charge_enable
+      time_point_6_gen_charge_enable:
+        name: "${device_name}: ZP6 Generator Ladung"
+        id: ${device_id}_tp6_gen_charge_enable
+
+      # Weekday Enables (Register 146, Bits 1-7)
+      weekday_monday:
+        name: "${device_name}: ToU Montag"
+        id: ${device_id}_weekday_monday
+      weekday_tuesday:
+        name: "${device_name}: ToU Dienstag"
+        id: ${device_id}_weekday_tuesday
+      weekday_wednesday:
+        name: "${device_name}: ToU Mittwoch"
+        id: ${device_id}_weekday_wednesday
+      weekday_thursday:
+        name: "${device_name}: ToU Donnerstag"
+        id: ${device_id}_weekday_thursday
+      weekday_friday:
+        name: "${device_name}: ToU Freitag"
+        id: ${device_id}_weekday_friday
+      weekday_saturday:
+        name: "${device_name}: ToU Samstag"
+        id: ${device_id}_weekday_saturday
+      weekday_sunday:
+        name: "${device_name}: ToU Sonntag"
+        id: ${device_id}_weekday_sunday
+
+    # -------------------------------------------------------------------------
+    # SETTINGS WORKING MODE (1 entity) - Forced Off-Grid Work
+    # -------------------------------------------------------------------------
+    settings_working_mode:
+      forced_off_grid_work:
+        name: "${device_name}: Forced Off-Grid Work"
+        id: ${device_id}_forced_off_grid_work
+
+    # -------------------------------------------------------------------------
+    # SETTINGS BATTERY (1 entity) - Battery Loss Report Fault
+    # Note: Battery Type and Control Mode are in SELECT section below
+    # -------------------------------------------------------------------------
+    settings_battery:
+      battery_loss_report_fault:
+        name: "${device_name}: Battery Loss Report Fault"
+        id: ${device_id}_battery_loss_report_fault
+
+    # -------------------------------------------------------------------------
+    # SETTINGS GENERATOR (4 entities) - Generator Port Relay
+    # Note: Gen Port Control Mode is in SELECT section below
+    # -------------------------------------------------------------------------
+    settings_generator:
+      external_relay:
+        name: "${device_name}: Generator Port Relay"
+        id: ${device_id}_external_relay
+      gen_port_force_on:
+        name: "${device_name}: Gen Port Force On"
+        id: ${device_id}_gen_port_force_on
+      gen_port_couple_frequency_limit:
+        name: "${device_name}: Gen Port Frequenzlimit"
+        id: ${device_id}_gen_port_couple_freq_limit
+      generator_required_power_start:
+        name: "${device_name}: Generator Erforderliche Startleistung"
+        id: ${device_id}_generator_required_power_start
+
+
+# =============================================================================
+# SELECT - ALLE (12 entities)
+# =============================================================================
+select:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+
+    # -------------------------------------------------------------------------
+    # SETTINGS GRID (5 entities) - Grid configuration
+    # -------------------------------------------------------------------------
+    settings_grid:
+      grid_type:
+        name: "${device_name}: Netz-Typ"
+        id: ${device_id}_grid_type
+      grid_mode:
+        name: "${device_name}: Netz-Modus"
+        id: ${device_id}_grid_mode
+      grid_nominal_voltage:
+        name: "${device_name}: Grid Nennspannung"
+        id: ${device_id}_grid_nominal_voltage
+      grid_nominal_frequency:
+        name: "${device_name}: Grid Nennfrequenz"
+        id: ${device_id}_grid_nominal_frequency
+      grid_phase_sequence:
+        name: "${device_name}: Grid Phasenfolge"
+        id: ${device_id}_grid_phase_sequence
+      grid_check_source:
+        name: "${device_name}: Grid Messung"
+        id: ${device_id}_grid_check_source
+
+    # -------------------------------------------------------------------------
+    # SETTINGS WORKING MODE (2 entities) - Energy priority and limit control
+    # -------------------------------------------------------------------------
+    settings_working_mode:
+      energy_priority:
+        name: "${device_name}: Energie-Priorität"
+        id: ${device_id}_energy_priority
+      limit_control_mode:
+        name: "${device_name}: Limit Steuerungsmodus"
+        id: ${device_id}_limit_control_mode
+
+    # -------------------------------------------------------------------------
+    # SETTINGS BATTERY (2 entities) - Battery type and control mode
+    # -------------------------------------------------------------------------
+    settings_battery:
+      battery_type:
+        name: "${device_name}: Batterie-Typ"
+        id: ${device_id}_battery_type
+      battery_control_mode:
+        name: "${device_name}: Batterie-Steuerung"
+        id: ${device_id}_battery_control_mode
+
+    # -------------------------------------------------------------------------
+    # SETTINGS GEN PORT (1 entity) - Generator Port Control Mode
+    # -------------------------------------------------------------------------
+    settings_gen_port:
+      gen_port_control_mode:
+        name: "${device_name}: Gen Port Modus"
+        id: ${device_id}_gen_port_control_mode
+
+    # -------------------------------------------------------------------------
+    # SETTINGS SYSTEM TIME (1 entity)
+    # -------------------------------------------------------------------------
+    settings_system_time:
+      system_time:
+        name: "${device_name}: Systemzeit"
+        id: ${device_id}_system_time
+
+# =============================================================================
+# TIME - System Time Synchronization
+# =============================================================================
+time:
+  - platform: deye_inverter
+    id: ${device_id}_system_time
+    deye_inverter_id: ${device_id}
+    # Sync triggered automatically when Settings are read (every 2 minutes)
+    # Only writes if: local time was just set OR difference > max_time_diff
+    # max_time_diff: 0s = auto sync disabled (only sync on time change/DST)
+    max_time_diff: 10s  # Sync if difference > 10 seconds
+    
+    # Actions available:
+    # - deye_inverter.write_time: Manually write time to inverter
+    #   Example: on_boot -> then: deye_inverter.write_time
+    #   Or: button.press -> then: deye_inverter.write_time
+
+# =============================================================================
+# ENTITY SUMMARY
+# =============================================================================
+# SENSORS:       234 entities
+#   - Device Info:           2
+#   - Battery:               6
+#   - PV1-4:                12
+#   - Grid:                 32
+#   - Load Grid:             7
+#   - Load Grid Port:       12
+#   - Load UPS:              8
+#   - Generator:            11
+#   - Generator Port:       11
+#   - Inverter:              9
+#   - Temperatures:          2
+#   - DC Side:               7
+#   - Statistics Daily:     15
+#   - Statistics Total:      9 (7 combined 32-bit + 2 existing)
+#   - Status Raw:           10
+#
+# TEXT_SENSORS:    5 entities
+#   - Running Status
+#   - Device Type
+#   - Serial Number
+#   - Firmware Version
+#   - Hardware Version
+#
+# BINARY_SENSORS: 21 entities
+#   - Status:                6
+#   - Relay Grid:            2
+#   - Relay Generator:       2
+#   - Relay Load:            3
+#   - Warnings:             10
+#
+# SWITCHES:       41 entities
+#   - Settings Grid:                5
+#   - Settings System:              4
+#   - Settings Device:              1
+#   - Settings Time of Use:        26
+#   - Settings Special:             5
+#
+# SELECTS:        12 entities
+#   - Settings Grid:               5
+#   - Settings Working Mode:       2
+#   - Settings Battery:            2
+#   - Settings Gen Port:           1
+#   - Settings System:             1
+#   - Settings Device:             4
+#   - Settings California:         3
+#
+# NUMBERS:        72 entities
+#   - Settings Battery:              2
+#   - Settings Battery Voltage:      7
+#   - Settings Battery SOC:          3
+#   - Settings Battery Additional:   7
+#   - Settings Generator:            7
+#   - Settings Generator 2:          5
+#   - Settings Smart Load:           4
+#   - Settings Grid Charge:          4
+#   - Settings Time of Use Numbers: 18
+#   - Settings Special:              7
+#   - Settings System:               3
+#   - Settings Grid Protection:      9
+#   - Settings California:          14
+#
+# DATETIME:        6 entities
+#   - Settings Time of Use:        6
+#
+# TOTAL: 378+ entities (including internal/register exposure)
+# Note: Combined 32-bit sensors (7) replace 14 separate high/low sensors.
+#       Use value_type: U_DWORD_R for 32-bit register pairs with reversed byte order.
+# =============================================================================

@@ -1,0 +1,65 @@
+# =============================================================================
+# Deye Inverter Beispiel - RTU (Seriell)
+# =============================================================================
+# Dieses Beispiel zeigt die Integration eines Deye Wechselrichters über RS485.
+#
+# VERWENDUNG:
+# 1. Passe die UART-Konfiguration an deine Hardware an
+# 2. Wähle das passende Package (example.yaml, deye_inverter.yml oder full.yaml)
+# 3. Konfiguriere device_name, device_id, modbus_id und modbus_address
+# =============================================================================
+esphome:
+
+# ------------------------------------------------------------------------------
+# UART Konfiguration für RS485
+# ------------------------------------------------------------------------------
+uart:
+  - id: uart_inverter
+    port: "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
+    baud_rate: 9600
+    data_bits: 8
+    stop_bits: 1
+    parity: NONE
+    rx_buffer_size: 256
+
+# ------------------------------------------------------------------------------
+# Modbus Controller
+# ------------------------------------------------------------------------------
+modbus:
+  - id: modbus_inverter
+    uart_id: uart_inverter
+    send_wait_time: 100ms
+    role: client
+    add_rx_frame_delay: 25ms # Wichtig: Wechselrichter sendet fragmentierte Antworten
+
+# ------------------------------------------------------------------------------
+# External Components
+# ------------------------------------------------------------------------------
+external_components:
+  - source: github://maringeph/esphome-custom-components@master
+    components: [deye_inverter]
+
+# ------------------------------------------------------------------------------
+# Package Include
+# ------------------------------------------------------------------------------
+packages:
+  - wechselrichter_01: !include
+      file: github://maringeph/esphome-custom-components/packages/deye_inverter/full.yaml@master
+      vars:
+        device_name: "Wechselrichter 01"
+        device_id: wechselrichter_01
+        modbus_id: modbus_inverter
+        modbus_address: "1"
+
+# =============================================================================
+# ALTERNATIV: TCP Konfiguration (für Ethernet/WLAN Verbindung)
+# =============================================================================
+# Entferne die UART und modbus Sektionen oben und verwende stattdessen:
+#
+# modbus:
+#   - id: modbus_inverter
+#     tcp:
+#       ip_address: "192.168.1.100"
+#       port: 502
+#     role: client
+# =============================================================================

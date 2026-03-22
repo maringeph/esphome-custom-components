@@ -9,6 +9,7 @@ Mature components will be committed upstream to ESPHome.
 ## Components
 
 - **DS100**: Three Phase SmartMeter over RS485
+- **Deye Inverter**: Deye Inverter over RS485 / TCP/IP
 
 ## Structure
 

@@ -3,10 +3,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import select
-from esphome.const import (
-    CONF_ID,
-    DEVICE_CLASS_ENUM,
-)
+from esphome.const import CONF_ID
 
 from . import (
     CONF_DEYE_INVERTER_ID,
@@ -239,63 +236,33 @@ CONFIG_SCHEMA = cv.Schema(
         # Settings Grid - grid_type, grid_mode, grid_nominal_voltage, grid_nominal_frequency, grid_phase_sequence
         cv.Optional(CONF_SETTINGS_GRID): cv.Schema(
             {
-                cv.Optional(CONF_GRID_TYPE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional(CONF_GRID_MODE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
+                cv.Optional(CONF_GRID_TYPE): select.select_schema(DeyeSelect),
+                cv.Optional(CONF_GRID_MODE): select.select_schema(DeyeSelect),
                 cv.Optional(CONF_GRID_NOMINAL_VOLTAGE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
+                    DeyeSelect
                 ),
                 cv.Optional(CONF_GRID_NOMINAL_FREQUENCY): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
+                    DeyeSelect
                 ),
-                cv.Optional(CONF_GRID_PHASE_SEQUENCE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional(CONF_GRID_CHECK_SOURCE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
+                cv.Optional(CONF_GRID_PHASE_SEQUENCE): select.select_schema(DeyeSelect),
+                cv.Optional(CONF_GRID_CHECK_SOURCE): select.select_schema(DeyeSelect),
             }
         ),
         # Settings Device - ext_baud_rate, ext_parity, ext_stop_bits, ext_protocol
         cv.Optional(CONF_SETTINGS_DEVICE): cv.Schema(
             {
-                cv.Optional(CONF_EXT_BAUD_RATE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional(CONF_EXT_PARITY): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional(CONF_EXT_STOP_BITS): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional(CONF_EXT_PROTOCOL): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
+                cv.Optional(CONF_EXT_BAUD_RATE): select.select_schema(DeyeSelect),
+                cv.Optional(CONF_EXT_PARITY): select.select_schema(DeyeSelect),
+                cv.Optional(CONF_EXT_STOP_BITS): select.select_schema(DeyeSelect),
+                cv.Optional(CONF_EXT_PROTOCOL): select.select_schema(DeyeSelect),
             }
         ),
         # Settings Battery - battery_type, battery_control_mode
         cv.Optional(CONF_SETTINGS_BATTERY): cv.Schema(
             {
-                cv.Optional(CONF_BATTERY_TYPE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
+                cv.Optional(CONF_BATTERY_TYPE): select.select_schema(DeyeSelect),
                 cv.Optional(CONF_BATTERY_CONTROL_MODE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
+                    DeyeSelect
                 ),
             }
         ),
@@ -303,52 +270,30 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional("settings_gen_port"): cv.Schema(
             {
                 cv.Optional(CONF_GEN_PORT_CONTROL_MODE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
+                    DeyeSelect
                 ),
             }
         ),
         # Settings Working Mode - energy_priority, limit_control_mode, working_mode
         cv.Optional(CONF_SETTINGS_WORKING_MODE): cv.Schema(
             {
-                cv.Optional(CONF_WORKING_MODE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional(CONF_ENERGY_PRIORITY): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional(CONF_LIMIT_CONTROL_MODE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
+                cv.Optional(CONF_WORKING_MODE): select.select_schema(DeyeSelect),
+                cv.Optional(CONF_ENERGY_PRIORITY): select.select_schema(DeyeSelect),
+                cv.Optional(CONF_LIMIT_CONTROL_MODE): select.select_schema(DeyeSelect),
             }
         ),
         # Settings System - sys_language
         cv.Optional(CONF_SETTINGS_SYSTEM): cv.Schema(
             {
-                cv.Optional(CONF_SYS_LANGUAGE): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
+                cv.Optional(CONF_SYS_LANGUAGE): select.select_schema(DeyeSelect),
             }
         ),
         # Settings California
         cv.Optional(CONF_SETTINGS_CALIFORNIA): cv.Schema(
             {
-                cv.Optional("ca_rule21_category"): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional("ca_normal_op_cat"): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
-                cv.Optional("ca_abnormal_op_cat"): select.select_schema(
-                    DeyeSelect,
-                    device_class=DEVICE_CLASS_ENUM,
-                ),
+                cv.Optional("ca_rule21_category"): select.select_schema(DeyeSelect),
+                cv.Optional("ca_normal_op_cat"): select.select_schema(DeyeSelect),
+                cv.Optional("ca_abnormal_op_cat"): select.select_schema(DeyeSelect),
             }
         ),
     }

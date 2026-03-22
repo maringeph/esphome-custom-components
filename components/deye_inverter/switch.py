@@ -13,14 +13,10 @@ from . import (
     DeyeInverter,
 )
 
-AUTO_LOAD = ["modbus_controller"]
-
 # Namespace for DeyeSwitch
 DeyeSwitch = cg.esphome_ns.namespace("deye_inverter").class_(
     "DeyeSwitch", switch.Switch, cg.Component
 )
-
-CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
 # CONF CONSTANTS - Switches (lokal definiert)

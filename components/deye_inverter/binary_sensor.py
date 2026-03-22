@@ -14,10 +14,6 @@ from . import (
     DeyeInverter,
 )
 
-AUTO_LOAD = ["modbus_controller"]
-
-CODEOWNERS = ["@maringeph"]
-
 # =============================================================================
 # CONF CONSTANTS FOR BINARY SENSORS - Status Group
 # =============================================================================

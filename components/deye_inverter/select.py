@@ -36,14 +36,10 @@ from . import (
     DeyeInverter,
 )
 
-AUTO_LOAD = ["modbus_controller"]
-
 # Namespace for DeyeSelect
 DeyeSelect = cg.esphome_ns.namespace("deye_inverter").class_(
     "DeyeSelect", select.Select, cg.Component
 )
-
-CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
 # Register addresses for Deye inverter select entities

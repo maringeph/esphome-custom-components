@@ -6,14 +6,10 @@ from esphome.const import CONF_ID
 # Import only the parent class reference from __init__.py
 from . import CONF_DEYE_INVERTER_ID, DeyeInverter
 
-AUTO_LOAD = ["modbus_controller"]
-
 # Namespace für DeyeTextSensor
 DeyeTextSensor = cg.esphome_ns.namespace("deye_inverter").class_(
     "DeyeTextSensor", text_sensor.TextSensor, cg.Component
 )
-
-CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
 # LOCAL CONF CONSTANTS for Text Sensors

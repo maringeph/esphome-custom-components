@@ -11,59 +11,6 @@ from esphome.const import (
 from . import (
     CONF_DEYE_INVERTER_ID,
     DeyeInverter,
-    CONF_SETTINGS_GRID,
-    CONF_SETTINGS_DEVICE,
-    CONF_SETTINGS_TIME_OF_USE,
-    CONF_SETTINGS_SYSTEM,
-    CONF_SETTINGS_WORKING_MODE,
-    CONF_SETTINGS_BATTERY,
-    CONF_SETTINGS_GENERATOR,
-    CONF_GRID_CHARGE,
-    CONF_SOLAR_SELL,
-    CONF_GRID_PEAK_SHAVING,
-    CONF_GEN_PEAK_SHAVING,
-    CONF_ON_GRID_ALWAYS_ON,
-    CONF_MICROINVERTER_EXPORT_TO_GRID,
-    CONF_EXTERNAL_CT_DIRECTION_CHECK,
-    CONF_SOLAR_ARC_FAULT_MODE,
-    CONF_FORCED_OFF_GRID_WORK,
-    CONF_BATTERY_LOSS_REPORT_FAULT,
-    CONF_EXTERNAL_RELAY,
-    CONF_GEN_PORT_FORCE_ON,
-    CONF_TIME_OF_USE,
-    # Solar/General Charge Enable
-    CONF_TIME_POINT_1_CHARGE_ENABLE,
-    CONF_TIME_POINT_2_CHARGE_ENABLE,
-    CONF_TIME_POINT_3_CHARGE_ENABLE,
-    CONF_TIME_POINT_4_CHARGE_ENABLE,
-    CONF_TIME_POINT_5_CHARGE_ENABLE,
-    CONF_TIME_POINT_6_CHARGE_ENABLE,
-    # Grid Charge Enable
-    CONF_TIME_POINT_1_GRID_CHARGE_ENABLE,
-    CONF_TIME_POINT_2_GRID_CHARGE_ENABLE,
-    CONF_TIME_POINT_3_GRID_CHARGE_ENABLE,
-    CONF_TIME_POINT_4_GRID_CHARGE_ENABLE,
-    CONF_TIME_POINT_5_GRID_CHARGE_ENABLE,
-    CONF_TIME_POINT_6_GRID_CHARGE_ENABLE,
-    # Generator Charge Enable
-    CONF_TIME_POINT_1_GEN_CHARGE_ENABLE,
-    CONF_TIME_POINT_2_GEN_CHARGE_ENABLE,
-    CONF_TIME_POINT_3_GEN_CHARGE_ENABLE,
-    CONF_TIME_POINT_4_GEN_CHARGE_ENABLE,
-    CONF_TIME_POINT_5_GEN_CHARGE_ENABLE,
-    CONF_TIME_POINT_6_GEN_CHARGE_ENABLE,
-    # Weekday Enables
-    CONF_WEEKDAY_MONDAY,
-    CONF_WEEKDAY_TUESDAY,
-    CONF_WEEKDAY_WEDNESDAY,
-    CONF_WEEKDAY_THURSDAY,
-    CONF_WEEKDAY_FRIDAY,
-    CONF_WEEKDAY_SATURDAY,
-    CONF_WEEKDAY_SUNDAY,
-    CONF_SYS_BEEPER,
-    CONF_SYS_LCD_BACKLIGHT,
-    CONF_SYS_DST_ENABLE,
-    CONF_SYS_REMOTE_LOCK,
 )
 
 AUTO_LOAD = ["modbus_controller"]
@@ -74,6 +21,81 @@ DeyeSwitch = cg.esphome_ns.namespace("deye_inverter").class_(
 )
 
 CODEOWNERS = ["@maringeph"]
+
+# =============================================================================
+# CONF CONSTANTS - Switches (lokal definiert)
+# =============================================================================
+CONF_SETTINGS_GRID = "settings_grid"
+CONF_SETTINGS_DEVICE = "settings_device"
+CONF_SETTINGS_TIME_OF_USE = "settings_time_of_use"
+CONF_SETTINGS_SYSTEM = "settings_system"
+CONF_SETTINGS_WORKING_MODE = "settings_working_mode"
+CONF_SETTINGS_BATTERY = "settings_battery"
+CONF_SETTINGS_GENERATOR = "settings_generator"
+
+# Grid switches
+CONF_GRID_CHARGE = "grid_charge"
+CONF_SOLAR_SELL = "solar_sell"
+CONF_GRID_PEAK_SHAVING = "grid_peak_shaving"
+CONF_GEN_PEAK_SHAVING = "gen_peak_shaving"
+CONF_ON_GRID_ALWAYS_ON = "on_grid_always_on"
+CONF_MICROINVERTER_EXPORT_TO_GRID = "microinverter_export_to_grid"
+
+# Device switches
+CONF_EXTERNAL_CT_DIRECTION_CHECK = "external_ct_direction_check"
+CONF_SOLAR_ARC_FAULT_MODE = "solar_arc_fault_mode"
+
+# Working mode switches
+CONF_FORCED_OFF_GRID_WORK = "forced_off_grid_work"
+
+# Battery switches
+CONF_BATTERY_LOSS_REPORT_FAULT = "battery_loss_report_fault"
+
+# Generator switches
+CONF_EXTERNAL_RELAY = "external_relay"
+CONF_GEN_PORT_FORCE_ON = "gen_port_force_on"
+
+# Time of Use switches
+CONF_TIME_OF_USE = "time_of_use"
+
+# Solar/General Charge Enable
+CONF_TIME_POINT_1_CHARGE_ENABLE = "time_point_1_charge_enable"
+CONF_TIME_POINT_2_CHARGE_ENABLE = "time_point_2_charge_enable"
+CONF_TIME_POINT_3_CHARGE_ENABLE = "time_point_3_charge_enable"
+CONF_TIME_POINT_4_CHARGE_ENABLE = "time_point_4_charge_enable"
+CONF_TIME_POINT_5_CHARGE_ENABLE = "time_point_5_charge_enable"
+CONF_TIME_POINT_6_CHARGE_ENABLE = "time_point_6_charge_enable"
+
+# Grid Charge Enable
+CONF_TIME_POINT_1_GRID_CHARGE_ENABLE = "time_point_1_grid_charge_enable"
+CONF_TIME_POINT_2_GRID_CHARGE_ENABLE = "time_point_2_grid_charge_enable"
+CONF_TIME_POINT_3_GRID_CHARGE_ENABLE = "time_point_3_grid_charge_enable"
+CONF_TIME_POINT_4_GRID_CHARGE_ENABLE = "time_point_4_grid_charge_enable"
+CONF_TIME_POINT_5_GRID_CHARGE_ENABLE = "time_point_5_grid_charge_enable"
+CONF_TIME_POINT_6_GRID_CHARGE_ENABLE = "time_point_6_grid_charge_enable"
+
+# Generator Charge Enable
+CONF_TIME_POINT_1_GEN_CHARGE_ENABLE = "time_point_1_gen_charge_enable"
+CONF_TIME_POINT_2_GEN_CHARGE_ENABLE = "time_point_2_gen_charge_enable"
+CONF_TIME_POINT_3_GEN_CHARGE_ENABLE = "time_point_3_gen_charge_enable"
+CONF_TIME_POINT_4_GEN_CHARGE_ENABLE = "time_point_4_gen_charge_enable"
+CONF_TIME_POINT_5_GEN_CHARGE_ENABLE = "time_point_5_gen_charge_enable"
+CONF_TIME_POINT_6_GEN_CHARGE_ENABLE = "time_point_6_gen_charge_enable"
+
+# Weekday Enables
+CONF_WEEKDAY_MONDAY = "weekday_monday"
+CONF_WEEKDAY_TUESDAY = "weekday_tuesday"
+CONF_WEEKDAY_WEDNESDAY = "weekday_wednesday"
+CONF_WEEKDAY_THURSDAY = "weekday_thursday"
+CONF_WEEKDAY_FRIDAY = "weekday_friday"
+CONF_WEEKDAY_SATURDAY = "weekday_saturday"
+CONF_WEEKDAY_SUNDAY = "weekday_sunday"
+
+# System switches
+CONF_SYS_BEEPER = "sys_beeper"
+CONF_SYS_LCD_BACKLIGHT = "sys_lcd_backlight"
+CONF_SYS_DST_ENABLE = "sys_dst_enable"
+CONF_SYS_REMOTE_LOCK = "sys_remote_lock"
 
 # =============================================================================
 # Register addresses and bitmasks for Deye inverter switches
@@ -192,220 +214,237 @@ BITMASK_GENERATOR_CHARGING_ENABLED = 0x0001
 
 
 # =============================================================================
-# CONFIGURATION SCHEMA
+# SCHEMA DEFINITIONS
 # =============================================================================
 
-CONFIG_SCHEMA = cv.Schema(
+# Settings Grid Schema
+SETTINGS_GRID_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(cg.EntityBase),
-        cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
-        # Settings Grid Group - grid_charge, solar_sell, grid_peak_shaving, gen_peak_shaving, on_grid_always_on
-        cv.Optional(CONF_SETTINGS_GRID): cv.Schema(
-            {
-                cv.Optional(CONF_GRID_CHARGE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_SOLAR_SELL): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_GRID_PEAK_SHAVING): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_GEN_PEAK_SHAVING): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_ON_GRID_ALWAYS_ON): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_MICROINVERTER_EXPORT_TO_GRID): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-            }
+        cv.Optional(CONF_GRID_CHARGE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
         ),
-        # Settings Device Group - external_ct_direction_check, solar_arc_fault_mode
-        cv.Optional(CONF_SETTINGS_DEVICE): cv.Schema(
-            {
-                cv.Optional(CONF_EXTERNAL_CT_DIRECTION_CHECK): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_SOLAR_ARC_FAULT_MODE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-            }
+        cv.Optional(CONF_SOLAR_SELL): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
         ),
-        # Settings Working Mode Group - forced_off_grid_work
-        cv.Optional(CONF_SETTINGS_WORKING_MODE): cv.Schema(
-            {
-                cv.Optional(CONF_FORCED_OFF_GRID_WORK): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-            }
+        cv.Optional(CONF_GRID_PEAK_SHAVING): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
         ),
-        # Settings Battery Group - battery_loss_report_fault
-        cv.Optional(CONF_SETTINGS_BATTERY): cv.Schema(
-            {
-                cv.Optional(CONF_BATTERY_LOSS_REPORT_FAULT): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-            }
+        cv.Optional(CONF_GEN_PEAK_SHAVING): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
         ),
-        # Settings Generator Group - external_relay, gen_port_force_on
-        cv.Optional(CONF_SETTINGS_GENERATOR): cv.Schema(
-            {
-                cv.Optional(CONF_EXTERNAL_RELAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_GEN_PORT_FORCE_ON): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-            }
+        cv.Optional(CONF_ON_GRID_ALWAYS_ON): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
         ),
-        # Settings System Group
-        cv.Optional(CONF_SETTINGS_SYSTEM): cv.Schema(
-            {
-                cv.Optional(CONF_SYS_BEEPER): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_SYS_LCD_BACKLIGHT): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_SYS_DST_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_SYS_REMOTE_LOCK): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-            }
+        cv.Optional(CONF_MICROINVERTER_EXPORT_TO_GRID): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
         ),
-        # Settings Time of Use Group - time_of_use switch + charge enables + weekday enables
-        cv.Optional(CONF_SETTINGS_TIME_OF_USE): cv.Schema(
-            {
-                cv.Optional(CONF_TIME_OF_USE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                # Solar/General Charge Enable (Bit 0)
-                cv.Optional(CONF_TIME_POINT_1_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_2_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_3_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_4_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_5_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_6_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                # Grid Charge Enable (Bit 1)
-                cv.Optional(CONF_TIME_POINT_1_GRID_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_2_GRID_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_3_GRID_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_4_GRID_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_5_GRID_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_6_GRID_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                # Generator Charge Enable (Bit 2)
-                cv.Optional(CONF_TIME_POINT_1_GEN_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_2_GEN_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_3_GEN_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_4_GEN_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_5_GEN_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_TIME_POINT_6_GEN_CHARGE_ENABLE): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                # Weekday Enables (Register 146, Bits 1-7)
-                cv.Optional(CONF_WEEKDAY_MONDAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_WEEKDAY_TUESDAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_WEEKDAY_WEDNESDAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_WEEKDAY_THURSDAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_WEEKDAY_FRIDAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_WEEKDAY_SATURDAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-                cv.Optional(CONF_WEEKDAY_SUNDAY): switch.switch_schema(
-                    DeyeSwitch,
-                    device_class=DEVICE_CLASS_SWITCH,
-                ),
-            }
+    }
+)
+
+# Settings Device Schema
+SETTINGS_DEVICE_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_EXTERNAL_CT_DIRECTION_CHECK): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
         ),
+        cv.Optional(CONF_SOLAR_ARC_FAULT_MODE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+    }
+)
+
+# Settings Working Mode Schema
+SETTINGS_WORKING_MODE_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_FORCED_OFF_GRID_WORK): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+    }
+)
+
+# Settings Battery Schema
+SETTINGS_BATTERY_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_BATTERY_LOSS_REPORT_FAULT): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+    }
+)
+
+# Settings Generator Schema
+SETTINGS_GENERATOR_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_EXTERNAL_RELAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_GEN_PORT_FORCE_ON): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+    }
+)
+
+# Settings System Schema
+SETTINGS_SYSTEM_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_SYS_BEEPER): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_SYS_LCD_BACKLIGHT): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_SYS_DST_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_SYS_REMOTE_LOCK): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+    }
+)
+
+# Settings Time of Use Schema
+SETTINGS_TIME_OF_USE_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_TIME_OF_USE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        # Solar/General Charge Enable (Bit 0)
+        cv.Optional(CONF_TIME_POINT_1_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_2_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_3_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_4_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_5_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_6_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        # Grid Charge Enable (Bit 1)
+        cv.Optional(CONF_TIME_POINT_1_GRID_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_2_GRID_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_3_GRID_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_4_GRID_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_5_GRID_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_6_GRID_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        # Generator Charge Enable (Bit 2)
+        cv.Optional(CONF_TIME_POINT_1_GEN_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_2_GEN_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_3_GEN_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_4_GEN_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_5_GEN_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_TIME_POINT_6_GEN_CHARGE_ENABLE): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        # Weekday Enables (Register 146, Bits 1-7)
+        cv.Optional(CONF_WEEKDAY_MONDAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_WEEKDAY_TUESDAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_WEEKDAY_WEDNESDAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_WEEKDAY_THURSDAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_WEEKDAY_FRIDAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_WEEKDAY_SATURDAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_WEEKDAY_SUNDAY): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+    }
+)
+
+# =============================================================================
+# PLATFORM SCHEMA
+# =============================================================================
+
+PLATFORM_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_SETTINGS_GRID): SETTINGS_GRID_SCHEMA,
+        cv.Optional(CONF_SETTINGS_DEVICE): SETTINGS_DEVICE_SCHEMA,
+        cv.Optional(CONF_SETTINGS_WORKING_MODE): SETTINGS_WORKING_MODE_SCHEMA,
+        cv.Optional(CONF_SETTINGS_BATTERY): SETTINGS_BATTERY_SCHEMA,
+        cv.Optional(CONF_SETTINGS_GENERATOR): SETTINGS_GENERATOR_SCHEMA,
+        cv.Optional(CONF_SETTINGS_SYSTEM): SETTINGS_SYSTEM_SCHEMA,
+        cv.Optional(CONF_SETTINGS_TIME_OF_USE): SETTINGS_TIME_OF_USE_SCHEMA,
     }
 )
 
@@ -463,7 +502,7 @@ async def register_switch_entity_2bit(
 
 
 async def to_code(config):
-    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
 
     # Settings Grid Switches
     if CONF_SETTINGS_GRID in config:
@@ -474,7 +513,7 @@ async def to_code(config):
             await register_switch_entity(
                 grid_config,
                 CONF_GRID_CHARGE,
-                parent,
+                var,
                 REGISTER_GRID_CHARGE,
                 BITMASK_GRID_CHARGE,
             )
@@ -484,7 +523,7 @@ async def to_code(config):
             await register_switch_entity(
                 grid_config,
                 CONF_SOLAR_SELL,
-                parent,
+                var,
                 REGISTER_SOLAR_SELL,
                 BITMASK_SOLAR_SELL,
             )
@@ -494,7 +533,7 @@ async def to_code(config):
             await register_switch_entity_2bit(
                 grid_config,
                 CONF_GRID_PEAK_SHAVING,
-                parent,
+                var,
                 REGISTER_GRID_PEAK_SHAVING,
                 BITMASK_GRID_PEAK_SHAVING,
                 VALUE_ENABLE_GRID_PEAK_SHAVING,
@@ -507,7 +546,7 @@ async def to_code(config):
             await register_switch_entity_2bit(
                 grid_config,
                 CONF_GEN_PEAK_SHAVING,
-                parent,
+                var,
                 REGISTER_GEN_PEAK_SHAVING,
                 BITMASK_GEN_PEAK_SHAVING,
                 VALUE_ENABLE_GEN_PEAK_SHAVING,
@@ -520,12 +559,25 @@ async def to_code(config):
             await register_switch_entity_2bit(
                 grid_config,
                 CONF_ON_GRID_ALWAYS_ON,
-                parent,
+                var,
                 REGISTER_ON_GRID_ALWAYS_ON,
                 BITMASK_ON_GRID_ALWAYS_ON,
                 VALUE_ENABLE_ON_GRID_ALWAYS_ON,
                 VALUE_DISABLE_ON_GRID_ALWAYS_ON,
                 SHIFT_ON_GRID_ALWAYS_ON,
+            )
+
+        # Microinverter Export to Grid (Register 178, Bits 0-1)
+        if CONF_MICROINVERTER_EXPORT_TO_GRID in grid_config:
+            await register_switch_entity_2bit(
+                grid_config,
+                CONF_MICROINVERTER_EXPORT_TO_GRID,
+                var,
+                REGISTER_MICROINVERTER_EXPORT_TO_GRID,
+                BITMASK_MICROINVERTER_EXPORT_TO_GRID,
+                VALUE_ENABLE_MICROINVERTER_EXPORT,
+                VALUE_DISABLE_MICROINVERTER_EXPORT,
+                SHIFT_MICROINVERTER_EXPORT,
             )
 
     # Settings Device Switches
@@ -537,12 +589,22 @@ async def to_code(config):
             await register_switch_entity_2bit(
                 device_config,
                 CONF_EXTERNAL_CT_DIRECTION_CHECK,
-                parent,
+                var,
                 REGISTER_EXTERNAL_CT_DIRECTION_CHECK,
                 BITMASK_EXTERNAL_CT_DIRECTION_CHECK,
                 VALUE_ENABLE_CT_DIRECTION_CHECK,
                 VALUE_DISABLE_CT_DIRECTION_CHECK,
                 SHIFT_CT_DIRECTION_CHECK,
+            )
+
+        # Solar Arc Fault Mode (Register 181, 1-bit)
+        if CONF_SOLAR_ARC_FAULT_MODE in device_config:
+            await register_switch_entity(
+                device_config,
+                CONF_SOLAR_ARC_FAULT_MODE,
+                var,
+                REGISTER_SOLAR_ARC_FAULT_MODE,
+                BITMASK_SOLAR_ARC_FAULT_MODE,
             )
 
     # Settings System Switches
@@ -554,7 +616,7 @@ async def to_code(config):
             await register_switch_entity(
                 system_config,
                 CONF_SYS_BEEPER,
-                parent,
+                var,
                 REGISTER_SYS_BEEPER,
                 BITMASK_SYS_BEEPER,
             )
@@ -564,7 +626,7 @@ async def to_code(config):
             await register_switch_entity(
                 system_config,
                 CONF_SYS_LCD_BACKLIGHT,
-                parent,
+                var,
                 REGISTER_SYS_LCD_BACKLIGHT,
                 BITMASK_SYS_LCD_BACKLIGHT,
             )
@@ -574,7 +636,7 @@ async def to_code(config):
             await register_switch_entity(
                 system_config,
                 CONF_SYS_DST_ENABLE,
-                parent,
+                var,
                 REGISTER_SYS_DST_ENABLE,
                 BITMASK_SYS_DST_ENABLE,
             )
@@ -584,7 +646,7 @@ async def to_code(config):
             await register_switch_entity(
                 system_config,
                 CONF_SYS_REMOTE_LOCK,
-                parent,
+                var,
                 REGISTER_SYS_REMOTE_LOCK,
                 BITMASK_SYS_REMOTE_LOCK,
             )
@@ -598,7 +660,7 @@ async def to_code(config):
             await register_switch_entity(
                 tou_config,
                 CONF_TIME_OF_USE,
-                parent,
+                var,
                 REGISTER_TIME_OF_USE,
                 BITMASK_TIME_OF_USE,
             )
@@ -617,7 +679,7 @@ async def to_code(config):
                 await register_switch_entity(
                     tou_config,
                     conf_key,
-                    parent,
+                    var,
                     register_addr,
                     BITMASK_CHARGE_ENABLE_SOLAR,
                 )
@@ -636,7 +698,7 @@ async def to_code(config):
                 await register_switch_entity(
                     tou_config,
                     conf_key,
-                    parent,
+                    var,
                     register_addr,
                     BITMASK_CHARGE_ENABLE_GRID,
                 )
@@ -655,7 +717,7 @@ async def to_code(config):
                 await register_switch_entity(
                     tou_config,
                     conf_key,
-                    parent,
+                    var,
                     register_addr,
                     BITMASK_CHARGE_ENABLE_GEN,
                 )
@@ -675,37 +737,10 @@ async def to_code(config):
                 await register_switch_entity(
                     tou_config,
                     conf_key,
-                    parent,
+                    var,
                     REGISTER_TIME_OF_USE_WEEKDAYS,
                     bitmask,
                 )
-
-    # Settings Grid - Microinverter Export to Grid (Register 178, Bits 0-1)
-    if CONF_SETTINGS_GRID in config:
-        grid_config = config[CONF_SETTINGS_GRID]
-        if CONF_MICROINVERTER_EXPORT_TO_GRID in grid_config:
-            await register_switch_entity_2bit(
-                grid_config,
-                CONF_MICROINVERTER_EXPORT_TO_GRID,
-                parent,
-                REGISTER_MICROINVERTER_EXPORT_TO_GRID,
-                BITMASK_MICROINVERTER_EXPORT_TO_GRID,
-                VALUE_ENABLE_MICROINVERTER_EXPORT,
-                VALUE_DISABLE_MICROINVERTER_EXPORT,
-                SHIFT_MICROINVERTER_EXPORT,
-            )
-
-    # Settings Device - Solar Arc Fault Mode (Register 181, 1-bit)
-    if CONF_SETTINGS_DEVICE in config:
-        device_config = config[CONF_SETTINGS_DEVICE]
-        if CONF_SOLAR_ARC_FAULT_MODE in device_config:
-            await register_switch_entity(
-                device_config,
-                CONF_SOLAR_ARC_FAULT_MODE,
-                parent,
-                REGISTER_SOLAR_ARC_FAULT_MODE,
-                BITMASK_SOLAR_ARC_FAULT_MODE,
-            )
 
     # Settings Working Mode - Forced Off Grid Work (Register 179, Bits 2-3)
     if CONF_SETTINGS_WORKING_MODE in config:
@@ -714,7 +749,7 @@ async def to_code(config):
             await register_switch_entity_2bit(
                 working_mode_config,
                 CONF_FORCED_OFF_GRID_WORK,
-                parent,
+                var,
                 REGISTER_FORCED_OFF_GRID_WORK,
                 BITMASK_FORCED_OFF_GRID_WORK,
                 VALUE_ENABLE_FORCED_OFF_GRID,
@@ -729,7 +764,7 @@ async def to_code(config):
             await register_switch_entity_2bit(
                 battery_config,
                 CONF_BATTERY_LOSS_REPORT_FAULT,
-                parent,
+                var,
                 REGISTER_BATTERY_LOSS_REPORT_FAULT,
                 BITMASK_BATTERY_LOSS_REPORT_FAULT,
                 VALUE_ENABLE_BATTERY_LOSS_FAULT,
@@ -737,14 +772,16 @@ async def to_code(config):
                 SHIFT_BATTERY_LOSS_FAULT,
             )
 
-    # Settings Generator - External Relay (Register 178, Bits 8-9)
+    # Settings Generator - External Relay (Register 178, Bits 8-9) & Gen Port Force On
     if CONF_SETTINGS_GENERATOR in config:
         generator_config = config[CONF_SETTINGS_GENERATOR]
+
+        # External Relay (Register 178, Bits 8-9)
         if CONF_EXTERNAL_RELAY in generator_config:
             await register_switch_entity_2bit(
                 generator_config,
                 CONF_EXTERNAL_RELAY,
-                parent,
+                var,
                 REGISTER_EXTERNAL_RELAY,
                 BITMASK_EXTERNAL_RELAY,
                 VALUE_ENABLE_EXTERNAL_RELAY,
@@ -757,7 +794,7 @@ async def to_code(config):
             await register_switch_entity(
                 generator_config,
                 CONF_GEN_PORT_FORCE_ON,
-                parent,
+                var,
                 REGISTER_GEN_PORT_FORCE_ON,
                 BITMASK_GEN_PORT_FORCE_ON,
             )

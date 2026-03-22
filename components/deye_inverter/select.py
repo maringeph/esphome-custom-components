@@ -3,7 +3,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import select
-from esphome.const import CONF_ID
 
 from . import (
     CONF_DEYE_INVERTER_ID,
@@ -30,6 +29,10 @@ from . import (
     CONF_EXT_STOP_BITS,
     CONF_EXT_PROTOCOL,
     CONF_SYS_LANGUAGE,
+    CONF_SETTINGS_GEN_PORT,
+    CONF_CA_RULE21_CATEGORY,
+    CONF_CA_NORMAL_OP_CAT,
+    CONF_CA_ABNORMAL_OP_CAT,
     DeyeInverter,
 )
 
@@ -228,76 +231,86 @@ CA_ABNORMAL_OP_CAT_OPTIONS = {
 
 
 # =============================================================================
-# CONFIGURATION SCHEMA
+# SCHEMA DEFINITIONS (lokal in select.py)
 # =============================================================================
 
-CONFIG_SCHEMA = cv.Schema(
+# Settings Grid Select Schema
+SETTINGS_GRID_SELECT_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(cg.EntityBase),
-        cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
-        # Settings Grid - grid_type, grid_mode, grid_nominal_voltage, grid_nominal_frequency, grid_phase_sequence
-        cv.Optional(CONF_SETTINGS_GRID): cv.Schema(
-            {
-                cv.Optional(CONF_GRID_TYPE): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_GRID_MODE): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_GRID_NOMINAL_VOLTAGE): select.select_schema(
-                    DeyeSelect
-                ),
-                cv.Optional(CONF_GRID_NOMINAL_FREQUENCY): select.select_schema(
-                    DeyeSelect
-                ),
-                cv.Optional(CONF_GRID_PHASE_SEQUENCE): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_GRID_CHECK_SOURCE): select.select_schema(DeyeSelect),
-            }
-        ),
-        # Settings Device - ext_baud_rate, ext_parity, ext_stop_bits, ext_protocol
-        cv.Optional(CONF_SETTINGS_DEVICE): cv.Schema(
-            {
-                cv.Optional(CONF_EXT_BAUD_RATE): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_EXT_PARITY): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_EXT_STOP_BITS): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_EXT_PROTOCOL): select.select_schema(DeyeSelect),
-            }
-        ),
-        # Settings Battery - battery_type, battery_control_mode
-        cv.Optional(CONF_SETTINGS_BATTERY): cv.Schema(
-            {
-                cv.Optional(CONF_BATTERY_TYPE): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_BATTERY_CONTROL_MODE): select.select_schema(
-                    DeyeSelect
-                ),
-            }
-        ),
-        # Generator Port Control Mode
-        cv.Optional("settings_gen_port"): cv.Schema(
-            {
-                cv.Optional(CONF_GEN_PORT_CONTROL_MODE): select.select_schema(
-                    DeyeSelect
-                ),
-            }
-        ),
-        # Settings Working Mode - energy_priority, limit_control_mode, working_mode
-        cv.Optional(CONF_SETTINGS_WORKING_MODE): cv.Schema(
-            {
-                cv.Optional(CONF_WORKING_MODE): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_ENERGY_PRIORITY): select.select_schema(DeyeSelect),
-                cv.Optional(CONF_LIMIT_CONTROL_MODE): select.select_schema(DeyeSelect),
-            }
-        ),
-        # Settings System - sys_language
-        cv.Optional(CONF_SETTINGS_SYSTEM): cv.Schema(
-            {
-                cv.Optional(CONF_SYS_LANGUAGE): select.select_schema(DeyeSelect),
-            }
-        ),
-        # Settings California
-        cv.Optional(CONF_SETTINGS_CALIFORNIA): cv.Schema(
-            {
-                cv.Optional("ca_rule21_category"): select.select_schema(DeyeSelect),
-                cv.Optional("ca_normal_op_cat"): select.select_schema(DeyeSelect),
-                cv.Optional("ca_abnormal_op_cat"): select.select_schema(DeyeSelect),
-            }
-        ),
+        cv.Optional(CONF_GRID_TYPE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_GRID_MODE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_GRID_NOMINAL_VOLTAGE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_GRID_NOMINAL_FREQUENCY): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_GRID_PHASE_SEQUENCE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_GRID_CHECK_SOURCE): select.select_schema(DeyeSelect),
+    }
+)
+
+# Settings Device Select Schema
+SETTINGS_DEVICE_SELECT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_EXT_BAUD_RATE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_EXT_PARITY): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_EXT_STOP_BITS): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_EXT_PROTOCOL): select.select_schema(DeyeSelect),
+    }
+)
+
+# Settings Battery Select Schema
+SETTINGS_BATTERY_SELECT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_BATTERY_TYPE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_BATTERY_CONTROL_MODE): select.select_schema(DeyeSelect),
+    }
+)
+
+# Settings Generator Port Select Schema
+SETTINGS_GEN_PORT_SELECT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_GEN_PORT_CONTROL_MODE): select.select_schema(DeyeSelect),
+    }
+)
+
+# Settings Working Mode Select Schema
+SETTINGS_WORKING_MODE_SELECT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_WORKING_MODE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_ENERGY_PRIORITY): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_LIMIT_CONTROL_MODE): select.select_schema(DeyeSelect),
+    }
+)
+
+# Settings System Select Schema
+SETTINGS_SYSTEM_SELECT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_SYS_LANGUAGE): select.select_schema(DeyeSelect),
+    }
+)
+
+# Settings California Select Schema
+SETTINGS_CALIFORNIA_SELECT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_CA_RULE21_CATEGORY): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_CA_NORMAL_OP_CAT): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_CA_ABNORMAL_OP_CAT): select.select_schema(DeyeSelect),
+    }
+)
+
+
+# =============================================================================
+# PLATFORM SCHEMA
+# =============================================================================
+
+PLATFORM_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_SETTINGS_GRID): SETTINGS_GRID_SELECT_SCHEMA,
+        cv.Optional(CONF_SETTINGS_DEVICE): SETTINGS_DEVICE_SELECT_SCHEMA,
+        cv.Optional(CONF_SETTINGS_BATTERY): SETTINGS_BATTERY_SELECT_SCHEMA,
+        cv.Optional(CONF_SETTINGS_GEN_PORT): SETTINGS_GEN_PORT_SELECT_SCHEMA,
+        cv.Optional(CONF_SETTINGS_WORKING_MODE): SETTINGS_WORKING_MODE_SELECT_SCHEMA,
+        cv.Optional(CONF_SETTINGS_SYSTEM): SETTINGS_SYSTEM_SELECT_SCHEMA,
+        cv.Optional(CONF_SETTINGS_CALIFORNIA): SETTINGS_CALIFORNIA_SELECT_SCHEMA,
     }
 )
 
@@ -342,7 +355,7 @@ async def register_select_entity(config, key, parent, address, options_map):
 
 
 async def to_code(config):
-    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
 
     # Settings Grid
     if CONF_SETTINGS_GRID in config:
@@ -353,7 +366,7 @@ async def to_code(config):
             await register_select_entity(
                 grid_config,
                 CONF_GRID_TYPE,
-                parent,
+                var,
                 REGISTER_GRID_TYPE,
                 GRID_TYPE_OPTIONS,
             )
@@ -363,7 +376,7 @@ async def to_code(config):
             await register_select_entity(
                 grid_config,
                 CONF_GRID_MODE,
-                parent,
+                var,
                 REGISTER_GRID_MODE,
                 GRID_MODE_OPTIONS,
             )
@@ -373,7 +386,7 @@ async def to_code(config):
             await register_select_entity(
                 grid_config,
                 CONF_GRID_NOMINAL_VOLTAGE,
-                parent,
+                var,
                 REGISTER_GRID_NOMINAL_VOLTAGE,
                 GRID_NOMINAL_VOLTAGE_OPTIONS,
             )
@@ -383,7 +396,7 @@ async def to_code(config):
             await register_select_entity(
                 grid_config,
                 CONF_GRID_NOMINAL_FREQUENCY,
-                parent,
+                var,
                 REGISTER_GRID_NOMINAL_FREQUENCY,
                 GRID_NOMINAL_FREQUENCY_OPTIONS,
             )
@@ -393,7 +406,7 @@ async def to_code(config):
             await register_select_entity(
                 grid_config,
                 CONF_GRID_PHASE_SEQUENCE,
-                parent,
+                var,
                 REGISTER_GRID_PHASE_SEQUENCE,
                 GRID_PHASE_SEQUENCE_OPTIONS,
             )
@@ -403,7 +416,7 @@ async def to_code(config):
             await register_select_entity(
                 grid_config,
                 CONF_GRID_CHECK_SOURCE,
-                parent,
+                var,
                 REGISTER_GRID_CHECK_SOURCE,
                 GRID_CHECK_SOURCE_OPTIONS,
             )
@@ -416,7 +429,7 @@ async def to_code(config):
             await register_select_entity(
                 device_config,
                 CONF_EXT_BAUD_RATE,
-                parent,
+                var,
                 REGISTER_EXT_BAUD_RATE,
                 EXT_BAUD_RATE_OPTIONS,
             )
@@ -425,7 +438,7 @@ async def to_code(config):
             await register_select_entity(
                 device_config,
                 CONF_EXT_PARITY,
-                parent,
+                var,
                 REGISTER_EXT_PARITY,
                 EXT_PARITY_OPTIONS,
             )
@@ -434,7 +447,7 @@ async def to_code(config):
             await register_select_entity(
                 device_config,
                 CONF_EXT_STOP_BITS,
-                parent,
+                var,
                 REGISTER_EXT_STOP_BITS,
                 EXT_STOP_BITS_OPTIONS,
             )
@@ -443,7 +456,7 @@ async def to_code(config):
             await register_select_entity(
                 device_config,
                 CONF_EXT_PROTOCOL,
-                parent,
+                var,
                 REGISTER_EXT_PROTOCOL,
                 EXT_PROTOCOL_OPTIONS,
             )
@@ -457,7 +470,7 @@ async def to_code(config):
             await register_select_entity(
                 battery_config,
                 CONF_BATTERY_TYPE,
-                parent,
+                var,
                 REGISTER_BATTERY_TYPE,
                 BATTERY_TYPE_OPTIONS,
             )
@@ -467,19 +480,19 @@ async def to_code(config):
             await register_select_entity(
                 battery_config,
                 CONF_BATTERY_CONTROL_MODE,
-                parent,
+                var,
                 REGISTER_BATTERY_CONTROL_MODE,
                 BATTERY_CONTROL_MODE_OPTIONS,
             )
 
     # Generator Port Control Mode
-    if "settings_gen_port" in config:
-        gen_port_config = config["settings_gen_port"]
+    if CONF_SETTINGS_GEN_PORT in config:
+        gen_port_config = config[CONF_SETTINGS_GEN_PORT]
         if CONF_GEN_PORT_CONTROL_MODE in gen_port_config:
             await register_select_entity(
                 gen_port_config,
                 CONF_GEN_PORT_CONTROL_MODE,
-                parent,
+                var,
                 REGISTER_GEN_PORT_CONTROL_MODE,
                 GEN_PORT_CONTROL_MODE_OPTIONS,
             )
@@ -493,7 +506,7 @@ async def to_code(config):
             await register_select_entity(
                 working_mode_config,
                 CONF_WORKING_MODE,
-                parent,
+                var,
                 REGISTER_WORKING_MODE,
                 WORKING_MODE_OPTIONS,
             )
@@ -503,7 +516,7 @@ async def to_code(config):
             await register_select_entity(
                 working_mode_config,
                 CONF_ENERGY_PRIORITY,
-                parent,
+                var,
                 REGISTER_ENERGY_PRIORITY,
                 ENERGY_PRIORITY_OPTIONS,
             )
@@ -513,7 +526,7 @@ async def to_code(config):
             await register_select_entity(
                 working_mode_config,
                 CONF_LIMIT_CONTROL_MODE,
-                parent,
+                var,
                 REGISTER_LIMIT_CONTROL_MODE,
                 LIMIT_CONTROL_MODE_OPTIONS,
             )
@@ -525,7 +538,7 @@ async def to_code(config):
             await register_select_entity(
                 system_config,
                 CONF_SYS_LANGUAGE,
-                parent,
+                var,
                 REGISTER_SYS_LANGUAGE,
                 SYS_LANGUAGE_OPTIONS,
             )
@@ -534,29 +547,29 @@ async def to_code(config):
     if CONF_SETTINGS_CALIFORNIA in config:
         ca_config = config[CONF_SETTINGS_CALIFORNIA]
 
-        if "ca_rule21_category" in ca_config:
+        if CONF_CA_RULE21_CATEGORY in ca_config:
             await register_select_entity(
                 ca_config,
-                "ca_rule21_category",
-                parent,
+                CONF_CA_RULE21_CATEGORY,
+                var,
                 REGISTER_CA_RULE21_CATEGORY,
                 CA_RULE21_CATEGORY_OPTIONS,
             )
 
-        if "ca_normal_op_cat" in ca_config:
+        if CONF_CA_NORMAL_OP_CAT in ca_config:
             await register_select_entity(
                 ca_config,
-                "ca_normal_op_cat",
-                parent,
+                CONF_CA_NORMAL_OP_CAT,
+                var,
                 REGISTER_CA_NORMAL_OP_CAT,
                 CA_NORMAL_OP_CAT_OPTIONS,
             )
 
-        if "ca_abnormal_op_cat" in ca_config:
+        if CONF_CA_ABNORMAL_OP_CAT in ca_config:
             await register_select_entity(
                 ca_config,
-                "ca_abnormal_op_cat",
-                parent,
+                CONF_CA_ABNORMAL_OP_CAT,
+                var,
                 REGISTER_CA_ABNORMAL_OP_CAT,
                 CA_ABNORMAL_OP_CAT_OPTIONS,
             )

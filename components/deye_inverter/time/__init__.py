@@ -27,7 +27,11 @@ from esphome.components import time
 from esphome.const import CONF_ID
 
 # Import from parent component
-from .. import deye_inverter_ns
+from .. import (
+    CONF_DEYE_INVERTER_ID,
+    DeyeInverter,
+    deye_inverter_ns,
+)
 
 # Declare DeyeTime class
 DeyeTime = deye_inverter_ns.class_("DeyeTime", time.RealTimeClock, cg.Component)
@@ -38,14 +42,12 @@ DeyeTime = deye_inverter_ns.class_("DeyeTime", time.RealTimeClock, cg.Component)
 CONF_MAX_TIME_DIFF = "max_time_diff"
 
 # =============================================================================
-# CONFIG SCHEMA
+# PLATFORM SCHEMA
 # =============================================================================
-CONFIG_SCHEMA = time.TIME_SCHEMA.extend(
+PLATFORM_SCHEMA = time.TIME_SCHEMA.extend(
     {
         cv.Required(CONF_ID): cv.declare_id(DeyeTime),
-        cv.Required("deye_inverter_id"): cv.use_id(
-            deye_inverter_ns.class_("DeyeInverter")
-        ),
+        cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
         # Max allowed difference before syncing (default: 10s)
         # Set to 0s to disable auto-sync (only sync on time change/DST)
         cv.Optional(CONF_MAX_TIME_DIFF, default="10s"): cv.positive_time_period_seconds,
@@ -62,7 +64,7 @@ async def to_code(config):
     await cg.register_component(var, config)
 
     # Get the DeyeInverter parent
-    parent = await cg.get_variable(config["deye_inverter_id"])
+    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
     cg.add(var.set_parent(parent))
 
     # Set max diff parameter

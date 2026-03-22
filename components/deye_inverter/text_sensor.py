@@ -1,21 +1,10 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
-from esphome.const import (
-    CONF_ID,
-)
+from esphome.const import CONF_ID
 
-from . import (
-    CONF_DEYE_INVERTER_ID,
-    DeyeInverter,
-    CONF_DEVICE_TYPE,
-    CONF_RUNNING_STATUS,
-    CONF_SERIAL_NUMBER,
-    CONF_FIRMWARE_VERSION,
-    CONF_HARDWARE_VERSION,
-    CONF_INVERTER_MODEL,
-    CONF_DEVICE_INFO_EXTENDED,
-)
+# Import only the parent class reference from __init__.py
+from . import CONF_DEYE_INVERTER_ID, DeyeInverter
 
 AUTO_LOAD = ["modbus_controller"]
 
@@ -25,6 +14,16 @@ DeyeTextSensor = cg.esphome_ns.namespace("deye_inverter").class_(
 )
 
 CODEOWNERS = ["@maringeph"]
+
+# =============================================================================
+# LOCAL CONF CONSTANTS for Text Sensors
+# =============================================================================
+CONF_DEVICE_TYPE = "device_type"
+CONF_RUNNING_STATUS = "running_status"
+CONF_SERIAL_NUMBER = "serial_number"
+CONF_FIRMWARE_VERSION = "firmware_version"
+CONF_HARDWARE_VERSION = "hardware_version"
+CONF_INVERTER_MODEL = "inverter_model"
 
 # =============================================================================
 # Register addresses for Deye inverter text sensors
@@ -50,13 +49,18 @@ REGISTER_INVERTER_MODEL = 15
 
 
 # =============================================================================
-# KONFIGURATIONSSCHEMA
+# LOCAL SCHEMA DEFINITIONS
 # =============================================================================
 
-CONFIG_SCHEMA = cv.Schema(
+TEXT_ENTITY_SCHEMA = text_sensor.text_sensor_schema(DeyeTextSensor)
+
+# =============================================================================
+# PLATFORM SCHEMA
+# =============================================================================
+
+PLATFORM_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(cg.EntityBase),
-        cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
         # Device Type (Register 0)
         cv.Optional(CONF_DEVICE_TYPE): text_sensor.text_sensor_schema(
             DeyeTextSensor,
@@ -85,7 +89,7 @@ CONFIG_SCHEMA = cv.Schema(
         # Inverter Model (Register 15)
         cv.Optional(CONF_INVERTER_MODEL): text_sensor.text_sensor_schema(
             DeyeTextSensor,
-            icon="mdi: inverter",
+            icon="mdi:inverter",
         ),
     }
 )
@@ -120,14 +124,14 @@ async def register_text_sensor(
 
 
 async def to_code(config):
-    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
 
     # Device Type (Register 0)
     if CONF_DEVICE_TYPE in config:
         await register_text_sensor(
             config,
             CONF_DEVICE_TYPE,
-            parent,
+            var,
             REGISTER_DEVICE_TYPE,
             is_status=False,
             is_device_type=True,
@@ -138,7 +142,7 @@ async def to_code(config):
         await register_text_sensor(
             config,
             CONF_RUNNING_STATUS,
-            parent,
+            var,
             REGISTER_RUNNING_STATUS,
             is_status=True,
             is_device_type=False,
@@ -149,7 +153,7 @@ async def to_code(config):
         await register_text_sensor(
             config,
             CONF_SERIAL_NUMBER,
-            parent,
+            var,
             REGISTER_SERIAL_NUMBER,
             is_status=False,
             is_device_type=False,
@@ -160,7 +164,7 @@ async def to_code(config):
         await register_text_sensor(
             config,
             CONF_FIRMWARE_VERSION,
-            parent,
+            var,
             REGISTER_FIRMWARE_VERSION,
             is_status=False,
             is_device_type=False,
@@ -171,7 +175,7 @@ async def to_code(config):
         await register_text_sensor(
             config,
             CONF_HARDWARE_VERSION,
-            parent,
+            var,
             REGISTER_HARDWARE_VERSION,
             is_status=False,
             is_device_type=False,
@@ -182,7 +186,7 @@ async def to_code(config):
         await register_text_sensor(
             config,
             CONF_INVERTER_MODEL,
-            parent,
+            var,
             REGISTER_INVERTER_MODEL,
             is_status=False,
             is_device_type=False,

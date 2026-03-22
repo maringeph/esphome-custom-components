@@ -2,7 +2,6 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import number
 from esphome.const import (
-    CONF_ID,
     UNIT_AMPERE,
     UNIT_VOLT,
     UNIT_PERCENT,
@@ -21,19 +20,6 @@ from esphome.const import (
 from . import (
     CONF_DEYE_INVERTER_ID,
     DeyeInverter,
-    CONF_SETTINGS_BATTERY,
-    CONF_SETTINGS_BATTERY_VOLTAGE,
-    CONF_SETTINGS_BATTERY_SOC,
-    CONF_SETTINGS_BATTERY_ADDITIONAL,
-    CONF_SETTINGS_GENERATOR,
-    CONF_SETTINGS_GENERATOR_2,
-    CONF_SETTINGS_SMART_LOAD,
-    CONF_SETTINGS_GRID_CHARGE,
-    CONF_SETTINGS_TIME_OF_USE_NUMBERS,
-    CONF_SETTINGS_SYSTEM_NUMBERS,
-    CONF_SETTINGS_GRID_PROTECTION,
-    CONF_SETTINGS_CALIFORNIA,
-    CONF_SETTINGS_GRID,
 )
 
 AUTO_LOAD = ["modbus_controller"]
@@ -170,501 +156,536 @@ CONF_CA_POWER_POINT_6 = "ca_power_point_6"
 CONF_CA_RAMP_RATE = "ca_ramp_rate"
 CONF_CA_RECONNECT_TIME = "ca_reconnect_time"
 
+# Settings Group Keys
+CONF_SETTINGS_BATTERY = "settings_battery"
+CONF_SETTINGS_BATTERY_VOLTAGE = "settings_battery_voltage"
+CONF_SETTINGS_BATTERY_SOC = "settings_battery_soc"
+CONF_SETTINGS_BATTERY_ADDITIONAL = "settings_battery_additional"
+CONF_SETTINGS_GENERATOR = "settings_generator"
+CONF_SETTINGS_GENERATOR_2 = "settings_generator_2"
+CONF_SETTINGS_SMART_LOAD = "settings_smart_load"
+CONF_SETTINGS_GRID_CHARGE = "settings_grid_charge"
+CONF_SETTINGS_GRID = "settings_grid"
+CONF_SETTINGS_TIME_OF_USE_NUMBERS = "settings_time_of_use_numbers"
+CONF_SETTINGS_SYSTEM_NUMBERS = "settings_system_numbers"
+CONF_SETTINGS_GRID_PROTECTION = "settings_grid_protection"
+CONF_SETTINGS_CALIFORNIA = "settings_california"
+
 
 # =============================================================================
-# KONFIGURATIONSSCHEMA
+# SCHEMA DEFINITIONS
 # =============================================================================
 
-CONFIG_SCHEMA = cv.Schema(
+# Settings Battery (Currents)
+SETTINGS_BATTERY_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(cg.EntityBase),
-        cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
-        # Settings Battery (Currents)
-        cv.Optional(CONF_SETTINGS_BATTERY): cv.Schema(
-            {
-                cv.Optional(CONF_MAX_CHARGE_CURRENT): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_AMPERE,
-                    device_class=DEVICE_CLASS_CURRENT,
-                ),
-                cv.Optional(CONF_MAX_DISCHARGE_CURRENT): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_AMPERE,
-                    device_class=DEVICE_CLASS_CURRENT,
-                ),
-            }
+        cv.Optional(CONF_MAX_CHARGE_CURRENT): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_AMPERE,
+            device_class=DEVICE_CLASS_CURRENT,
         ),
-        # Settings Battery Voltage
-        cv.Optional(CONF_SETTINGS_BATTERY_VOLTAGE): cv.Schema(
-            {
-                cv.Optional(CONF_EQUALIZATION_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_ABSORPTION_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_FLOAT_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_EMPTY_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_SHUTDOWN_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_RESTART_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_LOW_VOLTAGE_WARNING): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-            }
+        cv.Optional(CONF_MAX_DISCHARGE_CURRENT): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_AMPERE,
+            device_class=DEVICE_CLASS_CURRENT,
         ),
-        # Settings Battery SOC
-        cv.Optional(CONF_SETTINGS_BATTERY_SOC): cv.Schema(
-            {
-                cv.Optional(CONF_SHUTDOWN_SOC): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_RESTART_SOC): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_LOW_SOC_WARNING): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-            }
+    }
+)
+
+# Settings Battery Voltage
+SETTINGS_BATTERY_VOLTAGE_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_EQUALIZATION_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
         ),
-        # Settings Battery Additional
-        cv.Optional(CONF_SETTINGS_BATTERY_ADDITIONAL): cv.Schema(
-            {
-                cv.Optional(CONF_BATTERY_CAPACITY_AH): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="Ah",
-                ),
-                cv.Optional(CONF_EQUALIZATION_DAY_CYCLE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="Tage",
-                ),
-                cv.Optional(CONF_EQUALIZATION_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_HOUR,
-                ),
-                cv.Optional(CONF_TEMPCO): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="mV/°C",
-                ),
-                cv.Optional(CONF_BATTERY_WAKE_UP): number.number_schema(
-                    DeyeNumber,
-                ),
-                cv.Optional(CONF_BATTERY_RESISTANCE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="mΩ",
-                ),
-                cv.Optional(CONF_BATTERY_CHARGING_EFFICIENCY): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-            }
+        cv.Optional(CONF_ABSORPTION_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
         ),
-        # Settings Generator
-        cv.Optional(CONF_SETTINGS_GENERATOR): cv.Schema(
-            {
-                cv.Optional(CONF_GEN_MAX_RUN_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_HOUR,
-                ),
-                cv.Optional(CONF_GEN_COOLDOWN_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_MINUTE,
-                ),
-                cv.Optional(CONF_GEN_MIN_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="W",
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_GEN_START_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_GEN_START_SOC): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_GEN_CHARGING_CURRENT): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_AMPERE,
-                    device_class=DEVICE_CLASS_CURRENT,
-                ),
-                cv.Optional(CONF_GEN_ENABLE): number.number_schema(
-                    DeyeNumber,
-                ),
-            }
+        cv.Optional(CONF_FLOAT_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
         ),
-        # Settings Generator 2
-        cv.Optional(CONF_SETTINGS_GENERATOR_2): cv.Schema(
-            {
-                cv.Optional(CONF_GEN_MAX_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_HOUR,
-                ),
-                cv.Optional(CONF_GEN_COOLDOWN): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_HOUR,
-                ),
-                cv.Optional(CONF_GEN_START_VOLTAGE_225): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_GEN_START_SOC_226): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_GEN_CHARGE_CURRENT_227): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_AMPERE,
-                    device_class=DEVICE_CLASS_CURRENT,
-                ),
-            }
+        cv.Optional(CONF_EMPTY_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
         ),
-        # Settings Smart Load
-        cv.Optional(CONF_SETTINGS_SMART_LOAD): cv.Schema(
-            {
-                cv.Optional(CONF_SMART_LOAD_OFF_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_SMART_LOAD_OFF_SOC): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_SMART_LOAD_ON_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_SMART_LOAD_ON_SOC): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-            }
+        cv.Optional(CONF_SHUTDOWN_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
         ),
-        # Settings Grid Charge
-        cv.Optional(CONF_SETTINGS_GRID_CHARGE): cv.Schema(
-            {
-                cv.Optional(
-                    CONF_MAXIMUM_BATTERY_GRID_CHARGE_CURRENT
-                ): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_AMPERE,
-                    device_class=DEVICE_CLASS_CURRENT,
-                ),
-                cv.Optional(CONF_GRID_CHARGE_START_VOLTAGE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_GRID_CHARGE_START_SOC): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_GRID_CHARGE_CURRENT): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_AMPERE,
-                    device_class=DEVICE_CLASS_CURRENT,
-                ),
-            }
+        cv.Optional(CONF_RESTART_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
         ),
-        # Settings Grid Numbers (distributed from settings_special)
-        cv.Optional(CONF_SETTINGS_GRID): cv.Schema(
-            {
-                cv.Optional(CONF_ZERO_EXPORT_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-                cv.Optional(CONF_MAX_SOLAR_SELL_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_GRID_MAX_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_RESTORE_CONNECTION_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_SECOND,
-                ),
-            }
+        cv.Optional(CONF_LOW_VOLTAGE_WARNING): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
         ),
-        # Settings Time of Use (start times moved to datetime.py)
-        cv.Optional(CONF_SETTINGS_TIME_OF_USE_NUMBERS): cv.Schema(
-            {
-                # Time Point Power values (addresses 154-159)
-                cv.Optional(CONF_TIME_POINT_1_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_TIME_POINT_2_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_TIME_POINT_3_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_TIME_POINT_4_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_TIME_POINT_5_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                cv.Optional(CONF_TIME_POINT_6_POWER): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_WATT,
-                    device_class=DEVICE_CLASS_POWER,
-                ),
-                # Time Point Min Battery Voltage (addresses 160-165)
-                cv.Optional(
-                    CONF_TIME_POINT_1_MIN_BATTERY_VOLTAGE
-                ): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(
-                    CONF_TIME_POINT_2_MIN_BATTERY_VOLTAGE
-                ): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(
-                    CONF_TIME_POINT_3_MIN_BATTERY_VOLTAGE
-                ): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(
-                    CONF_TIME_POINT_4_MIN_BATTERY_VOLTAGE
-                ): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(
-                    CONF_TIME_POINT_5_MIN_BATTERY_VOLTAGE
-                ): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(
-                    CONF_TIME_POINT_6_MIN_BATTERY_VOLTAGE
-                ): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                # Time Point Capacity (addresses 166-171)
-                cv.Optional(CONF_TIME_POINT_1_CAPACITY): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_TIME_POINT_2_CAPACITY): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_TIME_POINT_3_CAPACITY): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_TIME_POINT_4_CAPACITY): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_TIME_POINT_5_CAPACITY): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-                cv.Optional(CONF_TIME_POINT_6_CAPACITY): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                    device_class=DEVICE_CLASS_BATTERY,
-                ),
-            }
+    }
+)
+
+# Settings Battery SOC
+SETTINGS_BATTERY_SOC_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_SHUTDOWN_SOC): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
         ),
-        # Settings System Numbers (NEW - registers 60-97)
-        cv.Optional(CONF_SETTINGS_SYSTEM_NUMBERS): cv.Schema(
-            {
-                cv.Optional(CONF_SYS_LCD_CONTRAST): number.number_schema(
-                    DeyeNumber,
-                ),
-                cv.Optional(CONF_SYS_TIME_ZONE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="h",
-                ),
-                cv.Optional(CONF_SYS_DATA_LOG_INTERVAL): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_MINUTE,
-                ),
-            }
+        cv.Optional(CONF_RESTART_SOC): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
         ),
-        # Settings Grid Protection (NEW - registers 185-200)
-        cv.Optional(CONF_SETTINGS_GRID_PROTECTION): cv.Schema(
-            {
-                cv.Optional(CONF_GP_OVER_VOLTAGE_PROTECTION): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_GP_UNDER_VOLTAGE_PROTECTION): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_GP_OVER_FREQUENCY_PROTECTION): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_HERTZ,
-                    device_class=DEVICE_CLASS_FREQUENCY,
-                ),
-                cv.Optional(CONF_GP_UNDER_FREQUENCY_PROTECTION): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_HERTZ,
-                    device_class=DEVICE_CLASS_FREQUENCY,
-                ),
-                cv.Optional(CONF_GP_VOLTAGE_RECONNECT): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_GP_FREQUENCY_RECONNECT): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_HERTZ,
-                    device_class=DEVICE_CLASS_FREQUENCY,
-                ),
-                cv.Optional(CONF_GP_RECONNECT_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_SECOND,
-                ),
-                cv.Optional(CONF_GP_RAMP_RATE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="%/s",
-                ),
-                cv.Optional(CONF_GP_STARTUP_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_SECOND,
-                ),
-            }
+        cv.Optional(CONF_LOW_SOC_WARNING): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
         ),
-        # Settings California (NEW - registers 340-499)
-        cv.Optional(CONF_SETTINGS_CALIFORNIA): cv.Schema(
-            {
-                cv.Optional(CONF_CA_VOLTAGE_POINT_1): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_CA_VOLTAGE_POINT_2): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_CA_VOLTAGE_POINT_3): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_CA_VOLTAGE_POINT_4): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_CA_VOLTAGE_POINT_5): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_CA_VOLTAGE_POINT_6): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_VOLT,
-                    device_class=DEVICE_CLASS_VOLTAGE,
-                ),
-                cv.Optional(CONF_CA_POWER_POINT_1): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-                cv.Optional(CONF_CA_POWER_POINT_2): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-                cv.Optional(CONF_CA_POWER_POINT_3): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-                cv.Optional(CONF_CA_POWER_POINT_4): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-                cv.Optional(CONF_CA_POWER_POINT_5): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-                cv.Optional(CONF_CA_POWER_POINT_6): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_PERCENT,
-                ),
-                cv.Optional(CONF_CA_RAMP_RATE): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement="%/s",
-                ),
-                cv.Optional(CONF_CA_RECONNECT_TIME): number.number_schema(
-                    DeyeNumber,
-                    unit_of_measurement=UNIT_SECOND,
-                ),
-            }
+    }
+)
+
+# Settings Battery Additional
+SETTINGS_BATTERY_ADDITIONAL_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_BATTERY_CAPACITY_AH): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="Ah",
         ),
+        cv.Optional(CONF_EQUALIZATION_DAY_CYCLE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="Tage",
+        ),
+        cv.Optional(CONF_EQUALIZATION_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_HOUR,
+        ),
+        cv.Optional(CONF_TEMPCO): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="mV/°C",
+        ),
+        cv.Optional(CONF_BATTERY_WAKE_UP): number.number_schema(
+            DeyeNumber,
+        ),
+        cv.Optional(CONF_BATTERY_RESISTANCE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="mΩ",
+        ),
+        cv.Optional(CONF_BATTERY_CHARGING_EFFICIENCY): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+    }
+)
+
+# Settings Generator
+SETTINGS_GENERATOR_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_GEN_MAX_RUN_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_HOUR,
+        ),
+        cv.Optional(CONF_GEN_COOLDOWN_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_MINUTE,
+        ),
+        cv.Optional(CONF_GEN_MIN_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="W",
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_GEN_START_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_GEN_START_SOC): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_GEN_CHARGING_CURRENT): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_AMPERE,
+            device_class=DEVICE_CLASS_CURRENT,
+        ),
+        cv.Optional(CONF_GEN_ENABLE): number.number_schema(
+            DeyeNumber,
+        ),
+    }
+)
+
+# Settings Generator 2
+SETTINGS_GENERATOR_2_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_GEN_MAX_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_HOUR,
+        ),
+        cv.Optional(CONF_GEN_COOLDOWN): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_HOUR,
+        ),
+        cv.Optional(CONF_GEN_START_VOLTAGE_225): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_GEN_START_SOC_226): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_GEN_CHARGE_CURRENT_227): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_AMPERE,
+            device_class=DEVICE_CLASS_CURRENT,
+        ),
+    }
+)
+
+# Settings Smart Load
+SETTINGS_SMART_LOAD_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_SMART_LOAD_OFF_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_SMART_LOAD_OFF_SOC): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_SMART_LOAD_ON_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_SMART_LOAD_ON_SOC): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+    }
+)
+
+# Settings Grid Charge
+SETTINGS_GRID_CHARGE_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_MAXIMUM_BATTERY_GRID_CHARGE_CURRENT): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_AMPERE,
+            device_class=DEVICE_CLASS_CURRENT,
+        ),
+        cv.Optional(CONF_GRID_CHARGE_START_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_GRID_CHARGE_START_SOC): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_GRID_CHARGE_CURRENT): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_AMPERE,
+            device_class=DEVICE_CLASS_CURRENT,
+        ),
+    }
+)
+
+# Settings Grid Numbers
+SETTINGS_GRID_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_ZERO_EXPORT_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+        cv.Optional(CONF_MAX_SOLAR_SELL_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_GRID_MAX_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_RESTORE_CONNECTION_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_SECOND,
+        ),
+    }
+)
+
+# Settings Time of Use Numbers
+SETTINGS_TIME_OF_USE_NUMBERS_SCHEMA = cv.Schema(
+    {
+        # Time Point Power values (addresses 154-159)
+        cv.Optional(CONF_TIME_POINT_1_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_TIME_POINT_2_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_TIME_POINT_3_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_TIME_POINT_4_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_TIME_POINT_5_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        cv.Optional(CONF_TIME_POINT_6_POWER): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
+        # Time Point Min Battery Voltage (addresses 160-165)
+        cv.Optional(CONF_TIME_POINT_1_MIN_BATTERY_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_TIME_POINT_2_MIN_BATTERY_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_TIME_POINT_3_MIN_BATTERY_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_TIME_POINT_4_MIN_BATTERY_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_TIME_POINT_5_MIN_BATTERY_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_TIME_POINT_6_MIN_BATTERY_VOLTAGE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        # Time Point Capacity (addresses 166-171)
+        cv.Optional(CONF_TIME_POINT_1_CAPACITY): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_TIME_POINT_2_CAPACITY): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_TIME_POINT_3_CAPACITY): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_TIME_POINT_4_CAPACITY): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_TIME_POINT_5_CAPACITY): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+        cv.Optional(CONF_TIME_POINT_6_CAPACITY): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+            device_class=DEVICE_CLASS_BATTERY,
+        ),
+    }
+)
+
+# Settings System Numbers
+SETTINGS_SYSTEM_NUMBERS_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_SYS_LCD_CONTRAST): number.number_schema(
+            DeyeNumber,
+        ),
+        cv.Optional(CONF_SYS_TIME_ZONE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="h",
+        ),
+        cv.Optional(CONF_SYS_DATA_LOG_INTERVAL): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_MINUTE,
+        ),
+    }
+)
+
+# Settings Grid Protection Numbers
+SETTINGS_GRID_PROTECTION_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_GP_OVER_VOLTAGE_PROTECTION): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_GP_UNDER_VOLTAGE_PROTECTION): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_GP_OVER_FREQUENCY_PROTECTION): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_HERTZ,
+            device_class=DEVICE_CLASS_FREQUENCY,
+        ),
+        cv.Optional(CONF_GP_UNDER_FREQUENCY_PROTECTION): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_HERTZ,
+            device_class=DEVICE_CLASS_FREQUENCY,
+        ),
+        cv.Optional(CONF_GP_VOLTAGE_RECONNECT): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_GP_FREQUENCY_RECONNECT): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_HERTZ,
+            device_class=DEVICE_CLASS_FREQUENCY,
+        ),
+        cv.Optional(CONF_GP_RECONNECT_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_SECOND,
+        ),
+        cv.Optional(CONF_GP_RAMP_RATE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="%/s",
+        ),
+        cv.Optional(CONF_GP_STARTUP_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_SECOND,
+        ),
+    }
+)
+
+# Settings California Numbers
+SETTINGS_CALIFORNIA_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_CA_VOLTAGE_POINT_1): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_CA_VOLTAGE_POINT_2): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_CA_VOLTAGE_POINT_3): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_CA_VOLTAGE_POINT_4): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_CA_VOLTAGE_POINT_5): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_CA_VOLTAGE_POINT_6): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_VOLT,
+            device_class=DEVICE_CLASS_VOLTAGE,
+        ),
+        cv.Optional(CONF_CA_POWER_POINT_1): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+        cv.Optional(CONF_CA_POWER_POINT_2): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+        cv.Optional(CONF_CA_POWER_POINT_3): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+        cv.Optional(CONF_CA_POWER_POINT_4): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+        cv.Optional(CONF_CA_POWER_POINT_5): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+        cv.Optional(CONF_CA_POWER_POINT_6): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_PERCENT,
+        ),
+        cv.Optional(CONF_CA_RAMP_RATE): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement="%/s",
+        ),
+        cv.Optional(CONF_CA_RECONNECT_TIME): number.number_schema(
+            DeyeNumber,
+            unit_of_measurement=UNIT_SECOND,
+        ),
+    }
+)
+
+
+# =============================================================================
+# PLATFORM SCHEMA
+# =============================================================================
+
+PLATFORM_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_SETTINGS_BATTERY): SETTINGS_BATTERY_SCHEMA,
+        cv.Optional(CONF_SETTINGS_BATTERY_VOLTAGE): SETTINGS_BATTERY_VOLTAGE_SCHEMA,
+        cv.Optional(CONF_SETTINGS_BATTERY_SOC): SETTINGS_BATTERY_SOC_SCHEMA,
+        cv.Optional(
+            CONF_SETTINGS_BATTERY_ADDITIONAL
+        ): SETTINGS_BATTERY_ADDITIONAL_SCHEMA,
+        cv.Optional(CONF_SETTINGS_GENERATOR): SETTINGS_GENERATOR_SCHEMA,
+        cv.Optional(CONF_SETTINGS_GENERATOR_2): SETTINGS_GENERATOR_2_SCHEMA,
+        cv.Optional(CONF_SETTINGS_SMART_LOAD): SETTINGS_SMART_LOAD_SCHEMA,
+        cv.Optional(CONF_SETTINGS_GRID_CHARGE): SETTINGS_GRID_CHARGE_SCHEMA,
+        cv.Optional(CONF_SETTINGS_GRID): SETTINGS_GRID_SCHEMA,
+        cv.Optional(
+            CONF_SETTINGS_TIME_OF_USE_NUMBERS
+        ): SETTINGS_TIME_OF_USE_NUMBERS_SCHEMA,
+        cv.Optional(CONF_SETTINGS_SYSTEM_NUMBERS): SETTINGS_SYSTEM_NUMBERS_SCHEMA,
+        cv.Optional(CONF_SETTINGS_GRID_PROTECTION): SETTINGS_GRID_PROTECTION_SCHEMA,
+        cv.Optional(CONF_SETTINGS_CALIFORNIA): SETTINGS_CALIFORNIA_SCHEMA,
     }
 )
 
@@ -702,7 +723,7 @@ async def register_number_entity(
 
 
 async def to_code(config):
-    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
 
     # Settings Battery (Currents)
     if CONF_SETTINGS_BATTERY in config:
@@ -713,7 +734,7 @@ async def to_code(config):
             await register_number_entity(
                 battery_config,
                 CONF_MAX_CHARGE_CURRENT,
-                parent,
+                var,
                 108,
                 0,
                 185,
@@ -726,7 +747,7 @@ async def to_code(config):
             await register_number_entity(
                 battery_config,
                 CONF_MAX_DISCHARGE_CURRENT,
-                parent,
+                var,
                 109,
                 0,
                 185,
@@ -751,7 +772,7 @@ async def to_code(config):
                 await register_number_entity(
                     voltage_config,
                     key,
-                    parent,
+                    var,
                     address,
                     38.0,
                     61.0,
@@ -772,7 +793,7 @@ async def to_code(config):
                 await register_number_entity(
                     soc_config,
                     key,
-                    parent,
+                    var,
                     address,
                     0,
                     100,
@@ -798,7 +819,7 @@ async def to_code(config):
                 await register_number_entity(
                     additional_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -824,7 +845,7 @@ async def to_code(config):
                 await register_number_entity(
                     gen_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -848,7 +869,7 @@ async def to_code(config):
                 await register_number_entity(
                     gen2_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -868,7 +889,7 @@ async def to_code(config):
                 await register_number_entity(
                     smart_load_config,
                     key,
-                    parent,
+                    var,
                     address,
                     38.0,
                     61.0,
@@ -884,7 +905,7 @@ async def to_code(config):
                 await register_number_entity(
                     smart_load_config,
                     key,
-                    parent,
+                    var,
                     address,
                     0,
                     100,
@@ -907,7 +928,7 @@ async def to_code(config):
                 await register_number_entity(
                     grid_charge_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -930,7 +951,7 @@ async def to_code(config):
                 await register_number_entity(
                     grid_numbers_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -951,7 +972,7 @@ async def to_code(config):
                 await register_number_entity(
                     gen_numbers_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -976,7 +997,7 @@ async def to_code(config):
                 await register_number_entity(
                     tou_config,
                     key,
-                    parent,
+                    var,
                     address,
                     -6500,
                     6500,
@@ -997,7 +1018,7 @@ async def to_code(config):
                 await register_number_entity(
                     tou_config,
                     key,
-                    parent,
+                    var,
                     address,
                     41.0,
                     63.0,
@@ -1018,7 +1039,7 @@ async def to_code(config):
                 await register_number_entity(
                     tou_config,
                     key,
-                    parent,
+                    var,
                     address,
                     0,
                     100,
@@ -1040,7 +1061,7 @@ async def to_code(config):
                 await register_number_entity(
                     system_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -1068,7 +1089,7 @@ async def to_code(config):
                 await register_number_entity(
                     gp_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,
@@ -1093,7 +1114,7 @@ async def to_code(config):
                 await register_number_entity(
                     ca_config,
                     key,
-                    parent,
+                    var,
                     address,
                     0,
                     300,
@@ -1114,7 +1135,7 @@ async def to_code(config):
                 await register_number_entity(
                     ca_config,
                     key,
-                    parent,
+                    var,
                     address,
                     0,
                     100,
@@ -1131,7 +1152,7 @@ async def to_code(config):
                 await register_number_entity(
                     ca_config,
                     key,
-                    parent,
+                    var,
                     address,
                     min_val,
                     max_val,

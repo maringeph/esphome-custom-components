@@ -73,12 +73,14 @@ from . import (
     CONF_TOTAL_CONSUMPTION_32,
 )
 
+AUTO_LOAD = ["modbus_controller"]
+
 # Namespace für DeyeSensor
 DeyeSensor = cg.esphome_ns.namespace("deye_inverter").class_(
     "DeyeSensor", sensor.Sensor, cg.Component
 )
 
-DEPENDENCIES = ["deye_inverter"]
+CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
 # HELPER FUNCTIONS

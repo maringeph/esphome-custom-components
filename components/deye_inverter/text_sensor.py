@@ -17,12 +17,14 @@ from . import (
     CONF_DEVICE_INFO_EXTENDED,
 )
 
+AUTO_LOAD = ["modbus_controller"]
+
 # Namespace für DeyeTextSensor
 DeyeTextSensor = cg.esphome_ns.namespace("deye_inverter").class_(
     "DeyeTextSensor", text_sensor.TextSensor, cg.Component
 )
 
-DEPENDENCIES = ["deye_inverter"]
+CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
 # Register addresses for Deye inverter text sensors

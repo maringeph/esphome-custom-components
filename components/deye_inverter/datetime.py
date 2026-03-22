@@ -23,6 +23,10 @@ from . import (
     CONF_TIME_POINT_6_START,
 )
 
+AUTO_LOAD = ["modbus_controller"]
+
+CODEOWNERS = ["@maringeph"]
+
 # =============================================================================
 # DATETIME ENTITY SCHEMA
 # =============================================================================

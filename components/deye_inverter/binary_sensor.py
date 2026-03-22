@@ -21,12 +21,14 @@ from . import (
     DeyeInverter,
 )
 
+AUTO_LOAD = ["modbus_controller"]
+
 # Namespace for DeyeBinarySensor
 DeyeBinarySensor = cg.esphome_ns.namespace("deye_inverter").class_(
     "DeyeBinarySensor", binary_sensor.BinarySensor, cg.Component
 )
 
-DEPENDENCIES = ["deye_inverter"]
+CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
 # CONF CONSTANTS FOR BINARY SENSORS - Status Group

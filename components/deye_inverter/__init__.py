@@ -34,8 +34,8 @@ from esphome.const import (
 # =============================================================================
 # COMPONENT NAMESPACE
 # =============================================================================
+AUTO_LOAD = ["modbus_controller"]
 CODEOWNERS = ["@maringeph"]
-DEPENDENCIES = ["modbus_controller"]
 MULTI_CONF = True
 
 # =============================================================================

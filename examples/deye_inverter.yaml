@@ -14,7 +14,7 @@ esphome:
 # UART Konfiguration für RS485
 # ------------------------------------------------------------------------------
 uart:
-  - id: uart_inverter
+  - id: uart_wechselrichter_01
     port: "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
     baud_rate: 9600
     data_bits: 8
@@ -26,8 +26,8 @@ uart:
 # Modbus Controller
 # ------------------------------------------------------------------------------
 modbus:
-  - id: modbus_inverter
-    uart_id: uart_inverter
+  - id: modbus_wechselrichter_01
+    uart_id: uart_wechselrichter_01
     send_wait_time: 100ms
     role: client
     add_rx_frame_delay: 25ms # Wichtig: Wechselrichter sendet fragmentierte Antworten
@@ -43,13 +43,17 @@ external_components:
 # Package Include
 # ------------------------------------------------------------------------------
 packages:
-  - wechselrichter_01: !include
-      file: github://maringeph/esphome-custom-components/packages/deye_inverter/full.yaml@master
-      vars:
-        device_name: "Wechselrichter 01"
-        device_id: wechselrichter_01
-        modbus_id: modbus_inverter
-        modbus_address: "1"
+  wechselrichter_01:
+    url: https://github.com/maringeph/esphome-custom-components
+    ref: master
+    refresh: 1h
+    files:
+      - path: packages/deye_inverter/full.yaml
+        vars:
+          device_name: "Wechselrichter 01"
+          device_id: wechselrichter_01
+          modbus_id: modbus_wechselrichter_01
+          modbus_address: "1"
 
 # =============================================================================
 # ALTERNATIV: TCP Konfiguration (für Ethernet/WLAN Verbindung)
@@ -57,7 +61,7 @@ packages:
 # Entferne die UART und modbus Sektionen oben und verwende stattdessen:
 #
 # modbus:
-#   - id: modbus_inverter
+#   - id: modbus_wechselrichter_01
 #     tcp:
 #       ip_address: "192.168.1.100"
 #       port: 502

@@ -211,6 +211,7 @@ std::string DeyeInverter::parse_firmware_version(const std::vector<uint8_t>& dat
 // =============================================================================
 // DEYE SENSOR IMPLEMENTATION
 // =============================================================================
+#ifdef USE_SENSOR
 
 void DeyeSensor::update_value(uint16_t raw_value) {
   float converted = DeyeInverter::convert_value(raw_value, this->data_type_, this->scale_, this->offset_);
@@ -231,19 +232,23 @@ void DeyeSensor::update_value_32_signed(int32_t raw_value) {
   float converted = (static_cast<float>(raw_value) * this->scale_) + this->offset_;
   this->publish_state(converted);
 }
+#endif
 
 // =============================================================================
 // DEYE BINARY SENSOR IMPLEMENTATION
 // =============================================================================
+#ifdef USE_BINARY_SENSOR
 
 void DeyeBinarySensor::update_value(uint16_t raw_value) {
   bool state = (raw_value & this->bitmask_) != 0;
   this->publish_state(state);
 }
+#endif
 
 // =============================================================================
 // DEYE TEXT SENSOR IMPLEMENTATION
 // =============================================================================
+#ifdef USE_TEXT_SENSOR
 
 void DeyeTextSensor::update_value(uint16_t raw_value) {
   if (this->is_status_) {
@@ -287,10 +292,12 @@ void DeyeTextSensor::update_value(uint16_t raw_value) {
 void DeyeTextSensor::update_string(const std::string& value) {
   this->publish_state(value);
 }
+#endif
 
 // =============================================================================
 // DEYE SWITCH IMPLEMENTATION
 // =============================================================================
+#ifdef USE_SWITCH
 
 void DeyeSwitch::update_value(uint16_t raw_value) {
   if (this->is_2bit_field_) {
@@ -321,10 +328,12 @@ void DeyeSwitch::write_state(bool state) {
     }
   }
 }
+#endif
 
 // =============================================================================
 // DEYE NUMBER IMPLEMENTATION
 // =============================================================================
+#ifdef USE_NUMBER
 
 void DeyeNumber::update_value(uint16_t raw_value) {
   float value;
@@ -351,10 +360,12 @@ void DeyeNumber::control(float value) {
     this->parent_->write_register(this->address_, raw_value);
   }
 }
+#endif
 
 // =============================================================================
 // DEYE SELECT IMPLEMENTATION
 // =============================================================================
+#ifdef USE_SELECT
 
 void DeyeSelect::update_value(uint16_t raw_value) {
   auto it = this->options_map_.find(raw_value);
@@ -375,10 +386,12 @@ void DeyeSelect::control(const std::string& value) {
     }
   }
 }
+#endif
 
 // =============================================================================
 // DEYE DATETIME IMPLEMENTATION - For Time of Use start times
 // =============================================================================
+#ifdef USE_DATETIME
 
 void DeyeDateTime::update_value(uint16_t raw_value) {
   // Parse HHMM format from register value (e.g., 1000 = 10:00)
@@ -444,12 +457,14 @@ uint16_t DeyeDateTime::format_hhmm(uint8_t hour, uint8_t minute) {
   
   return (hour * 100) + minute;
 }
+#endif
 
 // =============================================================================
 // DEYE TIME IMPLEMENTATION - For System Time synchronization to inverter
 // Only writes time when: local time was just set OR diff > max_diff seconds
 // Triggered automatically when Settings are read (contains registers 62-64)
 // =============================================================================
+#ifdef USE_TIME
 
 void DeyeTime::setup() {
   ESP_LOGCONFIG(TAG, "Setting up Deye Time...");
@@ -584,7 +599,7 @@ void DeyeTime::on_system_time_received(uint8_t year, uint8_t month, uint8_t day,
   // Immediately check if sync is needed
   this->sync_time_if_needed();
 }
-
+#endif
 
 // =============================================================================
 // DEYE INVERTER SETUP
@@ -613,14 +628,30 @@ void DeyeInverter::dump_config() {
   ESP_LOGCONFIG(TAG, "  California Settings Update Interval: %u ms", this->interval_california_settings_);
   ESP_LOGCONFIG(TAG, "  Battery Module Update Interval: %u ms", this->interval_battery_modules_);
   ESP_LOGCONFIG(TAG, "  Device Info Update Interval: %u ms", this->interval_device_info_);
+#ifdef USE_SENSOR
   ESP_LOGCONFIG(TAG, "  Sensors: %u", this->sensors_.size());
+#endif
+#ifdef USE_BINARY_SENSOR
   ESP_LOGCONFIG(TAG, "  Binary Sensors: %u", this->binary_sensors_.size());
+#endif
+#ifdef USE_TEXT_SENSOR
   ESP_LOGCONFIG(TAG, "  Text Sensors: %u", this->text_sensors_.size());
+#endif
+#ifdef USE_SWITCH
   ESP_LOGCONFIG(TAG, "  Switches: %u", this->switches_.size());
+#endif
+#ifdef USE_NUMBER
   ESP_LOGCONFIG(TAG, "  Numbers: %u", this->numbers_.size());
+#endif
+#ifdef USE_SELECT
   ESP_LOGCONFIG(TAG, "  Selects: %u", this->selects_.size());
+#endif
+#ifdef USE_DATETIME
   ESP_LOGCONFIG(TAG, "  DateTimes: %u", this->datetimes_.size());
+#endif
+#ifdef USE_TIME
   ESP_LOGCONFIG(TAG, "  Times: %u", this->times_.size());
+#endif
 }
 
 // =============================================================================
@@ -856,26 +887,48 @@ void DeyeInverter::on_modbus_data(const std::vector<uint8_t>& data) {
   // Check if this is device info data (serial number, firmware, etc.)
   if (start_address >= 3 && start_address <= 14) {
     // Serial number range
+#ifdef USE_TEXT_SENSOR
     this->update_serial_number_from_data(start_address, reg_data);
+#endif
   } else if (start_address >= 27 && start_address <= 29) {
     // Firmware version range
+#ifdef USE_TEXT_SENSOR
     this->update_firmware_info_from_data(start_address, reg_data);
+#endif
   } else if (start_address >= 684 && start_address <= 809) {
     // Battery module data
+#ifdef USE_SENSOR
     this->update_battery_module_sensors(start_address, reg_data);
+#endif
   } else if (start_address <= 62 && start_address + (reg_data.size() / 2) > 62) {
     // System time data (registers 62-64)
+#ifdef USE_TIME
     this->update_system_time_from_data(start_address, reg_data);
+#endif
   }
   
   // Update all entity types
+#ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, reg_data);
+#endif
+#ifdef USE_BINARY_SENSOR
   this->update_binary_sensors_from_data(start_address, reg_data);
+#endif
+#ifdef USE_TEXT_SENSOR
   this->update_text_sensors_from_data(start_address, reg_data);
+#endif
+#ifdef USE_SWITCH
   this->update_switches_from_data(start_address, reg_data);
+#endif
+#ifdef USE_NUMBER
   this->update_numbers_from_data(start_address, reg_data);
+#endif
+#ifdef USE_SELECT
   this->update_selects_from_data(start_address, reg_data);
+#endif
+#ifdef USE_DATETIME
   this->update_datetimes_from_data(start_address, reg_data);
+#endif
 }
 
 void DeyeInverter::on_modbus_error(uint8_t function_code, uint8_t exception_code) {
@@ -892,6 +945,7 @@ void DeyeInverter::on_modbus_error(uint8_t function_code, uint8_t exception_code
 // BATTERY MODULE PARSING
 // =============================================================================
 
+#ifdef USE_SENSOR
 void DeyeInverter::update_battery_module_sensors(uint16_t start_address, const std::vector<uint8_t>& data) {
   // Determine which battery module this data belongs to
   uint8_t module_index = 0;
@@ -934,6 +988,7 @@ void DeyeInverter::update_battery_module_sensors(uint16_t start_address, const s
     }
   }
 }
+#endif
 
 float DeyeInverter::parse_battery_module_value(const std::vector<uint8_t>& data, size_t offset, 
                                                 uint8_t module_index, uint8_t cell_index, 
@@ -954,6 +1009,7 @@ float DeyeInverter::parse_battery_module_value(const std::vector<uint8_t>& data,
 // SERIAL NUMBER AND FIRMWARE PARSING
 // =============================================================================
 
+#ifdef USE_TEXT_SENSOR
 void DeyeInverter::update_serial_number_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   // Serial number is stored at registers 3-14 (12 registers = 24 bytes)
   if (start_address > 14) return;  // Not serial number data
@@ -965,7 +1021,9 @@ void DeyeInverter::update_serial_number_from_data(uint16_t start_address, const 
     }
   }
 }
+#endif
 
+#ifdef USE_TEXT_SENSOR
 void DeyeInverter::update_firmware_info_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   // Firmware info is at registers 27-29
   if (start_address < 27 || start_address > 29) return;
@@ -983,11 +1041,13 @@ void DeyeInverter::update_firmware_info_from_data(uint16_t start_address, const 
     }
   }
 }
+#endif
 
 // =============================================================================
 // SENSOR UPDATE METHODS
 // =============================================================================
 
+#ifdef USE_SENSOR
 void DeyeInverter::update_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *sensor : this->sensors_) {
     // Skip battery module sensors (handled separately)
@@ -1029,7 +1089,9 @@ void DeyeInverter::update_sensors_from_data(uint16_t start_address, const std::v
     }
   }
 }
+#endif
 
+#ifdef USE_BINARY_SENSOR
 void DeyeInverter::update_binary_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *sensor : this->binary_sensors_) {
     uint16_t sensor_addr = sensor->get_address();
@@ -1044,7 +1106,9 @@ void DeyeInverter::update_binary_sensors_from_data(uint16_t start_address, const
     }
   }
 }
+#endif
 
+#ifdef USE_TEXT_SENSOR
 void DeyeInverter::update_text_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *sensor : this->text_sensors_) {
     // Skip special text sensors that are handled separately
@@ -1073,14 +1137,16 @@ void DeyeInverter::update_text_sensors_from_data(uint16_t start_address, const s
     }
   }
 }
+#endif
 
+#ifdef USE_SWITCH
 void DeyeInverter::update_switches_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *sw : this->switches_) {
     uint16_t sw_addr = sw->get_address();
-    
+
     if (sw_addr >= start_address && sw_addr < start_address + (data.size() / 2)) {
       size_t offset = (sw_addr - start_address) * 2;
-      
+
       if (offset + 2 <= data.size()) {
         uint16_t reg_value = this->parse_uint16(data, offset);
         sw->update_value(reg_value);
@@ -1088,14 +1154,16 @@ void DeyeInverter::update_switches_from_data(uint16_t start_address, const std::
     }
   }
 }
+#endif
 
+#ifdef USE_NUMBER
 void DeyeInverter::update_numbers_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *num : this->numbers_) {
     uint16_t num_addr = num->get_address();
-    
+
     if (num_addr >= start_address && num_addr < start_address + (data.size() / 2)) {
       size_t offset = (num_addr - start_address) * 2;
-      
+
       if (offset + 2 <= data.size()) {
         uint16_t reg_value = this->parse_uint16(data, offset);
         num->update_value(reg_value);
@@ -1103,14 +1171,16 @@ void DeyeInverter::update_numbers_from_data(uint16_t start_address, const std::v
     }
   }
 }
+#endif
 
+#ifdef USE_SELECT
 void DeyeInverter::update_selects_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *sel : this->selects_) {
     uint16_t sel_addr = sel->get_address();
-    
+
     if (sel_addr >= start_address && sel_addr < start_address + (data.size() / 2)) {
       size_t offset = (sel_addr - start_address) * 2;
-      
+
       if (offset + 2 <= data.size()) {
         uint16_t reg_value = this->parse_uint16(data, offset);
         sel->update_value(reg_value);
@@ -1118,14 +1188,16 @@ void DeyeInverter::update_selects_from_data(uint16_t start_address, const std::v
     }
   }
 }
+#endif
 
+#ifdef USE_DATETIME
 void DeyeInverter::update_datetimes_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *dt : this->datetimes_) {
     uint16_t dt_addr = dt->get_address();
-    
+
     if (dt_addr >= start_address && dt_addr < start_address + (data.size() / 2)) {
       size_t offset = (dt_addr - start_address) * 2;
-      
+
       if (offset + 2 <= data.size()) {
         uint16_t reg_value = this->parse_uint16(data, offset);
         dt->update_value(reg_value);
@@ -1133,7 +1205,9 @@ void DeyeInverter::update_datetimes_from_data(uint16_t start_address, const std:
     }
   }
 }
+#endif
 
+#ifdef USE_TIME
 void DeyeInverter::update_system_time_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   // Check if we have data for register 62 (need at least 6 bytes for full datetime)
   if (start_address > 62 || data.size() < 6) {
@@ -1168,6 +1242,7 @@ void DeyeInverter::update_system_time_from_data(uint16_t start_address, const st
     tm->on_system_time_received(year, month, day, hour, minute, second);
   }
 }
+#endif
 
 // =============================================================================
 // DATA PARSING HELPERS

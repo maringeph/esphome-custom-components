@@ -36,12 +36,14 @@ from . import (
     CONF_SETTINGS_GRID,
 )
 
+AUTO_LOAD = ["modbus_controller"]
+
 # Namespace for DeyeNumber
 DeyeNumber = cg.esphome_ns.namespace("deye_inverter").class_(
     "DeyeNumber", number.Number, cg.Component
 )
 
-DEPENDENCIES = ["deye_inverter"]
+CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
 # CONF CONSTANTS FOR NUMBER

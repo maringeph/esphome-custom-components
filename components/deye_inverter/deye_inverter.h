@@ -2,14 +2,30 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/modbus_controller/modbus_controller.h"
+#ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
+#endif
+#ifdef USE_BINARY_SENSOR
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#endif
+#ifdef USE_TEXT_SENSOR
 #include "esphome/components/text_sensor/text_sensor.h"
+#endif
+#ifdef USE_SWITCH
 #include "esphome/components/switch/switch.h"
+#endif
+#ifdef USE_NUMBER
 #include "esphome/components/number/number.h"
+#endif
+#ifdef USE_SELECT
 #include "esphome/components/select/select.h"
+#endif
+#ifdef USE_DATETIME
 #include "esphome/components/datetime/datetime.h"
+#endif
+#ifdef USE_TIME
 #include "esphome/components/time/real_time_clock.h"
+#endif
 #include "registers.h"
 #include <map>
 #include <vector>
@@ -20,14 +36,30 @@ namespace deye_inverter {
 
 // Forward declarations
 class DeyeInverter;
+#ifdef USE_SENSOR
 class DeyeSensor;
+#endif
+#ifdef USE_BINARY_SENSOR
 class DeyeBinarySensor;
+#endif
+#ifdef USE_TEXT_SENSOR
 class DeyeTextSensor;
+#endif
+#ifdef USE_SWITCH
 class DeyeSwitch;
+#endif
+#ifdef USE_NUMBER
 class DeyeNumber;
+#endif
+#ifdef USE_SELECT
 class DeyeSelect;
+#endif
+#ifdef USE_DATETIME
 class DeyeDateTime;
+#endif
+#ifdef USE_TIME
 class DeyeTime;
+#endif
 
 // =============================================================================
 // DATA TYPE ENUM
@@ -59,6 +91,7 @@ struct RegisterInfo {
 // =============================================================================
 // SENSOR PLATFORM
 // =============================================================================
+#ifdef USE_SENSOR
 class DeyeSensor : public sensor::Sensor, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -99,10 +132,12 @@ class DeyeSensor : public sensor::Sensor, public Component {
   bool is_cell_voltage_ = false;
   uint8_t cell_index_ = 0;
 };
+#endif
 
 // =============================================================================
 // BINARY SENSOR PLATFORM
 // =============================================================================
+#ifdef USE_BINARY_SENSOR
 class DeyeBinarySensor : public binary_sensor::BinarySensor, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -119,10 +154,12 @@ class DeyeBinarySensor : public binary_sensor::BinarySensor, public Component {
   uint16_t address_ = 0;
   uint16_t bitmask_ = 0xFFFF;
 };
+#endif
 
 // =============================================================================
 // TEXT SENSOR PLATFORM
 // =============================================================================
+#ifdef USE_TEXT_SENSOR
 class DeyeTextSensor : public text_sensor::TextSensor, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -160,10 +197,12 @@ class DeyeTextSensor : public text_sensor::TextSensor, public Component {
   bool is_hardware_version_ = false;
   std::map<uint16_t, std::string> mapping_;
 };
+#endif
 
 // =============================================================================
 // SWITCH PLATFORM
 // =============================================================================
+#ifdef USE_SWITCH
 class DeyeSwitch : public switch_::Switch, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -194,10 +233,12 @@ class DeyeSwitch : public switch_::Switch, public Component {
   uint16_t value_disable_ = 0x0002;  // 10 = disable
   uint8_t bit_shift_ = 0;
 };
+#endif
 
 // =============================================================================
 // NUMBER PLATFORM
 // =============================================================================
+#ifdef USE_NUMBER
 class DeyeNumber : public number::Number, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -219,10 +260,12 @@ class DeyeNumber : public number::Number, public Component {
   float scale_ = 1.0f;
   bool is_time_point_ = false;
 };
+#endif
 
 // =============================================================================
 // SELECT PLATFORM
 // =============================================================================
+#ifdef USE_SELECT
 class DeyeSelect : public select::Select, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -249,10 +292,12 @@ class DeyeSelect : public select::Select, public Component {
   std::map<uint16_t, std::string> options_map_;
   std::map<std::string, uint16_t> reverse_map_;
 };
+#endif
 
 // =============================================================================
 // DATETIME PLATFORM - For Time of Use start times
 // =============================================================================
+#ifdef USE_DATETIME
 class DeyeDateTime : public datetime::DateTime, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -273,10 +318,12 @@ class DeyeDateTime : public datetime::DateTime, public Component {
   DeyeInverter* parent_ = nullptr;
   uint16_t address_ = 0;
 };
+#endif
 
 // =============================================================================
 // TIME PLATFORM - For System Time synchronization to inverter (registers 62-64)
 // =============================================================================
+#ifdef USE_TIME
 class DeyeTime : public time::RealTimeClock, public Component {
  public:
   void set_parent(DeyeInverter* parent) { this->parent_ = parent; }
@@ -304,10 +351,12 @@ class DeyeTime : public time::RealTimeClock, public Component {
   bool inverter_time_valid_ = false;
   time::ESPTime inverter_time_;
 };
+#endif
 
 // =============================================================================
 // ACTION: Write Time to Inverter
 // =============================================================================
+#ifdef USE_TIME
 template<typename... Ts> class DeyeTimeWriteAction : public Action<Ts...> {
  public:
   DeyeTimeWriteAction(DeyeTime *time) : time_(time) {}
@@ -319,6 +368,7 @@ template<typename... Ts> class DeyeTimeWriteAction : public Action<Ts...> {
  protected:
   DeyeTime *time_;
 };
+#endif
 
 // =============================================================================
 // MAIN DEYE INVERTER CLASS
@@ -353,14 +403,30 @@ class DeyeInverter : public Component, public modbus_controller::ModbusDevice {
   void set_update_interval_device_info(uint32_t interval) { this->interval_device_info_ = interval; }
   
   // Platform Registration
+#ifdef USE_SENSOR
   void register_sensor(DeyeSensor* sensor) { sensors_.push_back(sensor); }
+#endif
+#ifdef USE_BINARY_SENSOR
   void register_binary_sensor(DeyeBinarySensor* sensor) { binary_sensors_.push_back(sensor); }
+#endif
+#ifdef USE_TEXT_SENSOR
   void register_text_sensor(DeyeTextSensor* sensor) { text_sensors_.push_back(sensor); }
+#endif
+#ifdef USE_SWITCH
   void register_switch(DeyeSwitch* sw) { switches_.push_back(sw); }
+#endif
+#ifdef USE_NUMBER
   void register_number(DeyeNumber* num) { numbers_.push_back(num); }
+#endif
+#ifdef USE_SELECT
   void register_select(DeyeSelect* sel) { selects_.push_back(sel); }
+#endif
+#ifdef USE_DATETIME
   void register_datetime(DeyeDateTime* dt) { datetimes_.push_back(dt); }
+#endif
+#ifdef USE_TIME
   void register_time(DeyeTime* tm) { times_.push_back(tm); }
+#endif
   
   // Write Methods
   void write_register(uint16_t address, uint16_t value);
@@ -406,16 +472,34 @@ class DeyeInverter : public Component, public modbus_controller::ModbusDevice {
   std::string parse_string(const std::vector<uint8_t>& data, size_t offset, size_t length);
   
   // Sensor update methods
+#ifdef USE_SENSOR
   void update_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_BINARY_SENSOR
   void update_binary_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_TEXT_SENSOR
   void update_text_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_SWITCH
   void update_switches_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_NUMBER
   void update_numbers_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_SELECT
   void update_selects_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_DATETIME
   void update_datetimes_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_TIME
   void update_system_time_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
+#ifdef USE_TEXT_SENSOR
   void update_serial_number_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
   void update_firmware_info_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
+#endif
   
   // Configuration
   std::string name_;
@@ -501,14 +585,30 @@ class DeyeInverter : public Component, public modbus_controller::ModbusDevice {
   static constexpr size_t DEVICE_INFO_RANGES_COUNT = 5;
   
   // Platform lists
+#ifdef USE_SENSOR
   std::vector<DeyeSensor*> sensors_;
+#endif
+#ifdef USE_BINARY_SENSOR
   std::vector<DeyeBinarySensor*> binary_sensors_;
+#endif
+#ifdef USE_TEXT_SENSOR
   std::vector<DeyeTextSensor*> text_sensors_;
+#endif
+#ifdef USE_SWITCH
   std::vector<DeyeSwitch*> switches_;
+#endif
+#ifdef USE_NUMBER
   std::vector<DeyeNumber*> numbers_;
+#endif
+#ifdef USE_SELECT
   std::vector<DeyeSelect*> selects_;
+#endif
+#ifdef USE_DATETIME
   std::vector<DeyeDateTime*> datetimes_;
+#endif
+#ifdef USE_TIME
   std::vector<DeyeTime*> times_;
+#endif
 };
 
 }  // namespace deye_inverter

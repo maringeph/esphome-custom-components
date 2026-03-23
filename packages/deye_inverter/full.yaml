@@ -955,38 +955,24 @@ sensor:
         total_active_power_generation:
           name: "${device_name}: Gesamterzeugung Wirkleistung"
           id: ${device_id}_total_active_power_generation
-          value_type: U_DWORD_R
-          scale: 0.1
         total_reactive_power_generation:
           name: "${device_name}: Gesamterzeugung Blindleistung"
           id: ${device_id}_total_reactive_power_generation
-          value_type: U_DWORD_R
-          scale: 0.1
         total_battery_charge:
           name: "${device_name}: Gesamte Batterie-Ladung (32-bit)"
           id: ${device_id}_total_battery_charge_32
-          value_type: U_DWORD_R
-          scale: 0.1
         total_battery_discharge:
           name: "${device_name}: Gesamte Batterie-Entladung (32-bit)"
           id: ${device_id}_total_battery_discharge_32
-          value_type: U_DWORD_R
-          scale: 0.1
         total_grid_import:
           name: "${device_name}: Gesamter Netzbezug (32-bit)"
           id: ${device_id}_total_grid_import_32
-          value_type: U_DWORD_R
-          scale: 0.1
         total_grid_export:
           name: "${device_name}: Gesamte Netzeinspeisung (32-bit)"
           id: ${device_id}_total_grid_export_32
-          value_type: U_DWORD_R
-          scale: 0.1
         total_consumption:
           name: "${device_name}: Gesamtverbrauch (32-bit)"
           id: ${device_id}_total_consumption_32
-          value_type: U_DWORD_R
-          scale: 0.1
 
     # =========================================================================
     # STATUS - Rohwerte (10 entities) - Raw sensor values, not decoded
@@ -997,7 +983,7 @@ sensor:
         id: ${device_id}_running_status_raw
         disabled_by_default: true
       turn_off_on_status:
-        name: "${device_name}: Ein/Aus Status Raw"
+        name: "${device_name}: Ein Aus Status Raw"
         id: ${device_id}_turn_off_on_status_raw
         disabled_by_default: true
       ac_inv_relay:
@@ -1359,7 +1345,6 @@ switch:
         name: "${device_name}: Generator Erforderliche Startleistung"
         id: ${device_id}_generator_required_power_start
 
-
 # =============================================================================
 # SELECT - ALLE (12 entities)
 # =============================================================================
@@ -1439,8 +1424,9 @@ time:
     # Sync triggered automatically when Settings are read (every 2 minutes)
     # Only writes if: local time was just set OR difference > max_time_diff
     # max_time_diff: 0s = auto sync disabled (only sync on time change/DST)
-    max_time_diff: 10s  # Sync if difference > 10 seconds
-    
+    max_time_diff: 10s # Sync if difference > 10 seconds
+
+
     # Actions available:
     # - deye_inverter.write_time: Manually write time to inverter
     #   Example: on_boot -> then: deye_inverter.write_time

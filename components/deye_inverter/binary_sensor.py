@@ -229,27 +229,27 @@ async def to_code(config):
         status_conf = config[CONF_STATUS]
         # Bit 0: Grid connected
         await register_binary_sensor(
-            device_obj, status_conf, CONF_GRID_CONNECTED, var, 551, 0x0001
+            status_conf, CONF_GRID_CONNECTED, var, 551, 0x0001, device_obj
         )
         # Bit 1: Generator connected
         await register_binary_sensor(
-            device_obj, status_conf, CONF_GENERATOR_CONNECTED, var, 551, 0x0002
+            status_conf, CONF_GENERATOR_CONNECTED, var, 551, 0x0002, device_obj
         )
         # Bit 4: Solar sell
         await register_binary_sensor(
-            device_obj, status_conf, CONF_SOLAR_SELL_STATUS, var, 551, 0x0010
+            status_conf, CONF_SOLAR_SELL_STATUS, var, 551, 0x0010, device_obj
         )
         # Bit 5: Time of use
         await register_binary_sensor(
-            device_obj, status_conf, CONF_TIME_OF_USE_STATUS, var, 551, 0x0020
+            status_conf, CONF_TIME_OF_USE_STATUS, var, 551, 0x0020, device_obj
         )
         # Bit 8: Battery charging
         await register_binary_sensor(
-            device_obj, status_conf, CONF_BATTERY_CHARGING, var, 551, 0x0100
+            status_conf, CONF_BATTERY_CHARGING, var, 551, 0x0100, device_obj
         )
         # Bit 9: Battery discharging
         await register_binary_sensor(
-            device_obj, status_conf, CONF_BATTERY_DISCHARGING, var, 551, 0x0200
+            status_conf, CONF_BATTERY_DISCHARGING, var, 551, 0x0200, device_obj
         )
 
     # Relay Status Sensors (Register 552 - Relay Status)
@@ -257,37 +257,37 @@ async def to_code(config):
         relay_grid_conf = config[CONF_RELAY_GRID]
         # Bit 2: Grid relay
         await register_binary_sensor(
-            device_obj, relay_grid_conf, CONF_RELAY_GRID_RELAY, var, 552, 0x0004
+            relay_grid_conf, CONF_RELAY_GRID_RELAY, var, 552, 0x0004, device_obj
         )
         # Bit 4: Grid run
         await register_binary_sensor(
-            device_obj, relay_grid_conf, CONF_RELAY_GRID_RUN, var, 552, 0x0010
+            relay_grid_conf, CONF_RELAY_GRID_RUN, var, 552, 0x0010, device_obj
         )
 
     if CONF_RELAY_GENERATOR in config:
         relay_gen_conf = config[CONF_RELAY_GENERATOR]
         # Bit 3: Gen relay
         await register_binary_sensor(
-            device_obj, relay_gen_conf, CONF_RELAY_GEN_RELAY, var, 552, 0x0008
+            relay_gen_conf, CONF_RELAY_GEN_RELAY, var, 552, 0x0008, device_obj
         )
         # Bit 5: Gen run
         await register_binary_sensor(
-            device_obj, relay_gen_conf, CONF_RELAY_GEN_RUN, var, 552, 0x0020
+            relay_gen_conf, CONF_RELAY_GEN_RUN, var, 552, 0x0020, device_obj
         )
 
     if CONF_RELAY_LOAD in config:
         relay_load_conf = config[CONF_RELAY_LOAD]
         # Bit 0: Inverter run
         await register_binary_sensor(
-            device_obj, relay_load_conf, CONF_RELAY_INVERTER_RUN, var, 552, 0x0001
+            relay_load_conf, CONF_RELAY_INVERTER_RUN, var, 552, 0x0001, device_obj
         )
         # Bit 1: Relay
         await register_binary_sensor(
-            device_obj, relay_load_conf, CONF_RELAY_STATUS, var, 552, 0x0002
+            relay_load_conf, CONF_RELAY_STATUS, var, 552, 0x0002, device_obj
         )
         # Bit 7: AC relay
         await register_binary_sensor(
-            device_obj, relay_load_conf, CONF_RELAY_AC_RELAY, var, 552, 0x0080
+            relay_load_conf, CONF_RELAY_AC_RELAY, var, 552, 0x0080, device_obj
         )
 
     # Warning Sensors (Register 553 - Warning 1)
@@ -295,42 +295,42 @@ async def to_code(config):
         warnings_conf = config[CONF_WARNINGS]
         # Warning 1 bits
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_BATTERY_LOW, var, 553, 0x0001
+            warnings_conf, CONF_WARNING_BATTERY_LOW, var, 553, 0x0001, device_obj
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_BATTERY_SHUTDOWN, var, 553, 0x0002
+            warnings_conf, CONF_WARNING_BATTERY_SHUTDOWN, var, 553, 0x0002, device_obj
         )
         await register_binary_sensor(
-            device_obj,
             warnings_conf,
             CONF_WARNING_BATTERY_OVER_VOLTAGE,
             var,
             553,
             0x0004,
+            device_obj,
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_BATTERY_SOC_LOW, var, 553, 0x0008
+            warnings_conf, CONF_WARNING_BATTERY_SOC_LOW, var, 553, 0x0008, device_obj
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_PV_OVER_VOLTAGE, var, 553, 0x0010
+            warnings_conf, CONF_WARNING_PV_OVER_VOLTAGE, var, 553, 0x0010, device_obj
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_GRID_VOLTAGE_HIGH, var, 553, 0x0020
+            warnings_conf, CONF_WARNING_GRID_VOLTAGE_HIGH, var, 553, 0x0020, device_obj
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_GRID_VOLTAGE_LOW, var, 553, 0x0040
+            warnings_conf, CONF_WARNING_GRID_VOLTAGE_LOW, var, 553, 0x0040, device_obj
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_GRID_FREQ_HIGH, var, 553, 0x0080
+            warnings_conf, CONF_WARNING_GRID_FREQ_HIGH, var, 553, 0x0080, device_obj
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_GRID_FREQ_LOW, var, 553, 0x0100
+            warnings_conf, CONF_WARNING_GRID_FREQ_LOW, var, 553, 0x0100, device_obj
         )
 
         # Warning 2 bits (Register 554)
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_TEMP_HIGH, var, 554, 0x0001
+            warnings_conf, CONF_WARNING_TEMP_HIGH, var, 554, 0x0001, device_obj
         )
         await register_binary_sensor(
-            device_obj, warnings_conf, CONF_WARNING_OVERLOAD, var, 554, 0x0002
+            warnings_conf, CONF_WARNING_OVERLOAD, var, 554, 0x0002, device_obj
         )

@@ -220,47 +220,43 @@ BITMASK_GENERATOR_CHARGING_ENABLED = 0x0001
 # SCHEMA DEFINITIONS
 # =============================================================================
 
+
+# Helper schema that creates switch schema with DeyeSwitch class
+def deye_switch_schema(**kwargs):
+    return switch.switch_schema(DeyeSwitch, **kwargs)
+
+
 # Settings Grid Schema
 SETTINGS_GRID_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_GRID_CHARGE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_GRID_CHARGE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_SOLAR_SELL): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_SOLAR_SELL): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_GRID_PEAK_SHAVING): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_GRID_PEAK_SHAVING): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_GEN_PEAK_SHAVING): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_GEN_PEAK_SHAVING): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_ON_GRID_ALWAYS_ON): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_ON_GRID_ALWAYS_ON): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_MICROINVERTER_EXPORT_TO_GRID): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_MICROINVERTER_EXPORT_TO_GRID): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_ZERO_EXPORT_POWER): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_ZERO_EXPORT_POWER): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_MAX_SOLAR_SELL_POWER): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_MAX_SOLAR_SELL_POWER): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_GRID_MAX_POWER): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_GRID_MAX_POWER): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_RESTORE_CONNECTION_TIME): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_RESTORE_CONNECTION_TIME): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }
@@ -269,12 +265,10 @@ SETTINGS_GRID_SCHEMA = cv.Schema(
 # Settings Device Schema
 SETTINGS_DEVICE_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_EXTERNAL_CT_DIRECTION_CHECK): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_EXTERNAL_CT_DIRECTION_CHECK): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_SOLAR_ARC_FAULT_MODE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_SOLAR_ARC_FAULT_MODE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }
@@ -283,8 +277,7 @@ SETTINGS_DEVICE_SCHEMA = cv.Schema(
 # Settings Working Mode Schema
 SETTINGS_WORKING_MODE_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_FORCED_OFF_GRID_WORK): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_FORCED_OFF_GRID_WORK): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }
@@ -293,8 +286,7 @@ SETTINGS_WORKING_MODE_SCHEMA = cv.Schema(
 # Settings Battery Schema
 SETTINGS_BATTERY_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_BATTERY_LOSS_REPORT_FAULT): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_BATTERY_LOSS_REPORT_FAULT): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }
@@ -303,20 +295,16 @@ SETTINGS_BATTERY_SCHEMA = cv.Schema(
 # Settings Generator Schema
 SETTINGS_GENERATOR_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_EXTERNAL_RELAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_EXTERNAL_RELAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_GEN_PORT_FORCE_ON): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_GEN_PORT_FORCE_ON): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_GENERATOR_REQUIRED_POWER_START): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_GENERATOR_REQUIRED_POWER_START): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }
@@ -325,20 +313,16 @@ SETTINGS_GENERATOR_SCHEMA = cv.Schema(
 # Settings System Schema
 SETTINGS_SYSTEM_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_SYS_BEEPER): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_SYS_BEEPER): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_SYS_LCD_BACKLIGHT): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_SYS_LCD_BACKLIGHT): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_SYS_DST_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_SYS_DST_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_SYS_REMOTE_LOCK): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_SYS_REMOTE_LOCK): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }
@@ -347,112 +331,86 @@ SETTINGS_SYSTEM_SCHEMA = cv.Schema(
 # Settings Time of Use Schema
 SETTINGS_TIME_OF_USE_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_TIME_OF_USE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_OF_USE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
         # Solar/General Charge Enable (Bit 0)
-        cv.Optional(CONF_TIME_POINT_1_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_1_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_2_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_2_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_3_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_3_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_4_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_4_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_5_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_5_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_6_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_6_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
         # Grid Charge Enable (Bit 1)
-        cv.Optional(CONF_TIME_POINT_1_GRID_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_1_GRID_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_2_GRID_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_2_GRID_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_3_GRID_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_3_GRID_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_4_GRID_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_4_GRID_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_5_GRID_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_5_GRID_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_6_GRID_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_6_GRID_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
         # Generator Charge Enable (Bit 2)
-        cv.Optional(CONF_TIME_POINT_1_GEN_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_1_GEN_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_2_GEN_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_2_GEN_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_3_GEN_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_3_GEN_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_4_GEN_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_4_GEN_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_5_GEN_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_5_GEN_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_TIME_POINT_6_GEN_CHARGE_ENABLE): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_TIME_POINT_6_GEN_CHARGE_ENABLE): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
         # Weekday Enables (Register 146, Bits 1-7)
-        cv.Optional(CONF_WEEKDAY_MONDAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_WEEKDAY_MONDAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_WEEKDAY_TUESDAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_WEEKDAY_TUESDAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_WEEKDAY_WEDNESDAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_WEEKDAY_WEDNESDAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_WEEKDAY_THURSDAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_WEEKDAY_THURSDAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_WEEKDAY_FRIDAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_WEEKDAY_FRIDAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_WEEKDAY_SATURDAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_WEEKDAY_SATURDAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_WEEKDAY_SUNDAY): switch.switch_schema(
-            DeyeSwitch,
+        cv.Optional(CONF_WEEKDAY_SUNDAY): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }

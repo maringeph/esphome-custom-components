@@ -3,6 +3,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import select
+from esphome.const import CONF_ID
 
 from . import (
     CONF_DEYE_INVERTER_ID,
@@ -242,72 +243,78 @@ CA_ABNORMAL_OP_CAT_OPTIONS = {
 # SCHEMA DEFINITIONS (lokal in select.py)
 # =============================================================================
 
+
+# Helper schema that creates select schema with DeyeSelect class
+def deye_select_schema(**kwargs):
+    return select.select_schema(DeyeSelect, **kwargs)
+
+
 # Settings Grid Select Schema
 SETTINGS_GRID_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_GRID_TYPE): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_GRID_MODE): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_GRID_NOMINAL_VOLTAGE): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_GRID_NOMINAL_FREQUENCY): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_GRID_PHASE_SEQUENCE): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_GRID_CHECK_SOURCE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_GRID_TYPE): deye_select_schema(),
+        cv.Optional(CONF_GRID_MODE): deye_select_schema(),
+        cv.Optional(CONF_GRID_NOMINAL_VOLTAGE): deye_select_schema(),
+        cv.Optional(CONF_GRID_NOMINAL_FREQUENCY): deye_select_schema(),
+        cv.Optional(CONF_GRID_PHASE_SEQUENCE): deye_select_schema(),
+        cv.Optional(CONF_GRID_CHECK_SOURCE): deye_select_schema(),
     }
 )
 
 # Settings Device Select Schema
 SETTINGS_DEVICE_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_EXT_BAUD_RATE): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_EXT_PARITY): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_EXT_STOP_BITS): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_EXT_PROTOCOL): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_EXT_BAUD_RATE): deye_select_schema(),
+        cv.Optional(CONF_EXT_PARITY): deye_select_schema(),
+        cv.Optional(CONF_EXT_STOP_BITS): deye_select_schema(),
+        cv.Optional(CONF_EXT_PROTOCOL): deye_select_schema(),
     }
 )
 
 # Settings Battery Select Schema
 SETTINGS_BATTERY_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_BATTERY_TYPE): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_BATTERY_CONTROL_MODE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_BATTERY_TYPE): deye_select_schema(),
+        cv.Optional(CONF_BATTERY_CONTROL_MODE): deye_select_schema(),
     }
 )
 
 # Settings Generator Port Select Schema
 SETTINGS_GEN_PORT_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_GEN_PORT_CONTROL_MODE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_GEN_PORT_CONTROL_MODE): deye_select_schema(),
     }
 )
 
 # Settings Working Mode Select Schema
 SETTINGS_WORKING_MODE_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_WORKING_MODE): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_ENERGY_PRIORITY): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_LIMIT_CONTROL_MODE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_WORKING_MODE): deye_select_schema(),
+        cv.Optional(CONF_ENERGY_PRIORITY): deye_select_schema(),
+        cv.Optional(CONF_LIMIT_CONTROL_MODE): deye_select_schema(),
     }
 )
 
 # Settings System Select Schema
 SETTINGS_SYSTEM_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_SYS_LANGUAGE): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_SYS_LANGUAGE): deye_select_schema(),
     }
 )
 
 # Settings System Time Select Schema
 SETTINGS_SYSTEM_TIME_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_SYSTEM_TIME): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_SYSTEM_TIME): deye_select_schema(),
     }
 )
 
 # Settings California Select Schema
 SETTINGS_CALIFORNIA_SELECT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_CA_RULE21_CATEGORY): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_CA_NORMAL_OP_CAT): select.select_schema(DeyeSelect),
-        cv.Optional(CONF_CA_ABNORMAL_OP_CAT): select.select_schema(DeyeSelect),
+        cv.Optional(CONF_CA_RULE21_CATEGORY): deye_select_schema(),
+        cv.Optional(CONF_CA_NORMAL_OP_CAT): deye_select_schema(),
+        cv.Optional(CONF_CA_ABNORMAL_OP_CAT): deye_select_schema(),
     }
 )
 
@@ -338,11 +345,11 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 def build_options_map(options_dict):
-    """Build a C++ map from a Python dict for options mapping."""
+    """Build a C++ map expression from a Python dict for options mapping."""
     map_entries = []
     for value, label in options_dict.items():
         map_entries.append(f'{{{value}, "{label}"}}')
-    return ", ".join(map_entries)
+    return "{" + ", ".join(map_entries) + "}"
 
 
 async def register_select_entity(
@@ -353,16 +360,19 @@ async def register_select_entity(
         return
 
     conf = config[key]
-    sel = await select.new_select(
-        conf,
-        options=list(options_map.values()),
-    )
+    # Create DeyeSelect instead of using select.new_select
+    sel = cg.new_Pvariable(conf[CONF_ID])
+    await select.register_select(sel, conf, options=list(options_map.values()))
     cg.add(sel.set_parent(parent))
     cg.add(sel.set_address(address))
 
-    # Build and set the options map
+    # Build and set the options map as actual C++ code
     options_map_str = build_options_map(options_map)
-    cg.add(sel.set_options_map(f"std::map<uint16_t, std::string>{{{options_map_str}}}"))
+    cg.add(
+        sel.set_options_map(
+            cg.RawExpression(f"std::map<uint16_t, std::string>{options_map_str}")
+        )
+    )
 
     # Register with parent's select list
     cg.add(parent.register_select(sel))

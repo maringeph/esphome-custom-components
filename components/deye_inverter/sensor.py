@@ -277,15 +277,49 @@ from . import (
 )
 
 # =============================================================================
+# DECLARE DEYE SENSOR CLASS
+# =============================================================================
+
+DeyeSensor = deye_inverter_ns.class_("DeyeSensor", sensor.Sensor, cg.Component)
+
+# =============================================================================
 # SENSOR SCHEMAS
 # =============================================================================
 
 # Entity base schema
 ENTITY_SCHEMA = cv.Schema(
     {
-        cv.Required(CONF_ID): cv.declare_id(sensor.Sensor),
+        cv.Required(CONF_ID): cv.declare_id(DeyeSensor),
     }
 )
+
+
+def deye_sensor_schema(
+    unit_of_measurement=None,
+    accuracy_decimals=None,
+    device_class=None,
+    state_class=None,
+    icon=None,
+):
+    """Create a sensor schema that uses DeyeSensor class.
+
+    Only passes non-None values to sensor.sensor_schema() to avoid
+    ESPHome validation errors with NoneType.
+    """
+    kwargs = {}
+    if unit_of_measurement is not None:
+        kwargs["unit_of_measurement"] = unit_of_measurement
+    if accuracy_decimals is not None:
+        kwargs["accuracy_decimals"] = accuracy_decimals
+    if device_class is not None:
+        kwargs["device_class"] = device_class
+    if state_class is not None:
+        kwargs["state_class"] = state_class
+    if icon is not None:
+        kwargs["icon"] = icon
+
+    return sensor.sensor_schema(DeyeSensor, **kwargs)
+
 
 # Device Info Schemas
 DEVICE_INFO_SCHEMA = cv.Schema(
@@ -299,7 +333,7 @@ DEVICE_INFO_SCHEMA = cv.Schema(
         ),
         cv.Optional(CONF_MODBUS_ADDRESS): cv.Schema(
             {
-                cv.Required(CONF_ID): cv.declare_id(sensor.Sensor),
+                cv.Required(CONF_ID): cv.declare_id(DeyeSensor),
                 cv.Optional(CONF_NAME): cv.string,
                 cv.Optional(CONF_DISABLED_BY_DEFAULT, default=True): cv.boolean,
             }
@@ -309,45 +343,45 @@ DEVICE_INFO_SCHEMA = cv.Schema(
 
 DEVICE_INFO_EXTENDED_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_SERIAL_NUMBER): sensor.sensor_schema(
+        cv.Optional(CONF_SERIAL_NUMBER): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_FIRMWARE_VERSION): sensor.sensor_schema(
+        cv.Optional(CONF_FIRMWARE_VERSION): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_HARDWARE_VERSION): sensor.sensor_schema(
+        cv.Optional(CONF_HARDWARE_VERSION): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DEVICE_TYPE_CODE): sensor.sensor_schema(
+        cv.Optional(CONF_DEVICE_TYPE_CODE): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_MODEL): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_MODEL): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_POWER_RATING): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_POWER_RATING): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_VOLTAGE_RATING): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_VOLTAGE_RATING): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_CURRENT_RATING): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_CURRENT_RATING): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_FREQUENCY_RATING): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_FREQUENCY_RATING): deye_sensor_schema(
             unit_of_measurement=UNIT_HERTZ,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_FREQUENCY,
@@ -359,19 +393,19 @@ DEVICE_INFO_EXTENDED_SCHEMA = cv.Schema(
 # PV String Schema
 PV_STRING_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_PV_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_PV_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_PV_CURRENT): sensor.sensor_schema(
+        cv.Optional(CONF_PV_CURRENT): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_PV_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_PV_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
@@ -383,37 +417,37 @@ PV_STRING_SCHEMA = cv.Schema(
 # Battery Schema
 BATTERY_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_BATTERY_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BATTERY_CURRENT): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_CURRENT): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BATTERY_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BATTERY_SOC): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_SOC): deye_sensor_schema(
             unit_of_measurement=UNIT_PERCENT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_BATTERY,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BATTERY_TEMPERATURE): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_TEMPERATURE): deye_sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BATTERY_CAPACITY): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_CAPACITY): deye_sensor_schema(
             unit_of_measurement="Ah",
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
@@ -424,77 +458,80 @@ BATTERY_SCHEMA = cv.Schema(
 # Battery Module Schema
 BATTERY_MODULE_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_BM_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_BM_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_CURRENT): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CURRENT): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_SOC): sensor.sensor_schema(
+        cv.Optional(CONF_BM_SOC): deye_sensor_schema(
             unit_of_measurement=UNIT_PERCENT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_BATTERY,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_TEMPERATURE): sensor.sensor_schema(
+        cv.Optional(CONF_BM_TEMPERATURE): deye_sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_STATUS): sensor.sensor_schema(
+        cv.Optional(CONF_BM_STATUS): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:information",
         ),
-        cv.Optional(CONF_BM_FAULT_CODE): sensor.sensor_schema(
+        cv.Optional(CONF_BM_FAULT_CODE): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:alert",
         ),
-        cv.Optional(CONF_BM_CYCLE_COUNT): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CYCLE_COUNT): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_TOTAL_INCREASING,
+            icon="mdi:battery-sync",
         ),
-        cv.Optional(CONF_BM_CAPACITY_REMAINING): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CAPACITY_REMAINING): deye_sensor_schema(
             unit_of_measurement="Ah",
             accuracy_decimals=1,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_CAPACITY_TOTAL): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CAPACITY_TOTAL): deye_sensor_schema(
             unit_of_measurement="Ah",
             accuracy_decimals=1,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_BM_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_CELL_MAX_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CELL_MAX_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=3,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_CELL_MIN_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CELL_MIN_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=3,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_CELL_MAX_TEMP): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CELL_MAX_TEMP): deye_sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_BM_CELL_MIN_TEMP): sensor.sensor_schema(
+        cv.Optional(CONF_BM_CELL_MIN_TEMP): deye_sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
@@ -506,190 +543,190 @@ BATTERY_MODULE_SCHEMA = cv.Schema(
 # Grid Schema
 GRID_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_GRID_VOLTAGE_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_VOLTAGE_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_VOLTAGE_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_VOLTAGE_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_VOLTAGE_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_VOLTAGE_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_VOLTAGE_L1_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_VOLTAGE_L1_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_VOLTAGE_L2_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_VOLTAGE_L2_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_VOLTAGE_L3_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_VOLTAGE_L3_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_CURRENT_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_CURRENT_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_CURRENT_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_CURRENT_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_CURRENT_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_CURRENT_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_POWER_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_POWER_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_POWER_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_POWER_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_POWER_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_POWER_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_POWER_TOTAL): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_POWER_TOTAL): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_FREQUENCY): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_FREQUENCY): deye_sensor_schema(
             unit_of_measurement=UNIT_HERTZ,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_FREQUENCY,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_SIDE_A_PHASE_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_SIDE_A_PHASE_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_SIDE_B_PHASE_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_SIDE_B_PHASE_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_SIDE_C_PHASE_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_SIDE_C_PHASE_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_SIDE_TOTAL_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_SIDE_TOTAL_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_TOTAL_GRID_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_GRID_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INTERNAL_CT_L1_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_INTERNAL_CT_L1_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INTERNAL_CT_L2_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_INTERNAL_CT_L2_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INTERNAL_CT_L3_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_INTERNAL_CT_L3_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INTERNAL_TOTAL_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_INTERNAL_TOTAL_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_EXTERNAL_CT_L1_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_EXTERNAL_CT_L1_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_EXTERNAL_CT_L2_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_EXTERNAL_CT_L2_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_EXTERNAL_CT_L3_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_EXTERNAL_CT_L3_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_OUT_OF_GRID_TOTAL_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_OUT_OF_GRID_TOTAL_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_METER_APPARENT_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_METER_APPARENT_POWER): deye_sensor_schema(
             unit_of_measurement="VA",
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_METER_POWER_FACTOR): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_METER_POWER_FACTOR): deye_sensor_schema(
             accuracy_decimals=2,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_METER_CURRENT_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_METER_CURRENT_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_METER_CURRENT_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_METER_CURRENT_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GRID_METER_CURRENT_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_METER_CURRENT_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
@@ -701,43 +738,43 @@ GRID_SCHEMA = cv.Schema(
 # Load Grid Schema
 LOAD_GRID_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L1): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L2): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L3): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_GRID_POWER_L1): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_GRID_POWER_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_GRID_POWER_L2): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_GRID_POWER_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_GRID_POWER_L3): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_GRID_POWER_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_GRID_POWER_TOTAL): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_GRID_POWER_TOTAL): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
@@ -749,73 +786,73 @@ LOAD_GRID_SCHEMA = cv.Schema(
 # Load Grid Port Schema
 LOAD_GRID_PORT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L1): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L2): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L3): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_CURRENT_L1): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_CURRENT_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_CURRENT_L2): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_CURRENT_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_CURRENT_L3): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_CURRENT_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_POWER_L1): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_POWER_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_POWER_L2): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_POWER_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_PORT_POWER_L3): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_PORT_POWER_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_REAL_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_REAL_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_APPARENT_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_APPARENT_POWER): deye_sensor_schema(
             unit_of_measurement="VA",
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_FREQUENCY): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_FREQUENCY): deye_sensor_schema(
             unit_of_measurement=UNIT_HERTZ,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_FREQUENCY,
@@ -827,49 +864,49 @@ LOAD_GRID_PORT_SCHEMA = cv.Schema(
 # Load UPS Schema
 LOAD_UPS_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L1): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L2): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L3): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_UPS_POWER_L1): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_POWER_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_UPS_POWER_L2): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_POWER_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_UPS_POWER_L3): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_POWER_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_UPS_POWER_TOTAL): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_POWER_TOTAL): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_LOAD_UPS_FREQUENCY): sensor.sensor_schema(
+        cv.Optional(CONF_LOAD_UPS_FREQUENCY): deye_sensor_schema(
             unit_of_measurement=UNIT_HERTZ,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_FREQUENCY,
@@ -881,67 +918,67 @@ LOAD_UPS_SCHEMA = cv.Schema(
 # Generator Schema
 GENERATOR_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_GENERATOR_VOLTAGE_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_VOLTAGE_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_VOLTAGE_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_VOLTAGE_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_VOLTAGE_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_VOLTAGE_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_CURRENT_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_CURRENT_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_CURRENT_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_CURRENT_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_CURRENT_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_CURRENT_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_POWER_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_POWER_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_POWER_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_POWER_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_POWER_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_POWER_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_POWER_TOTAL): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_POWER_TOTAL): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GENERATOR_FREQUENCY): sensor.sensor_schema(
+        cv.Optional(CONF_GENERATOR_FREQUENCY): deye_sensor_schema(
             unit_of_measurement=UNIT_HERTZ,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_FREQUENCY,
@@ -953,67 +990,67 @@ GENERATOR_SCHEMA = cv.Schema(
 # Generator Port Schema
 GENERATOR_PORT_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_GEN_PORT_VOLTAGE_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_VOLTAGE_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_VOLTAGE_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_VOLTAGE_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_VOLTAGE_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_VOLTAGE_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_CURRENT_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_CURRENT_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_CURRENT_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_CURRENT_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_CURRENT_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_CURRENT_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_POWER_L1): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_POWER_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_POWER_L2): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_POWER_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_POWER_L3): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_POWER_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_POWER_TOTAL): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_POWER_TOTAL): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_GEN_PORT_FREQUENCY): sensor.sensor_schema(
+        cv.Optional(CONF_GEN_PORT_FREQUENCY): deye_sensor_schema(
             unit_of_measurement=UNIT_HERTZ,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_FREQUENCY,
@@ -1025,13 +1062,13 @@ GENERATOR_PORT_SCHEMA = cv.Schema(
 # Temperatures Schema
 TEMPERATURES_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_TEMP_HEATSINK): sensor.sensor_schema(
+        cv.Optional(CONF_TEMP_HEATSINK): deye_sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_TEMP_DC_TRANSFORMER): sensor.sensor_schema(
+        cv.Optional(CONF_TEMP_DC_TRANSFORMER): deye_sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
@@ -1043,55 +1080,55 @@ TEMPERATURES_SCHEMA = cv.Schema(
 # Inverter Schema
 INVERTER_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_INVERTER_VOLTAGE_L1): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_VOLTAGE_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_VOLTAGE_L2): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_VOLTAGE_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_VOLTAGE_L3): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_VOLTAGE_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_REAL_POWER_L1): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_REAL_POWER_L1): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_REAL_POWER_L2): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_REAL_POWER_L2): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_REAL_POWER_L3): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_REAL_POWER_L3): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_REAL_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_REAL_POWER): deye_sensor_schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_APPARENT_POWER): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_APPARENT_POWER): deye_sensor_schema(
             unit_of_measurement="VA",
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_INVERTER_FREQUENCY): sensor.sensor_schema(
+        cv.Optional(CONF_INVERTER_FREQUENCY): deye_sensor_schema(
             unit_of_measurement=UNIT_HERTZ,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_FREQUENCY,
@@ -1103,43 +1140,43 @@ INVERTER_SCHEMA = cv.Schema(
 # DC Schema
 DC_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_DC5_CURRENT): sensor.sensor_schema(
+        cv.Optional(CONF_DC5_CURRENT): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DC6_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_DC6_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DC6_CURRENT): sensor.sensor_schema(
+        cv.Optional(CONF_DC6_CURRENT): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DC7_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_DC7_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DC7_CURRENT): sensor.sensor_schema(
+        cv.Optional(CONF_DC7_CURRENT): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DC8_VOLTAGE): sensor.sensor_schema(
+        cv.Optional(CONF_DC8_VOLTAGE): deye_sensor_schema(
             unit_of_measurement=UNIT_VOLT,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_VOLTAGE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DC8_CURRENT): sensor.sensor_schema(
+        cv.Optional(CONF_DC8_CURRENT): deye_sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=2,
             device_class=DEVICE_CLASS_CURRENT,
@@ -1151,90 +1188,90 @@ DC_SCHEMA = cv.Schema(
 # Statistics Schemas
 DAILY_STATISTICS_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_BATTERY_CHARGE): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_CHARGE): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_BATTERY_DISCHARGE): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_DISCHARGE): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_GRID_IMPORT): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_IMPORT): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_GRID_EXPORT): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_EXPORT): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_CONSUMPTION): sensor.sensor_schema(
+        cv.Optional(CONF_CONSUMPTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_PV_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_PV_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_DAILY_PV1_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_DAILY_PV1_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_DAILY_PV2_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_DAILY_PV2_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_DAILY_PV3_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_DAILY_PV3_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_DAILY_PV4_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_DAILY_PV4_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_DAILY_GENERATOR_ON_TIME): sensor.sensor_schema(
+        cv.Optional(CONF_DAILY_GENERATOR_ON_TIME): deye_sensor_schema(
             unit_of_measurement=UNIT_HOUR,
             accuracy_decimals=1,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_DAILY_ACTIVE_POWER_GENERATION): sensor.sensor_schema(
+        cv.Optional(CONF_DAILY_ACTIVE_POWER_GENERATION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_ACTIVE_POWER_GENERATION_TODAY): sensor.sensor_schema(
+        cv.Optional(CONF_ACTIVE_POWER_GENERATION_TODAY): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_DAILY_GRID_CONNECTION_TIME): sensor.sensor_schema(
+        cv.Optional(CONF_DAILY_GRID_CONNECTION_TIME): deye_sensor_schema(
             unit_of_measurement=UNIT_MINUTE,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
@@ -1244,142 +1281,142 @@ DAILY_STATISTICS_SCHEMA = cv.Schema(
 
 TOTAL_STATISTICS_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_BATTERY_CHARGE): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_CHARGE): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_BATTERY_DISCHARGE): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_DISCHARGE): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_GRID_IMPORT): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_IMPORT): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_GRID_EXPORT): sensor.sensor_schema(
+        cv.Optional(CONF_GRID_EXPORT): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_CONSUMPTION): sensor.sensor_schema(
+        cv.Optional(CONF_CONSUMPTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_PV_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_PV_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_ACTIVE_POWER_GENERATION): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_ACTIVE_POWER_GENERATION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_REACTIVE_POWER_GENERATION): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_REACTIVE_POWER_GENERATION): deye_sensor_schema(
             unit_of_measurement="kVARh",
             accuracy_decimals=1,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_BATTERY_CHARGE_32): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_BATTERY_CHARGE_32): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_BATTERY_DISCHARGE_32): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_BATTERY_DISCHARGE_32): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_GRID_IMPORT_32): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_GRID_IMPORT_32): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_GRID_EXPORT_32): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_GRID_EXPORT_32): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_CONSUMPTION_32): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_CONSUMPTION_32): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_ACTIVE_POWER_GEN_TOTAL_LOW): sensor.sensor_schema(
+        cv.Optional(CONF_ACTIVE_POWER_GEN_TOTAL_LOW): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_ACTIVE_POWER_GEN_TOTAL_HIGH): sensor.sensor_schema(
+        cv.Optional(CONF_ACTIVE_POWER_GEN_TOTAL_HIGH): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_REACTIVE_POWER_GEN_TOTAL_LOW): sensor.sensor_schema(
+        cv.Optional(CONF_REACTIVE_POWER_GEN_TOTAL_LOW): deye_sensor_schema(
             unit_of_measurement="kVARh",
             accuracy_decimals=1,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_REACTIVE_POWER_GEN_TOTAL_HIGH): sensor.sensor_schema(
+        cv.Optional(CONF_REACTIVE_POWER_GEN_TOTAL_HIGH): deye_sensor_schema(
             unit_of_measurement="kVARh",
             accuracy_decimals=1,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_PV_PRODUCTION): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_PV_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_BATTERY_CHARGE_TOTAL_HIGH): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_CHARGE_TOTAL_HIGH): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_BATTERY_DISCHARGE_TOTAL_HIGH): sensor.sensor_schema(
+        cv.Optional(CONF_BATTERY_DISCHARGE_TOTAL_HIGH): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_GRID_BUY_HIGH): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_GRID_BUY_HIGH): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_GRID_SELL_HIGH): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_GRID_SELL_HIGH): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_TOTAL_LOAD_HIGH): sensor.sensor_schema(
+        cv.Optional(CONF_TOTAL_LOAD_HIGH): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_ENERGY,
@@ -1398,43 +1435,43 @@ STATISTICS_SCHEMA = cv.Schema(
 # Status Schema
 STATUS_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_WARNING_1_RAW): sensor.sensor_schema(
+        cv.Optional(CONF_WARNING_1_RAW): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_WARNING_2_RAW): sensor.sensor_schema(
+        cv.Optional(CONF_WARNING_2_RAW): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_ERROR_1_RAW): sensor.sensor_schema(
+        cv.Optional(CONF_ERROR_1_RAW): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_ERROR_2_RAW): sensor.sensor_schema(
+        cv.Optional(CONF_ERROR_2_RAW): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_ERROR_3_RAW): sensor.sensor_schema(
+        cv.Optional(CONF_ERROR_3_RAW): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_ERROR_4_RAW): sensor.sensor_schema(
+        cv.Optional(CONF_ERROR_4_RAW): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_COMMUNICATION_BOARD_FAILURE): sensor.sensor_schema(
+        cv.Optional(CONF_COMMUNICATION_BOARD_FAILURE): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_RUNNING_STATUS): sensor.sensor_schema(
+        cv.Optional(CONF_RUNNING_STATUS): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_TURN_OFF_ON_STATUS): sensor.sensor_schema(
+        cv.Optional(CONF_TURN_OFF_ON_STATUS): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
-        cv.Optional(CONF_AC_INV_RELAY): sensor.sensor_schema(
+        cv.Optional(CONF_AC_INV_RELAY): deye_sensor_schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
@@ -1543,7 +1580,9 @@ async def register_single_sensor(
         return
 
     conf = config[key]
-    sens = await sensor.new_sensor(conf)
+    # Create DeyeSensor instead of base sensor
+    sens = cg.new_Pvariable(conf[CONF_ID])
+    await sensor.register_sensor(sens, conf)
     cg.add(sens.set_parent(parent))
     cg.add(sens.set_address(address))
     cg.add(sens.set_scale(scale))
@@ -1552,13 +1591,21 @@ async def register_single_sensor(
     # Set bytes based on value type
     if value_type in ["U_DWORD", "U_DWORD_R", "S_DWORD", "S_DWORD_R"]:
         cg.add(sens.set_bytes(4))
-        cg.add(sens.set_data_type(getattr(deye_inverter_ns.DataType, value_type)))
+        cg.add(
+            sens.set_data_type(
+                cg.RawExpression(f"deye_inverter::DataType::{value_type}")
+            )
+        )
     else:
         cg.add(sens.set_bytes(2))
         if signed:
-            cg.add(sens.set_data_type(deye_inverter_ns.DataType.S_WORD))
+            cg.add(
+                sens.set_data_type(cg.RawExpression("deye_inverter::DataType::S_WORD"))
+            )
         else:
-            cg.add(sens.set_data_type(deye_inverter_ns.DataType.U_WORD))
+            cg.add(
+                sens.set_data_type(cg.RawExpression("deye_inverter::DataType::U_WORD"))
+            )
 
     # Register with parent's sensor list
     cg.add(parent.register_sensor(sens))

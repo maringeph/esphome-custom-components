@@ -105,7 +105,9 @@ async def register_text_sensor(
         return
 
     conf = config[key]
-    sens = await text_sensor.new_text_sensor(conf)
+    # Create DeyeTextSensor instead of base text sensor
+    sens = cg.new_Pvariable(conf[CONF_ID])
+    await text_sensor.register_text_sensor(sens, conf)
     cg.add(sens.set_parent(parent))
     cg.add(sens.set_address(address))
     cg.add(sens.set_is_status(is_status))

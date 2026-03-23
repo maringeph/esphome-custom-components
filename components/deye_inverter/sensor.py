@@ -5,8 +5,7 @@ for the Deye Inverter component. Based on ds100_meter architecture.
 """
 
 import esphome.codegen as cg
-from esphome.components import sensor
-from esphome.components.modbus_controller import ModbusController
+from esphome.components import modbus, sensor
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_ID,
@@ -38,7 +37,7 @@ from esphome.const import (
 )
 from esphome.components import text_sensor
 
-AUTO_LOAD = ["modbus_controller"]
+AUTO_LOAD = ["modbus"]
 CODEOWNERS = ["@maringeph"]
 
 # =============================================================================
@@ -1445,53 +1444,55 @@ STATUS_SCHEMA = cv.Schema(
 # =============================================================================
 # MAIN COMPONENT CONFIG SCHEMA
 # =============================================================================
-CONFIG_SCHEMA = cv.Schema(
-    {
-        cv.GenerateID(): cv.declare_id(DeyeInverter),
-        cv.Required(CONF_MODBUS_ID): cv.use_id(ModbusController),
-        cv.Optional(CONF_DEVICE_ID): cv.string,
-        cv.Optional(CONF_ADDRESS, default=1): cv.positive_int,
-        cv.Optional(
-            CONF_UPDATE_INTERVAL_LIVE, default="1s"
-        ): cv.positive_time_period_milliseconds,
-        cv.Optional(
-            CONF_UPDATE_INTERVAL_STATISTICS, default="5s"
-        ): cv.positive_time_period_milliseconds,
-        cv.Optional(
-            CONF_UPDATE_INTERVAL_DEVICE_INFO, default="60s"
-        ): cv.positive_time_period_milliseconds,
-        # Device info
-        cv.Optional(CONF_DEVICE_INFO): DEVICE_INFO_SCHEMA,
-        cv.Optional(CONF_DEVICE_INFO_EXTENDED): DEVICE_INFO_EXTENDED_SCHEMA,
-        # Sensor groups
-        cv.Optional(CONF_BATTERY): BATTERY_SCHEMA,
-        cv.Optional(CONF_PV1): PV_STRING_SCHEMA,
-        cv.Optional(CONF_PV2): PV_STRING_SCHEMA,
-        cv.Optional(CONF_PV3): PV_STRING_SCHEMA,
-        cv.Optional(CONF_PV4): PV_STRING_SCHEMA,
-        cv.Optional(CONF_GRID): GRID_SCHEMA,
-        cv.Optional(CONF_LOAD_GRID): LOAD_GRID_SCHEMA,
-        cv.Optional(CONF_LOAD_GRID_PORT): LOAD_GRID_PORT_SCHEMA,
-        cv.Optional(CONF_LOAD_UPS): LOAD_UPS_SCHEMA,
-        cv.Optional(CONF_GENERATOR): GENERATOR_SCHEMA,
-        cv.Optional(CONF_GENERATOR_PORT): GENERATOR_PORT_SCHEMA,
-        cv.Optional(CONF_TEMPERATURES): TEMPERATURES_SCHEMA,
-        cv.Optional(CONF_INVERTER): INVERTER_SCHEMA,
-        cv.Optional(CONF_DC): DC_SCHEMA,
-        cv.Optional(CONF_STATISTICS): STATISTICS_SCHEMA,
-        cv.Optional(CONF_STATUS): STATUS_SCHEMA,
-        # Battery Modules
-        cv.Optional(CONF_BATTERY_MODULE_1): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_2): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_3): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_4): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_5): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_6): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_7): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_8): BATTERY_MODULE_SCHEMA,
-        cv.Optional(CONF_BATTERY_MODULE_9): BATTERY_MODULE_SCHEMA,
-    }
-).extend(cv.polling_component_schema("1s"))
+CONFIG_SCHEMA = (
+    cv.Schema(
+        {
+            cv.GenerateID(): cv.declare_id(DeyeInverter),
+            cv.Optional(CONF_DEVICE_ID): cv.string,
+            cv.Optional(
+                CONF_UPDATE_INTERVAL_LIVE, default="1s"
+            ): cv.positive_time_period_milliseconds,
+            cv.Optional(
+                CONF_UPDATE_INTERVAL_STATISTICS, default="5s"
+            ): cv.positive_time_period_milliseconds,
+            cv.Optional(
+                CONF_UPDATE_INTERVAL_DEVICE_INFO, default="60s"
+            ): cv.positive_time_period_milliseconds,
+            # Device info
+            cv.Optional(CONF_DEVICE_INFO): DEVICE_INFO_SCHEMA,
+            cv.Optional(CONF_DEVICE_INFO_EXTENDED): DEVICE_INFO_EXTENDED_SCHEMA,
+            # Sensor groups
+            cv.Optional(CONF_BATTERY): BATTERY_SCHEMA,
+            cv.Optional(CONF_PV1): PV_STRING_SCHEMA,
+            cv.Optional(CONF_PV2): PV_STRING_SCHEMA,
+            cv.Optional(CONF_PV3): PV_STRING_SCHEMA,
+            cv.Optional(CONF_PV4): PV_STRING_SCHEMA,
+            cv.Optional(CONF_GRID): GRID_SCHEMA,
+            cv.Optional(CONF_LOAD_GRID): LOAD_GRID_SCHEMA,
+            cv.Optional(CONF_LOAD_GRID_PORT): LOAD_GRID_PORT_SCHEMA,
+            cv.Optional(CONF_LOAD_UPS): LOAD_UPS_SCHEMA,
+            cv.Optional(CONF_GENERATOR): GENERATOR_SCHEMA,
+            cv.Optional(CONF_GENERATOR_PORT): GENERATOR_PORT_SCHEMA,
+            cv.Optional(CONF_TEMPERATURES): TEMPERATURES_SCHEMA,
+            cv.Optional(CONF_INVERTER): INVERTER_SCHEMA,
+            cv.Optional(CONF_DC): DC_SCHEMA,
+            cv.Optional(CONF_STATISTICS): STATISTICS_SCHEMA,
+            cv.Optional(CONF_STATUS): STATUS_SCHEMA,
+            # Battery Modules
+            cv.Optional(CONF_BATTERY_MODULE_1): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_2): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_3): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_4): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_5): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_6): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_7): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_8): BATTERY_MODULE_SCHEMA,
+            cv.Optional(CONF_BATTERY_MODULE_9): BATTERY_MODULE_SCHEMA,
+        }
+    )
+    .extend(cv.polling_component_schema("1s"))
+    .extend(modbus.modbus_device_schema(0x01))
+)
 
 
 # =============================================================================
@@ -1502,19 +1503,13 @@ async def to_code(config):
     # Create the component instance
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
+    await modbus.register_modbus_device(var, config)
 
     # Handle device_id for Home Assistant grouping
     from . import get_or_create_device
 
     device_id = config.get(CONF_DEVICE_ID)
     device_obj = await get_or_create_device(device_id)
-
-    # Set the Modbus controller parent
-    parent = await cg.get_variable(config[CONF_MODBUS_ID])
-    cg.add(var.set_parent(parent))
-
-    # Set the Modbus address
-    cg.add(var.set_address(config[CONF_ADDRESS]))
 
     # Set update intervals
     cg.add(var.set_update_interval_live(config[CONF_UPDATE_INTERVAL_LIVE]))

@@ -10,9 +10,10 @@ Based on register analysis: 595 registers total (298 existing + 296 new)
 """
 
 import esphome.codegen as cg
-from esphome.components.modbus_controller import ModbusController
+from esphome.components import modbus
 
 MULTI_CONF = True
+AUTO_LOAD = ["modbus"]
 
 # =============================================================================
 # CONF CONSTANTS - Main Component
@@ -635,7 +636,7 @@ CONF_SETTINGS_GRID_NUMBERS = "settings_grid_numbers"
 # =============================================================================
 deye_inverter_ns = cg.esphome_ns.namespace("deye_inverter")
 DeyeInverter = deye_inverter_ns.class_(
-    "DeyeInverter", cg.PollingComponent, cg.Parented.template(ModbusController)
+    "DeyeInverter", cg.PollingComponent, modbus.ModbusDevice
 )
 
 # =============================================================================

@@ -42,9 +42,9 @@ DeyeTime = deye_inverter_ns.class_("DeyeTime", time.RealTimeClock, cg.Component)
 CONF_MAX_TIME_DIFF = "max_time_diff"
 
 # =============================================================================
-# PLATFORM SCHEMA
+# CONFIG SCHEMA
 # =============================================================================
-PLATFORM_SCHEMA = cv.Schema(
+CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
         cv.Optional(CONF_MAX_TIME_DIFF, default="10s"): cv.positive_time_period_seconds,

@@ -54,7 +54,7 @@ TEXT_ENTITY_SCHEMA = text_sensor.text_sensor_schema(DeyeTextSensor)
 # PLATFORM SCHEMA
 # =============================================================================
 
-PLATFORM_SCHEMA = cv.Schema(
+CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
         # Device Type (Register 0)

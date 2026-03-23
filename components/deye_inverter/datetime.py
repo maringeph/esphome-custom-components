@@ -54,7 +54,7 @@ SETTINGS_TIME_OF_USE_DATETIME_SCHEMA = cv.Schema(
 # =============================================================================
 # PLATFORM SCHEMA
 # =============================================================================
-PLATFORM_SCHEMA = cv.Schema(
+CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
         cv.Optional(

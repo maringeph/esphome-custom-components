@@ -105,6 +105,20 @@ from . import (
     CONF_GRID_SIDE_C_PHASE_POWER,
     CONF_GRID_SIDE_TOTAL_POWER,
     CONF_TOTAL_GRID_POWER,
+    # Grid CT Sensors
+    CONF_INTERNAL_CT_L1_POWER,
+    CONF_INTERNAL_CT_L2_POWER,
+    CONF_INTERNAL_CT_L3_POWER,
+    CONF_INTERNAL_TOTAL_POWER,
+    CONF_EXTERNAL_CT_L1_POWER,
+    CONF_EXTERNAL_CT_L2_POWER,
+    CONF_EXTERNAL_CT_L3_POWER,
+    CONF_OUT_OF_GRID_TOTAL_POWER,
+    CONF_GRID_METER_APPARENT_POWER,
+    CONF_GRID_METER_POWER_FACTOR,
+    CONF_GRID_METER_CURRENT_L1,
+    CONF_GRID_METER_CURRENT_L2,
+    CONF_GRID_METER_CURRENT_L3,
     # Load Grid
     CONF_LOAD_GRID,
     CONF_LOAD_GRID_VOLTAGE_L1,
@@ -257,6 +271,10 @@ from . import (
     CONF_ERROR_3_RAW,
     CONF_ERROR_4_RAW,
     CONF_COMMUNICATION_BOARD_FAILURE,
+    # Status Raw Sensors
+    CONF_RUNNING_STATUS,
+    CONF_TURN_OFF_ON_STATUS,
+    CONF_AC_INV_RELAY,
 )
 
 # =============================================================================
@@ -601,6 +619,81 @@ GRID_SCHEMA = cv.Schema(
             unit_of_measurement=UNIT_WATT,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INTERNAL_CT_L1_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INTERNAL_CT_L2_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INTERNAL_CT_L3_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INTERNAL_TOTAL_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_EXTERNAL_CT_L1_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_EXTERNAL_CT_L2_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_EXTERNAL_CT_L3_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_OUT_OF_GRID_TOTAL_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_METER_APPARENT_POWER): sensor.sensor_schema(
+            unit_of_measurement="VA",
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_METER_POWER_FACTOR): sensor.sensor_schema(
+            accuracy_decimals=2,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_METER_CURRENT_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_METER_CURRENT_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_METER_CURRENT_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
     }
@@ -1334,6 +1427,18 @@ STATUS_SCHEMA = cv.Schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
+        cv.Optional(CONF_RUNNING_STATUS): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_TURN_OFF_ON_STATUS): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_AC_INV_RELAY): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
     }
 )
 
@@ -1569,6 +1674,47 @@ async def register_sensors(parent, config):
         )
         await register_single_sensor(
             grid_conf, CONF_GRID_SIDE_TOTAL_POWER, parent, 626, scale=1.0
+        )
+
+        # Grid CT Sensors
+        await register_single_sensor(
+            grid_conf, CONF_INTERNAL_CT_L1_POWER, parent, 607, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_INTERNAL_CT_L2_POWER, parent, 608, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_INTERNAL_CT_L3_POWER, parent, 609, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_INTERNAL_TOTAL_POWER, parent, 610, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_EXTERNAL_CT_L1_POWER, parent, 611, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_EXTERNAL_CT_L2_POWER, parent, 612, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_EXTERNAL_CT_L3_POWER, parent, 613, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_OUT_OF_GRID_TOTAL_POWER, parent, 614, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_GRID_METER_APPARENT_POWER, parent, 615, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_GRID_METER_POWER_FACTOR, parent, 616, scale=1.0
+        )
+        await register_single_sensor(
+            grid_conf, CONF_GRID_METER_CURRENT_L1, parent, 617, scale=0.01
+        )
+        await register_single_sensor(
+            grid_conf, CONF_GRID_METER_CURRENT_L2, parent, 618, scale=0.01
+        )
+        await register_single_sensor(
+            grid_conf, CONF_GRID_METER_CURRENT_L3, parent, 619, scale=0.01
         )
 
     # =============================================================================
@@ -2150,4 +2296,15 @@ async def register_sensors(parent, config):
         )
         await register_single_sensor(
             status_conf, CONF_COMMUNICATION_BOARD_FAILURE, parent, 545, scale=1.0
+        )
+
+        # Status Raw Sensors
+        await register_single_sensor(
+            status_conf, CONF_RUNNING_STATUS, parent, 500, scale=1.0
+        )
+        await register_single_sensor(
+            status_conf, CONF_TURN_OFF_ON_STATUS, parent, 551, scale=1.0
+        )
+        await register_single_sensor(
+            status_conf, CONF_AC_INV_RELAY, parent, 552, scale=1.0
         )

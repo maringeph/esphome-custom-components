@@ -1412,7 +1412,7 @@ select:
     settings_system_time:
       system_time:
         name: "${device_name}: Systemzeit"
-        id: ${device_id}_system_time
+        id: ${device_id}_settings_system_time
 
 # =============================================================================
 # TIME - System Time Synchronization

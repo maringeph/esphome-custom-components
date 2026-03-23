@@ -60,7 +60,8 @@ CONFIG_SCHEMA = cv.Schema(
 # =============================================================================
 async def to_code(config):
     """Generate code for Deye Inverter time synchronization."""
-    var = await time.new_time(config)
+    var = cg.new_Pvariable(config[CONF_ID])
+    await time.register_time(var, config)
     await cg.register_component(var, config)
 
     # Get the DeyeInverter parent

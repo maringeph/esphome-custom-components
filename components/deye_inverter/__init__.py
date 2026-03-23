@@ -462,6 +462,12 @@ CONF_SYS_FACTORY_RESET = "sys_factory_reset"
 CONF_SYS_SOFTWARE_RESET = "sys_software_reset"
 
 # =============================================================================
+# CONF CONSTANTS - Settings System Time (NEW)
+# =============================================================================
+CONF_SETTINGS_SYSTEM_TIME = "settings_system_time"
+CONF_SYSTEM_TIME = "system_time"
+
+# =============================================================================
 # CONF CONSTANTS - Settings Grid Protection (NEW - registers 185-200)
 # =============================================================================
 CONF_SETTINGS_GRID_PROTECTION = "settings_grid_protection"

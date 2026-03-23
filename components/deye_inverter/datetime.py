@@ -12,6 +12,7 @@ from esphome.const import CONF_ID, CONF_NAME, CONF_DISABLED_BY_DEFAULT
 # Import from parent component
 from . import (
     CONF_DEYE_INVERTER_ID,
+    CONF_DEVICE_ID,
     DeyeInverter,
     deye_inverter_ns,
     # Time Point Start constants
@@ -57,6 +58,7 @@ SETTINGS_TIME_OF_USE_DATETIME_SCHEMA = cv.Schema(
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_DEVICE_ID): cv.string,
         cv.Optional(
             CONF_SETTINGS_TIME_OF_USE_DATETIME
         ): SETTINGS_TIME_OF_USE_DATETIME_SCHEMA,
@@ -70,6 +72,12 @@ CONFIG_SCHEMA = cv.Schema(
 async def to_code(config):
     """Generate code for Deye Inverter datetime entities."""
     var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+
+    # Handle device_id for Home Assistant grouping
+    from . import get_or_create_device
+
+    device_id = config.get(CONF_DEVICE_ID)
+    device_obj = await get_or_create_device(device_id)
 
     # Process time of use datetime entities
     if CONF_SETTINGS_TIME_OF_USE_DATETIME in config:
@@ -98,3 +106,6 @@ async def to_code(config):
                 cg.add(entity.set_address(address))
                 cg.add(getattr(var, f"set_{entity_key}")(entity))
                 await datetime.register_datetime(entity, entity_config)
+                # Set device for Home Assistant grouping
+                if device_obj is not None:
+                    cg.add(entity.set_device(device_obj))

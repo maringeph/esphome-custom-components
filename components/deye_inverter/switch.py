@@ -10,6 +10,7 @@ from esphome.const import (
 
 from . import (
     CONF_DEYE_INVERTER_ID,
+    CONF_DEVICE_ID,
     DeyeInverter,
 )
 
@@ -434,6 +435,7 @@ SETTINGS_TIME_OF_USE_SCHEMA = cv.Schema(
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_DEVICE_ID): cv.string,
         cv.Optional(CONF_SETTINGS_GRID): SETTINGS_GRID_SCHEMA,
         cv.Optional(CONF_SETTINGS_DEVICE): SETTINGS_DEVICE_SCHEMA,
         cv.Optional(CONF_SETTINGS_WORKING_MODE): SETTINGS_WORKING_MODE_SCHEMA,
@@ -450,7 +452,9 @@ CONFIG_SCHEMA = cv.Schema(
 # =============================================================================
 
 
-async def register_switch_entity(config, key, parent, address, bitmask):
+async def register_switch_entity(
+    config, key, parent, address, bitmask, device_obj=None
+):
     """Register a single switch entity with the parent component."""
     if key not in config:
         return
@@ -464,9 +468,21 @@ async def register_switch_entity(config, key, parent, address, bitmask):
     # Register with parent's switch list
     cg.add(parent.register_switch(sw))
 
+    # Set device for Home Assistant grouping
+    if device_obj is not None:
+        cg.add(sw.set_device(device_obj))
+
 
 async def register_switch_entity_2bit(
-    config, key, parent, address, bitmask, value_enable, value_disable, shift
+    device_obj,
+    config,
+    key,
+    parent,
+    address,
+    bitmask,
+    value_enable,
+    value_disable,
+    shift,
 ):
     """Register a 2-bit field switch entity with the parent component.
 
@@ -491,6 +507,10 @@ async def register_switch_entity_2bit(
     # Register with parent's switch list
     cg.add(parent.register_switch(sw))
 
+    # Set device for Home Assistant grouping
+    if device_obj is not None:
+        cg.add(sw.set_device(device_obj))
+
 
 # =============================================================================
 # CODE GENERATION
@@ -500,6 +520,12 @@ async def register_switch_entity_2bit(
 async def to_code(config):
     var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
 
+    # Handle device_id for Home Assistant grouping
+    from . import get_or_create_device
+
+    device_id = config.get(CONF_DEVICE_ID)
+    device_obj = await get_or_create_device(device_id)
+
     # Settings Grid Switches
     if CONF_SETTINGS_GRID in config:
         grid_config = config[CONF_SETTINGS_GRID]
@@ -507,6 +533,7 @@ async def to_code(config):
         # Grid Charge (Register 130, Bit 0)
         if CONF_GRID_CHARGE in grid_config:
             await register_switch_entity(
+                device_obj,
                 grid_config,
                 CONF_GRID_CHARGE,
                 var,
@@ -517,6 +544,7 @@ async def to_code(config):
         # Solar Sell (Register 145, Bit 0)
         if CONF_SOLAR_SELL in grid_config:
             await register_switch_entity(
+                device_obj,
                 grid_config,
                 CONF_SOLAR_SELL,
                 var,
@@ -527,6 +555,7 @@ async def to_code(config):
         # Grid Peak Shaving (Register 178, Bits 4-5)
         if CONF_GRID_PEAK_SHAVING in grid_config:
             await register_switch_entity_2bit(
+                device_obj,
                 grid_config,
                 CONF_GRID_PEAK_SHAVING,
                 var,
@@ -540,6 +569,7 @@ async def to_code(config):
         # Gen Peak Shaving (Register 178, Bits 2-3)
         if CONF_GEN_PEAK_SHAVING in grid_config:
             await register_switch_entity_2bit(
+                device_obj,
                 grid_config,
                 CONF_GEN_PEAK_SHAVING,
                 var,
@@ -553,6 +583,7 @@ async def to_code(config):
         # On Grid Always On (Register 178, Bits 6-7)
         if CONF_ON_GRID_ALWAYS_ON in grid_config:
             await register_switch_entity_2bit(
+                device_obj,
                 grid_config,
                 CONF_ON_GRID_ALWAYS_ON,
                 var,
@@ -566,6 +597,7 @@ async def to_code(config):
         # Microinverter Export to Grid (Register 178, Bits 0-1)
         if CONF_MICROINVERTER_EXPORT_TO_GRID in grid_config:
             await register_switch_entity_2bit(
+                device_obj,
                 grid_config,
                 CONF_MICROINVERTER_EXPORT_TO_GRID,
                 var,
@@ -583,6 +615,7 @@ async def to_code(config):
         # External CT Direction Check (Register 179, Bits 0-1)
         if CONF_EXTERNAL_CT_DIRECTION_CHECK in device_config:
             await register_switch_entity_2bit(
+                device_obj,
                 device_config,
                 CONF_EXTERNAL_CT_DIRECTION_CHECK,
                 var,
@@ -596,6 +629,7 @@ async def to_code(config):
         # Solar Arc Fault Mode (Register 181, 1-bit)
         if CONF_SOLAR_ARC_FAULT_MODE in device_config:
             await register_switch_entity(
+                device_obj,
                 device_config,
                 CONF_SOLAR_ARC_FAULT_MODE,
                 var,
@@ -610,6 +644,7 @@ async def to_code(config):
         # System Beeper (Register 64, Bit 0)
         if CONF_SYS_BEEPER in system_config:
             await register_switch_entity(
+                device_obj,
                 system_config,
                 CONF_SYS_BEEPER,
                 var,
@@ -620,6 +655,7 @@ async def to_code(config):
         # System LCD Backlight (Register 65, Bit 0)
         if CONF_SYS_LCD_BACKLIGHT in system_config:
             await register_switch_entity(
+                device_obj,
                 system_config,
                 CONF_SYS_LCD_BACKLIGHT,
                 var,
@@ -630,6 +666,7 @@ async def to_code(config):
         # System DST Enable (Register 66, Bit 0)
         if CONF_SYS_DST_ENABLE in system_config:
             await register_switch_entity(
+                device_obj,
                 system_config,
                 CONF_SYS_DST_ENABLE,
                 var,
@@ -640,6 +677,7 @@ async def to_code(config):
         # System Remote Lock (Register 67, Bit 0)
         if CONF_SYS_REMOTE_LOCK in system_config:
             await register_switch_entity(
+                device_obj,
                 system_config,
                 CONF_SYS_REMOTE_LOCK,
                 var,
@@ -654,6 +692,7 @@ async def to_code(config):
         # Time of Use (Register 146, Bit 0)
         if CONF_TIME_OF_USE in tou_config:
             await register_switch_entity(
+                device_obj,
                 tou_config,
                 CONF_TIME_OF_USE,
                 var,
@@ -673,6 +712,7 @@ async def to_code(config):
         for conf_key, register_addr in solar_charge_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
+                    device_obj,
                     tou_config,
                     conf_key,
                     var,
@@ -692,6 +732,7 @@ async def to_code(config):
         for conf_key, register_addr in grid_charge_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
+                    device_obj,
                     tou_config,
                     conf_key,
                     var,
@@ -711,6 +752,7 @@ async def to_code(config):
         for conf_key, register_addr in gen_charge_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
+                    device_obj,
                     tou_config,
                     conf_key,
                     var,
@@ -731,6 +773,7 @@ async def to_code(config):
         for conf_key, bitmask in weekday_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
+                    device_obj,
                     tou_config,
                     conf_key,
                     var,
@@ -743,6 +786,7 @@ async def to_code(config):
         working_mode_config = config[CONF_SETTINGS_WORKING_MODE]
         if CONF_FORCED_OFF_GRID_WORK in working_mode_config:
             await register_switch_entity_2bit(
+                device_obj,
                 working_mode_config,
                 CONF_FORCED_OFF_GRID_WORK,
                 var,
@@ -758,6 +802,7 @@ async def to_code(config):
         battery_config = config[CONF_SETTINGS_BATTERY]
         if CONF_BATTERY_LOSS_REPORT_FAULT in battery_config:
             await register_switch_entity_2bit(
+                device_obj,
                 battery_config,
                 CONF_BATTERY_LOSS_REPORT_FAULT,
                 var,
@@ -775,6 +820,7 @@ async def to_code(config):
         # External Relay (Register 178, Bits 8-9)
         if CONF_EXTERNAL_RELAY in generator_config:
             await register_switch_entity_2bit(
+                device_obj,
                 generator_config,
                 CONF_EXTERNAL_RELAY,
                 var,
@@ -788,6 +834,7 @@ async def to_code(config):
         # Gen Port Force On (Register 132, Bit 0)
         if CONF_GEN_PORT_FORCE_ON in generator_config:
             await register_switch_entity(
+                device_obj,
                 generator_config,
                 CONF_GEN_PORT_FORCE_ON,
                 var,

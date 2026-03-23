@@ -29,6 +29,7 @@ from esphome.const import CONF_ID
 # Import from parent component
 from .. import (
     CONF_DEYE_INVERTER_ID,
+    CONF_DEVICE_ID,
     DeyeInverter,
     deye_inverter_ns,
 )
@@ -47,6 +48,7 @@ CONF_MAX_TIME_DIFF = "max_time_diff"
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_DEVICE_ID): cv.string,
         cv.Optional(CONF_MAX_TIME_DIFF, default="10s"): cv.positive_time_period_seconds,
     }
 )
@@ -63,6 +65,16 @@ async def to_code(config):
     # Get the DeyeInverter parent
     parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
     cg.add(var.set_parent(parent))
+
+    # Handle device_id for Home Assistant grouping
+    from .. import get_or_create_device
+
+    device_id = config.get(CONF_DEVICE_ID)
+    device_obj = await get_or_create_device(device_id)
+
+    # Set device for this entity
+    if device_obj is not None:
+        cg.add(var.set_device(device_obj))
 
     # Set max diff parameter
     cg.add(var.set_max_time_diff(config[CONF_MAX_TIME_DIFF]))

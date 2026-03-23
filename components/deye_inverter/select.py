@@ -6,6 +6,7 @@ from esphome.components import select
 
 from . import (
     CONF_DEYE_INVERTER_ID,
+    CONF_DEVICE_ID,
     CONF_SETTINGS_DEVICE,
     CONF_SETTINGS_GRID,
     CONF_SETTINGS_BATTERY,
@@ -300,6 +301,7 @@ SETTINGS_CALIFORNIA_SELECT_SCHEMA = cv.Schema(
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_DEVICE_ID): cv.string,
         cv.Optional(CONF_SETTINGS_GRID): SETTINGS_GRID_SELECT_SCHEMA,
         cv.Optional(CONF_SETTINGS_DEVICE): SETTINGS_DEVICE_SELECT_SCHEMA,
         cv.Optional(CONF_SETTINGS_BATTERY): SETTINGS_BATTERY_SELECT_SCHEMA,
@@ -324,7 +326,9 @@ def build_options_map(options_dict):
     return ", ".join(map_entries)
 
 
-async def register_select_entity(config, key, parent, address, options_map):
+async def register_select_entity(
+    config, key, parent, address, options_map, device_obj=None
+):
     """Register a single select entity with the parent component."""
     if key not in config:
         return
@@ -344,6 +348,10 @@ async def register_select_entity(config, key, parent, address, options_map):
     # Register with parent's select list
     cg.add(parent.register_select(sel))
 
+    # Set device for Home Assistant grouping
+    if device_obj is not None:
+        cg.add(sel.set_device(device_obj))
+
 
 # =============================================================================
 # CODE GENERATION
@@ -353,6 +361,12 @@ async def register_select_entity(config, key, parent, address, options_map):
 async def to_code(config):
     var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
 
+    # Handle device_id for Home Assistant grouping
+    from . import get_or_create_device
+
+    device_id = config.get(CONF_DEVICE_ID)
+    device_obj = await get_or_create_device(device_id)
+
     # Settings Grid
     if CONF_SETTINGS_GRID in config:
         grid_config = config[CONF_SETTINGS_GRID]
@@ -360,6 +374,7 @@ async def to_code(config):
         # Grid Type (Register 184)
         if CONF_GRID_TYPE in grid_config:
             await register_select_entity(
+                device_obj,
                 grid_config,
                 CONF_GRID_TYPE,
                 var,
@@ -370,6 +385,7 @@ async def to_code(config):
         # Grid Mode (Register 182)
         if CONF_GRID_MODE in grid_config:
             await register_select_entity(
+                device_obj,
                 grid_config,
                 CONF_GRID_MODE,
                 var,
@@ -380,6 +396,7 @@ async def to_code(config):
         # Grid Nominal Voltage (Register 138)
         if CONF_GRID_NOMINAL_VOLTAGE in grid_config:
             await register_select_entity(
+                device_obj,
                 grid_config,
                 CONF_GRID_NOMINAL_VOLTAGE,
                 var,
@@ -390,6 +407,7 @@ async def to_code(config):
         # Grid Nominal Frequency (Register 183)
         if CONF_GRID_NOMINAL_FREQUENCY in grid_config:
             await register_select_entity(
+                device_obj,
                 grid_config,
                 CONF_GRID_NOMINAL_FREQUENCY,
                 var,
@@ -400,6 +418,7 @@ async def to_code(config):
         # Grid Phase Sequence (Register 147)
         if CONF_GRID_PHASE_SEQUENCE in grid_config:
             await register_select_entity(
+                device_obj,
                 grid_config,
                 CONF_GRID_PHASE_SEQUENCE,
                 var,
@@ -410,6 +429,7 @@ async def to_code(config):
         # Grid Check Source (Register 344 - CT or Smart Meter)
         if CONF_GRID_CHECK_SOURCE in grid_config:
             await register_select_entity(
+                device_obj,
                 grid_config,
                 CONF_GRID_CHECK_SOURCE,
                 var,
@@ -423,6 +443,7 @@ async def to_code(config):
 
         if CONF_EXT_BAUD_RATE in device_config:
             await register_select_entity(
+                device_obj,
                 device_config,
                 CONF_EXT_BAUD_RATE,
                 var,
@@ -432,6 +453,7 @@ async def to_code(config):
 
         if CONF_EXT_PARITY in device_config:
             await register_select_entity(
+                device_obj,
                 device_config,
                 CONF_EXT_PARITY,
                 var,
@@ -441,6 +463,7 @@ async def to_code(config):
 
         if CONF_EXT_STOP_BITS in device_config:
             await register_select_entity(
+                device_obj,
                 device_config,
                 CONF_EXT_STOP_BITS,
                 var,
@@ -450,6 +473,7 @@ async def to_code(config):
 
         if CONF_EXT_PROTOCOL in device_config:
             await register_select_entity(
+                device_obj,
                 device_config,
                 CONF_EXT_PROTOCOL,
                 var,
@@ -464,6 +488,7 @@ async def to_code(config):
         # Battery Type (Register 98)
         if CONF_BATTERY_TYPE in battery_config:
             await register_select_entity(
+                device_obj,
                 battery_config,
                 CONF_BATTERY_TYPE,
                 var,
@@ -474,6 +499,7 @@ async def to_code(config):
         # Battery Control Mode (Register 111)
         if CONF_BATTERY_CONTROL_MODE in battery_config:
             await register_select_entity(
+                device_obj,
                 battery_config,
                 CONF_BATTERY_CONTROL_MODE,
                 var,
@@ -486,6 +512,7 @@ async def to_code(config):
         gen_port_config = config[CONF_SETTINGS_GEN_PORT]
         if CONF_GEN_PORT_CONTROL_MODE in gen_port_config:
             await register_select_entity(
+                device_obj,
                 gen_port_config,
                 CONF_GEN_PORT_CONTROL_MODE,
                 var,
@@ -500,6 +527,7 @@ async def to_code(config):
         # Working Mode (Register 142)
         if CONF_WORKING_MODE in working_mode_config:
             await register_select_entity(
+                device_obj,
                 working_mode_config,
                 CONF_WORKING_MODE,
                 var,
@@ -510,6 +538,7 @@ async def to_code(config):
         # Energy Priority (Register 141)
         if CONF_ENERGY_PRIORITY in working_mode_config:
             await register_select_entity(
+                device_obj,
                 working_mode_config,
                 CONF_ENERGY_PRIORITY,
                 var,
@@ -520,6 +549,7 @@ async def to_code(config):
         # Limit Control Mode (Register 142)
         if CONF_LIMIT_CONTROL_MODE in working_mode_config:
             await register_select_entity(
+                device_obj,
                 working_mode_config,
                 CONF_LIMIT_CONTROL_MODE,
                 var,
@@ -532,6 +562,7 @@ async def to_code(config):
         system_config = config[CONF_SETTINGS_SYSTEM]
         if CONF_SYS_LANGUAGE in system_config:
             await register_select_entity(
+                device_obj,
                 system_config,
                 CONF_SYS_LANGUAGE,
                 var,
@@ -545,6 +576,7 @@ async def to_code(config):
 
         if CONF_CA_RULE21_CATEGORY in ca_config:
             await register_select_entity(
+                device_obj,
                 ca_config,
                 CONF_CA_RULE21_CATEGORY,
                 var,
@@ -554,6 +586,7 @@ async def to_code(config):
 
         if CONF_CA_NORMAL_OP_CAT in ca_config:
             await register_select_entity(
+                device_obj,
                 ca_config,
                 CONF_CA_NORMAL_OP_CAT,
                 var,
@@ -563,6 +596,7 @@ async def to_code(config):
 
         if CONF_CA_ABNORMAL_OP_CAT in ca_config:
             await register_select_entity(
+                device_obj,
                 ca_config,
                 CONF_CA_ABNORMAL_OP_CAT,
                 var,

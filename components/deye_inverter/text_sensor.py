@@ -4,7 +4,7 @@ from esphome.components import text_sensor
 from esphome.const import CONF_ID
 
 # Import only the parent class reference from __init__.py
-from . import CONF_DEYE_INVERTER_ID, DeyeInverter
+from . import CONF_DEYE_INVERTER_ID, CONF_DEVICE_ID, DeyeInverter
 
 # Namespace für DeyeTextSensor
 DeyeTextSensor = cg.esphome_ns.namespace("deye_inverter").class_(
@@ -57,6 +57,7 @@ TEXT_ENTITY_SCHEMA = text_sensor.text_sensor_schema(DeyeTextSensor)
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        cv.Optional(CONF_DEVICE_ID): cv.string,
         # Device Type (Register 0)
         cv.Optional(CONF_DEVICE_TYPE): text_sensor.text_sensor_schema(
             DeyeTextSensor,
@@ -97,7 +98,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def register_text_sensor(
-    config, key, parent, address, is_status=False, is_device_type=False
+    config, key, parent, address, is_status=False, is_device_type=False, device_obj=None
 ):
     """Register a single text sensor with the parent component."""
     if key not in config:
@@ -113,6 +114,10 @@ async def register_text_sensor(
     # Register with parent's text sensor list
     cg.add(parent.register_text_sensor(sens))
 
+    # Associate with device if provided
+    if device_obj is not None:
+        cg.add(sens.set_device(device_obj))
+
 
 # =============================================================================
 # CODE GENERATION
@@ -121,6 +126,12 @@ async def register_text_sensor(
 
 async def to_code(config):
     var = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+
+    # Handle device_id for Home Assistant grouping
+    from . import get_or_create_device
+
+    device_id = config.get(CONF_DEVICE_ID)
+    device_obj = await get_or_create_device(device_id)
 
     # Device Type (Register 0)
     if CONF_DEVICE_TYPE in config:
@@ -131,6 +142,7 @@ async def to_code(config):
             REGISTER_DEVICE_TYPE,
             is_status=False,
             is_device_type=True,
+            device_obj=device_obj,
         )
 
     # Running Status (Register 500)
@@ -142,6 +154,7 @@ async def to_code(config):
             REGISTER_RUNNING_STATUS,
             is_status=True,
             is_device_type=False,
+            device_obj=device_obj,
         )
 
     # Serial Number (Register 3 - start of 12 registers)
@@ -153,6 +166,7 @@ async def to_code(config):
             REGISTER_SERIAL_NUMBER,
             is_status=False,
             is_device_type=False,
+            device_obj=device_obj,
         )
 
     # Firmware Version (Register 27)
@@ -164,6 +178,7 @@ async def to_code(config):
             REGISTER_FIRMWARE_VERSION,
             is_status=False,
             is_device_type=False,
+            device_obj=device_obj,
         )
 
     # Hardware Version (Register 29)
@@ -175,6 +190,7 @@ async def to_code(config):
             REGISTER_HARDWARE_VERSION,
             is_status=False,
             is_device_type=False,
+            device_obj=device_obj,
         )
 
     # Inverter Model (Register 15)
@@ -186,4 +202,5 @@ async def to_code(config):
             REGISTER_INVERTER_MODEL,
             is_status=False,
             is_device_type=False,
+            device_obj=device_obj,
         )

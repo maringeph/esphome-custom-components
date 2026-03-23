@@ -18,6 +18,7 @@ MULTI_CONF = True
 # CONF CONSTANTS - Main Component
 # =============================================================================
 CONF_DEYE_INVERTER_ID = "deye_inverter_id"
+CONF_DEVICE_ID = "device_id"
 CONF_MODBUS_ID = "modbus_id"
 CONF_ADDRESS = "address"
 
@@ -630,3 +631,61 @@ deye_inverter_ns = cg.esphome_ns.namespace("deye_inverter")
 DeyeInverter = deye_inverter_ns.class_(
     "DeyeInverter", cg.PollingComponent, cg.Parented.template(ModbusController)
 )
+
+# =============================================================================
+# DEVICE MANAGEMENT (for Home Assistant grouping)
+# =============================================================================
+from esphome.helpers import fnv1a_32bit_hash
+
+# Cache for device objects to avoid recreating them
+devices_cache = {}
+
+Device = cg.esphome_ns.class_("Device")
+
+
+async def get_or_create_device(device_id: str | None) -> cg.MockObj | None:
+    """Create or retrieve a cached Device object for Home Assistant grouping.
+
+    When device_id is configured, this creates a Device object that groups
+    all entities with the same device_id as a subdevice in Home Assistant.
+
+    Args:
+        device_id: The device identifier string (e.g., "wechselrichter_01")
+
+    Returns:
+        A Device object if device_id is provided, None otherwise
+    """
+    if device_id is None:
+        return None
+
+    # Check cache first
+    if device_id in devices_cache:
+        return devices_cache[device_id]
+
+    # Create new device with unique ID
+    device_hash = fnv1a_32bit_hash(device_id)
+    device_id_obj = cg.declare_id(Device)(f"deye_device_{device_hash}")
+    device_var = cg.new_Pvariable(device_id_obj)
+
+    # Configure device properties
+    cg.add(device_var.set_device_id(device_hash))
+    cg.add(device_var.set_name(device_id))
+
+    # Register device with ESPHome
+    cg.add(cg.App.register_device(device_var))
+
+    # Cache for reuse
+    devices_cache[device_id] = device_var
+
+    return device_var
+
+
+def set_entity_device(entity_var, device_var):
+    """Associate an entity with a device.
+
+    Args:
+        entity_var: The entity variable
+        device_var: The device variable (from get_or_create_device)
+    """
+    if device_var is not None:
+        cg.add(entity_var.set_device(device_var))

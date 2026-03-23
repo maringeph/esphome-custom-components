@@ -37,6 +37,10 @@ CONF_GRID_PEAK_SHAVING = "grid_peak_shaving"
 CONF_GEN_PEAK_SHAVING = "gen_peak_shaving"
 CONF_ON_GRID_ALWAYS_ON = "on_grid_always_on"
 CONF_MICROINVERTER_EXPORT_TO_GRID = "microinverter_export_to_grid"
+CONF_ZERO_EXPORT_POWER = "zero_export_power"
+CONF_MAX_SOLAR_SELL_POWER = "max_solar_sell_power"
+CONF_GRID_MAX_POWER = "grid_max_power"
+CONF_RESTORE_CONNECTION_TIME = "restore_connection_time"
 
 # Device switches
 CONF_EXTERNAL_CT_DIRECTION_CHECK = "external_ct_direction_check"
@@ -51,6 +55,8 @@ CONF_BATTERY_LOSS_REPORT_FAULT = "battery_loss_report_fault"
 # Generator switches
 CONF_EXTERNAL_RELAY = "external_relay"
 CONF_GEN_PORT_FORCE_ON = "gen_port_force_on"
+CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT = "gen_port_couple_frequency_limit"
+CONF_GENERATOR_REQUIRED_POWER_START = "generator_required_power_start"
 
 # Time of Use switches
 CONF_TIME_OF_USE = "time_of_use"
@@ -241,6 +247,22 @@ SETTINGS_GRID_SCHEMA = cv.Schema(
             DeyeSwitch,
             device_class=DEVICE_CLASS_SWITCH,
         ),
+        cv.Optional(CONF_ZERO_EXPORT_POWER): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_MAX_SOLAR_SELL_POWER): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_GRID_MAX_POWER): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_RESTORE_CONNECTION_TIME): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
     }
 )
 
@@ -286,6 +308,14 @@ SETTINGS_GENERATOR_SCHEMA = cv.Schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
         cv.Optional(CONF_GEN_PORT_FORCE_ON): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT): switch.switch_schema(
+            DeyeSwitch,
+            device_class=DEVICE_CLASS_SWITCH,
+        ),
+        cv.Optional(CONF_GENERATOR_REQUIRED_POWER_START): switch.switch_schema(
             DeyeSwitch,
             device_class=DEVICE_CLASS_SWITCH,
         ),
@@ -608,6 +638,50 @@ async def to_code(config):
                 SHIFT_MICROINVERTER_EXPORT,
             )
 
+        # Zero Export Power (Register 145, Bit 1)
+        if CONF_ZERO_EXPORT_POWER in grid_config:
+            await register_switch_entity(
+                device_obj,
+                grid_config,
+                CONF_ZERO_EXPORT_POWER,
+                var,
+                145,
+                0x0002,
+            )
+
+        # Max Solar Sell Power (Register 145, Bit 2)
+        if CONF_MAX_SOLAR_SELL_POWER in grid_config:
+            await register_switch_entity(
+                device_obj,
+                grid_config,
+                CONF_MAX_SOLAR_SELL_POWER,
+                var,
+                145,
+                0x0004,
+            )
+
+        # Grid Max Power (Register 146, Bit 1)
+        if CONF_GRID_MAX_POWER in grid_config:
+            await register_switch_entity(
+                device_obj,
+                grid_config,
+                CONF_GRID_MAX_POWER,
+                var,
+                146,
+                0x0002,
+            )
+
+        # Restore Connection Time (Register 146, Bit 2)
+        if CONF_RESTORE_CONNECTION_TIME in grid_config:
+            await register_switch_entity(
+                device_obj,
+                grid_config,
+                CONF_RESTORE_CONNECTION_TIME,
+                var,
+                146,
+                0x0004,
+            )
+
     # Settings Device Switches
     if CONF_SETTINGS_DEVICE in config:
         device_config = config[CONF_SETTINGS_DEVICE]
@@ -840,4 +914,32 @@ async def to_code(config):
                 var,
                 REGISTER_GEN_PORT_FORCE_ON,
                 BITMASK_GEN_PORT_FORCE_ON,
+            )
+
+        # Gen Port Couple Frequency Limit (Register 178, Bits 12-13)
+        if CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT in generator_config:
+            await register_switch_entity_2bit(
+                device_obj,
+                generator_config,
+                CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT,
+                var,
+                178,
+                0x3000,
+                0x3000,
+                0x2000,
+                12,
+            )
+
+        # Generator Required Power Start (Register 178, Bits 14-15)
+        if CONF_GENERATOR_REQUIRED_POWER_START in generator_config:
+            await register_switch_entity_2bit(
+                device_obj,
+                generator_config,
+                CONF_GENERATOR_REQUIRED_POWER_START,
+                var,
+                178,
+                0xC000,
+                0xC000,
+                0x8000,
+                14,
             )

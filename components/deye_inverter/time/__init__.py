@@ -47,6 +47,7 @@ CONF_MAX_TIME_DIFF = "max_time_diff"
 # =============================================================================
 CONFIG_SCHEMA = cv.Schema(
     {
+        cv.GenerateID(): cv.declare_id(DeyeTime),
         cv.Required(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
         cv.Optional(CONF_DEVICE_ID): cv.string,
         cv.Optional(CONF_MAX_TIME_DIFF, default="10s"): cv.positive_time_period_seconds,

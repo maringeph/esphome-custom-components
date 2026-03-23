@@ -10,6 +10,7 @@ Based on register analysis: 595 registers total (298 existing + 296 new)
 """
 
 import esphome.codegen as cg
+import esphome.config_validation as cv
 from esphome.components import modbus
 
 MULTI_CONF = True
@@ -671,7 +672,7 @@ async def get_or_create_device(device_id: str | None) -> cg.MockObj | None:
 
     # Create new device with unique ID
     device_hash = fnv1a_32bit_hash(device_id)
-    device_id_obj = cg.declare_id(Device)(f"deye_device_{device_hash}")
+    device_id_obj = cv.declare_id(Device)(f"deye_device_{device_hash}")
     device_var = cg.new_Pvariable(device_id_obj)
 
     # Configure device properties

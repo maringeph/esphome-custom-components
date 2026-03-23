@@ -9,7 +9,6 @@ from esphome.components import modbus, sensor
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_ID,
-    CONF_DEVICE_ID,
     CONF_DISABLED_BY_DEFAULT,
     CONF_NAME,
     CONF_VOLTAGE,
@@ -47,6 +46,7 @@ from . import (
     # Namespace
     deye_inverter_ns,
     DeyeInverter,
+    CONF_DEVICE_ID,
     # Main Component
     CONF_MODBUS_ID,
     CONF_ADDRESS,

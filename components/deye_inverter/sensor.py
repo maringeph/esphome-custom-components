@@ -1,17 +1,74 @@
-"""Deye Inverter Sensor Platform - Helper module.
+"""Deye Inverter Sensor Platform.
 
-This module provides sensor registration helpers for the Deye Inverter component.
-All configuration schemas have been moved to __init__.py.
+This module provides the main sensor configuration schema and code generation
+for the Deye Inverter component. Based on ds100_meter architecture.
 """
 
 import esphome.codegen as cg
 from esphome.components import sensor
+from esphome.components.modbus_controller import ModbusController
+import esphome.config_validation as cv
 from esphome.const import (
     CONF_ID,
+    CONF_DEVICE_ID,
+    CONF_DISABLED_BY_DEFAULT,
+    CONF_NAME,
+    CONF_VOLTAGE,
+    CONF_CURRENT,
+    CONF_POWER,
+    CONF_FREQUENCY,
+    UNIT_VOLT,
+    UNIT_AMPERE,
+    UNIT_WATT,
+    UNIT_HERTZ,
+    UNIT_CELSIUS,
+    UNIT_PERCENT,
+    UNIT_KILOWATT_HOURS,
+    UNIT_HOUR,
+    UNIT_MINUTE,
+    DEVICE_CLASS_VOLTAGE,
+    DEVICE_CLASS_CURRENT,
+    DEVICE_CLASS_POWER,
+    DEVICE_CLASS_FREQUENCY,
+    DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_BATTERY,
+    DEVICE_CLASS_ENERGY,
+    STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_TOTAL_INCREASING,
 )
+from esphome.components import text_sensor
 
-# Import all CONF constants from the main component
+AUTO_LOAD = ["modbus_controller"]
+CODEOWNERS = ["@maringeph"]
+
+# =============================================================================
+# IMPORT ALL CONF CONSTANTS FROM __init__.py
+# =============================================================================
 from . import (
+    # Namespace
+    deye_inverter_ns,
+    DeyeInverter,
+    # Main Component
+    CONF_MODBUS_ID,
+    CONF_ADDRESS,
+    CONF_UPDATE_INTERVAL_LIVE,
+    CONF_UPDATE_INTERVAL_STATISTICS,
+    CONF_UPDATE_INTERVAL_DEVICE_INFO,
+    # Device Info
+    CONF_DEVICE_INFO,
+    CONF_DEVICE_TYPE,
+    CONF_MODBUS_ADDRESS,
+    CONF_DEVICE_INFO_EXTENDED,
+    CONF_SERIAL_NUMBER,
+    CONF_FIRMWARE_VERSION,
+    CONF_HARDWARE_VERSION,
+    CONF_DEVICE_TYPE_CODE,
+    CONF_INVERTER_MODEL,
+    CONF_INVERTER_POWER_RATING,
+    CONF_INVERTER_VOLTAGE_RATING,
+    CONF_INVERTER_CURRENT_RATING,
+    CONF_GRID_FREQUENCY_RATING,
+    # Battery
     CONF_BATTERY,
     CONF_BATTERY_VOLTAGE,
     CONF_BATTERY_CURRENT,
@@ -19,6 +76,7 @@ from . import (
     CONF_BATTERY_SOC,
     CONF_BATTERY_TEMPERATURE,
     CONF_BATTERY_CAPACITY,
+    # PV
     CONF_PV1,
     CONF_PV2,
     CONF_PV3,
@@ -26,10 +84,14 @@ from . import (
     CONF_PV_VOLTAGE,
     CONF_PV_CURRENT,
     CONF_PV_POWER,
+    # Grid
     CONF_GRID,
     CONF_GRID_VOLTAGE_L1,
     CONF_GRID_VOLTAGE_L2,
     CONF_GRID_VOLTAGE_L3,
+    CONF_GRID_VOLTAGE_L1_L2,
+    CONF_GRID_VOLTAGE_L2_L3,
+    CONF_GRID_VOLTAGE_L3_L1,
     CONF_GRID_CURRENT_L1,
     CONF_GRID_CURRENT_L2,
     CONF_GRID_CURRENT_L3,
@@ -43,6 +105,7 @@ from . import (
     CONF_GRID_SIDE_C_PHASE_POWER,
     CONF_GRID_SIDE_TOTAL_POWER,
     CONF_TOTAL_GRID_POWER,
+    # Load Grid
     CONF_LOAD_GRID,
     CONF_LOAD_GRID_VOLTAGE_L1,
     CONF_LOAD_GRID_VOLTAGE_L2,
@@ -51,6 +114,7 @@ from . import (
     CONF_LOAD_GRID_POWER_L2,
     CONF_LOAD_GRID_POWER_L3,
     CONF_LOAD_GRID_POWER_TOTAL,
+    # Load Grid Port
     CONF_LOAD_GRID_PORT,
     CONF_LOAD_PORT_VOLTAGE_L1,
     CONF_LOAD_PORT_VOLTAGE_L2,
@@ -64,6 +128,7 @@ from . import (
     CONF_LOAD_REAL_POWER,
     CONF_LOAD_APPARENT_POWER,
     CONF_LOAD_FREQUENCY,
+    # Load UPS
     CONF_LOAD_UPS,
     CONF_LOAD_UPS_VOLTAGE_L1,
     CONF_LOAD_UPS_VOLTAGE_L2,
@@ -73,6 +138,7 @@ from . import (
     CONF_LOAD_UPS_POWER_L3,
     CONF_LOAD_UPS_POWER_TOTAL,
     CONF_LOAD_UPS_FREQUENCY,
+    # Generator
     CONF_GENERATOR,
     CONF_GENERATOR_VOLTAGE_L1,
     CONF_GENERATOR_VOLTAGE_L2,
@@ -85,6 +151,7 @@ from . import (
     CONF_GENERATOR_POWER_L3,
     CONF_GENERATOR_POWER_TOTAL,
     CONF_GENERATOR_FREQUENCY,
+    # Generator Port
     CONF_GENERATOR_PORT,
     CONF_GEN_PORT_VOLTAGE_L1,
     CONF_GEN_PORT_VOLTAGE_L2,
@@ -97,9 +164,11 @@ from . import (
     CONF_GEN_PORT_POWER_L3,
     CONF_GEN_PORT_POWER_TOTAL,
     CONF_GEN_PORT_FREQUENCY,
+    # Temperatures
     CONF_TEMPERATURES,
     CONF_TEMP_HEATSINK,
     CONF_TEMP_DC_TRANSFORMER,
+    # Inverter
     CONF_INVERTER,
     CONF_INVERTER_VOLTAGE_L1,
     CONF_INVERTER_VOLTAGE_L2,
@@ -110,6 +179,7 @@ from . import (
     CONF_INVERTER_REAL_POWER,
     CONF_INVERTER_APPARENT_POWER,
     CONF_INVERTER_FREQUENCY,
+    # DC
     CONF_DC,
     CONF_DC5_CURRENT,
     CONF_DC6_VOLTAGE,
@@ -118,6 +188,7 @@ from . import (
     CONF_DC7_CURRENT,
     CONF_DC8_VOLTAGE,
     CONF_DC8_CURRENT,
+    # Battery Modules
     CONF_BATTERY_MODULE_1,
     CONF_BATTERY_MODULE_2,
     CONF_BATTERY_MODULE_3,
@@ -141,6 +212,7 @@ from . import (
     CONF_BM_CELL_MIN_VOLTAGE,
     CONF_BM_CELL_MAX_TEMP,
     CONF_BM_CELL_MIN_TEMP,
+    # Statistics
     CONF_STATISTICS,
     CONF_DAILY,
     CONF_TOTAL,
@@ -166,6 +238,17 @@ from . import (
     CONF_TOTAL_GRID_IMPORT_32,
     CONF_TOTAL_GRID_EXPORT_32,
     CONF_TOTAL_CONSUMPTION_32,
+    CONF_ACTIVE_POWER_GEN_TOTAL_LOW,
+    CONF_ACTIVE_POWER_GEN_TOTAL_HIGH,
+    CONF_REACTIVE_POWER_GEN_TOTAL_LOW,
+    CONF_REACTIVE_POWER_GEN_TOTAL_HIGH,
+    CONF_TOTAL_PV_PRODUCTION,
+    CONF_BATTERY_CHARGE_TOTAL_HIGH,
+    CONF_BATTERY_DISCHARGE_TOTAL_HIGH,
+    CONF_TOTAL_GRID_BUY_HIGH,
+    CONF_TOTAL_GRID_SELL_HIGH,
+    CONF_TOTAL_LOAD_HIGH,
+    # Status
     CONF_STATUS,
     CONF_WARNING_1_RAW,
     CONF_WARNING_2_RAW,
@@ -174,13 +257,1175 @@ from . import (
     CONF_ERROR_3_RAW,
     CONF_ERROR_4_RAW,
     CONF_COMMUNICATION_BOARD_FAILURE,
-    deye_inverter_ns,
 )
 
+# =============================================================================
+# SENSOR SCHEMAS
+# =============================================================================
+
+# Entity base schema
+ENTITY_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_ID): cv.declare_id(sensor.Sensor),
+    }
+)
+
+# Device Info Schemas
+DEVICE_INFO_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_DEVICE_TYPE): cv.Schema(
+            {
+                cv.Required(CONF_ID): cv.declare_id(text_sensor.TextSensor),
+                cv.Optional(CONF_NAME): cv.string,
+                cv.Optional(CONF_DISABLED_BY_DEFAULT, default=True): cv.boolean,
+            }
+        ),
+        cv.Optional(CONF_MODBUS_ADDRESS): cv.Schema(
+            {
+                cv.Required(CONF_ID): cv.declare_id(sensor.Sensor),
+                cv.Optional(CONF_NAME): cv.string,
+                cv.Optional(CONF_DISABLED_BY_DEFAULT, default=True): cv.boolean,
+            }
+        ),
+    }
+)
+
+DEVICE_INFO_EXTENDED_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_SERIAL_NUMBER): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_FIRMWARE_VERSION): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_HARDWARE_VERSION): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DEVICE_TYPE_CODE): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_MODEL): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_POWER_RATING): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_VOLTAGE_RATING): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_CURRENT_RATING): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_FREQUENCY_RATING): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HERTZ,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# PV String Schema
+PV_STRING_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_PV_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_PV_CURRENT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_PV_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Battery Schema
+BATTERY_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_BATTERY_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BATTERY_CURRENT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BATTERY_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BATTERY_SOC): sensor.sensor_schema(
+            unit_of_measurement=UNIT_PERCENT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_BATTERY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BATTERY_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BATTERY_CAPACITY): sensor.sensor_schema(
+            unit_of_measurement="Ah",
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Battery Module Schema
+BATTERY_MODULE_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_BM_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_CURRENT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_SOC): sensor.sensor_schema(
+            unit_of_measurement=UNIT_PERCENT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_BATTERY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_STATUS): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_FAULT_CODE): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_CYCLE_COUNT): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_BM_CAPACITY_REMAINING): sensor.sensor_schema(
+            unit_of_measurement="Ah",
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_CAPACITY_TOTAL): sensor.sensor_schema(
+            unit_of_measurement="Ah",
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_CELL_MAX_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=3,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_CELL_MIN_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=3,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_CELL_MAX_TEMP): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_BM_CELL_MIN_TEMP): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Grid Schema
+GRID_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_GRID_VOLTAGE_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_VOLTAGE_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_VOLTAGE_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_VOLTAGE_L1_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_VOLTAGE_L2_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_VOLTAGE_L3_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_CURRENT_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_CURRENT_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_CURRENT_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_POWER_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_POWER_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_POWER_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_POWER_TOTAL): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_FREQUENCY): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HERTZ,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_SIDE_A_PHASE_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_SIDE_B_PHASE_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_SIDE_C_PHASE_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GRID_SIDE_TOTAL_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_TOTAL_GRID_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Load Grid Schema
+LOAD_GRID_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_GRID_VOLTAGE_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_GRID_POWER_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_GRID_POWER_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_GRID_POWER_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_GRID_POWER_TOTAL): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Load Grid Port Schema
+LOAD_GRID_PORT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_VOLTAGE_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_CURRENT_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_CURRENT_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_CURRENT_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_POWER_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_POWER_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_PORT_POWER_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_REAL_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_APPARENT_POWER): sensor.sensor_schema(
+            unit_of_measurement="VA",
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_FREQUENCY): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HERTZ,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Load UPS Schema
+LOAD_UPS_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_UPS_VOLTAGE_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_UPS_POWER_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_UPS_POWER_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_UPS_POWER_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_UPS_POWER_TOTAL): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_LOAD_UPS_FREQUENCY): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HERTZ,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Generator Schema
+GENERATOR_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_GENERATOR_VOLTAGE_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_VOLTAGE_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_VOLTAGE_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_CURRENT_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_CURRENT_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_CURRENT_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_POWER_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_POWER_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_POWER_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_POWER_TOTAL): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GENERATOR_FREQUENCY): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HERTZ,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Generator Port Schema
+GENERATOR_PORT_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_GEN_PORT_VOLTAGE_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_VOLTAGE_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_VOLTAGE_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_CURRENT_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_CURRENT_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_CURRENT_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_POWER_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_POWER_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_POWER_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_POWER_TOTAL): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_GEN_PORT_FREQUENCY): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HERTZ,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Temperatures Schema
+TEMPERATURES_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_TEMP_HEATSINK): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_TEMP_DC_TRANSFORMER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Inverter Schema
+INVERTER_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_INVERTER_VOLTAGE_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_VOLTAGE_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_VOLTAGE_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_REAL_POWER_L1): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_REAL_POWER_L2): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_REAL_POWER_L3): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_REAL_POWER): sensor.sensor_schema(
+            unit_of_measurement=UNIT_WATT,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_APPARENT_POWER): sensor.sensor_schema(
+            unit_of_measurement="VA",
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_INVERTER_FREQUENCY): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HERTZ,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# DC Schema
+DC_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_DC5_CURRENT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DC6_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DC6_CURRENT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DC7_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DC7_CURRENT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DC8_VOLTAGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_VOLT,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DC8_CURRENT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_AMPERE,
+            accuracy_decimals=2,
+            device_class=DEVICE_CLASS_CURRENT,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+# Statistics Schemas
+DAILY_STATISTICS_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_BATTERY_CHARGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_BATTERY_DISCHARGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_GRID_IMPORT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_GRID_EXPORT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_CONSUMPTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_PV_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_DAILY_PV1_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_DAILY_PV2_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_DAILY_PV3_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_DAILY_PV4_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_DAILY_GENERATOR_ON_TIME): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HOUR,
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_DAILY_ACTIVE_POWER_GENERATION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_ACTIVE_POWER_GENERATION_TODAY): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_DAILY_GRID_CONNECTION_TIME): sensor.sensor_schema(
+            unit_of_measurement=UNIT_MINUTE,
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
+
+TOTAL_STATISTICS_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_BATTERY_CHARGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_BATTERY_DISCHARGE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_GRID_IMPORT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_GRID_EXPORT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_CONSUMPTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_PV_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_ACTIVE_POWER_GENERATION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_REACTIVE_POWER_GENERATION): sensor.sensor_schema(
+            unit_of_measurement="kVARh",
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_BATTERY_CHARGE_32): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_BATTERY_DISCHARGE_32): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_GRID_IMPORT_32): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_GRID_EXPORT_32): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_CONSUMPTION_32): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_ACTIVE_POWER_GEN_TOTAL_LOW): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_ACTIVE_POWER_GEN_TOTAL_HIGH): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_REACTIVE_POWER_GEN_TOTAL_LOW): sensor.sensor_schema(
+            unit_of_measurement="kVARh",
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_REACTIVE_POWER_GEN_TOTAL_HIGH): sensor.sensor_schema(
+            unit_of_measurement="kVARh",
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_PV_PRODUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_BATTERY_CHARGE_TOTAL_HIGH): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_BATTERY_DISCHARGE_TOTAL_HIGH): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_GRID_BUY_HIGH): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_GRID_SELL_HIGH): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+        cv.Optional(CONF_TOTAL_LOAD_HIGH): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+        ),
+    }
+)
+
+STATISTICS_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_DAILY): DAILY_STATISTICS_SCHEMA,
+        cv.Optional(CONF_TOTAL): TOTAL_STATISTICS_SCHEMA,
+    }
+)
+
+# Status Schema
+STATUS_SCHEMA = cv.Schema(
+    {
+        cv.Optional(CONF_WARNING_1_RAW): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_WARNING_2_RAW): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ERROR_1_RAW): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ERROR_2_RAW): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ERROR_3_RAW): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_ERROR_4_RAW): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional(CONF_COMMUNICATION_BOARD_FAILURE): sensor.sensor_schema(
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+    }
+)
 
 # =============================================================================
-# HELPER FUNCTION
+# MAIN COMPONENT CONFIG SCHEMA
 # =============================================================================
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.declare_id(DeyeInverter),
+        cv.Required(CONF_MODBUS_ID): cv.use_id(ModbusController),
+        cv.Optional(CONF_DEVICE_ID): cv.use_id(cg.EntityBase),
+        cv.Optional(CONF_ADDRESS, default=1): cv.positive_int,
+        cv.Optional(
+            CONF_UPDATE_INTERVAL_LIVE, default="1s"
+        ): cv.positive_time_period_milliseconds,
+        cv.Optional(
+            CONF_UPDATE_INTERVAL_STATISTICS, default="5s"
+        ): cv.positive_time_period_milliseconds,
+        cv.Optional(
+            CONF_UPDATE_INTERVAL_DEVICE_INFO, default="60s"
+        ): cv.positive_time_period_milliseconds,
+        # Device info
+        cv.Optional(CONF_DEVICE_INFO): DEVICE_INFO_SCHEMA,
+        cv.Optional(CONF_DEVICE_INFO_EXTENDED): DEVICE_INFO_EXTENDED_SCHEMA,
+        # Sensor groups
+        cv.Optional(CONF_BATTERY): BATTERY_SCHEMA,
+        cv.Optional(CONF_PV1): PV_STRING_SCHEMA,
+        cv.Optional(CONF_PV2): PV_STRING_SCHEMA,
+        cv.Optional(CONF_PV3): PV_STRING_SCHEMA,
+        cv.Optional(CONF_PV4): PV_STRING_SCHEMA,
+        cv.Optional(CONF_GRID): GRID_SCHEMA,
+        cv.Optional(CONF_LOAD_GRID): LOAD_GRID_SCHEMA,
+        cv.Optional(CONF_LOAD_GRID_PORT): LOAD_GRID_PORT_SCHEMA,
+        cv.Optional(CONF_LOAD_UPS): LOAD_UPS_SCHEMA,
+        cv.Optional(CONF_GENERATOR): GENERATOR_SCHEMA,
+        cv.Optional(CONF_GENERATOR_PORT): GENERATOR_PORT_SCHEMA,
+        cv.Optional(CONF_TEMPERATURES): TEMPERATURES_SCHEMA,
+        cv.Optional(CONF_INVERTER): INVERTER_SCHEMA,
+        cv.Optional(CONF_DC): DC_SCHEMA,
+        cv.Optional(CONF_STATISTICS): STATISTICS_SCHEMA,
+        cv.Optional(CONF_STATUS): STATUS_SCHEMA,
+        # Battery Modules
+        cv.Optional(CONF_BATTERY_MODULE_1): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_2): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_3): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_4): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_5): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_6): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_7): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_8): BATTERY_MODULE_SCHEMA,
+        cv.Optional(CONF_BATTERY_MODULE_9): BATTERY_MODULE_SCHEMA,
+    }
+).extend(cv.polling_component_schema("1s"))
+
+
+# =============================================================================
+# TO CODE - Hauptkomponente erstellen
+# =============================================================================
+async def to_code(config):
+    """Generate code for the Deye Inverter component."""
+    # Create the component instance
+    var = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(var, config)
+
+    # Set the Modbus controller parent
+    parent = await cg.get_variable(config[CONF_MODBUS_ID])
+    cg.add(var.set_parent(parent))
+
+    # Set the Modbus address
+    cg.add(var.set_address(config[CONF_ADDRESS]))
+
+    # Set update intervals
+    cg.add(var.set_update_interval_live(config[CONF_UPDATE_INTERVAL_LIVE]))
+    cg.add(var.set_update_interval_statistics(config[CONF_UPDATE_INTERVAL_STATISTICS]))
+    cg.add(
+        var.set_update_interval_device_info(config[CONF_UPDATE_INTERVAL_DEVICE_INFO])
+    )
+
+    # Set device ID if provided
+    if CONF_DEVICE_ID in config:
+        device = await cg.get_variable(config[CONF_DEVICE_ID])
+        cg.add(var.set_device(device))
+
+    # Register all sensors
+    await register_sensors(var, config)
+
+
+# =============================================================================
+# SENSOR REGISTRATION FUNCTIONS (formerly in sensor_impl.py)
+# =============================================================================
+
+
 async def register_single_sensor(
     config,
     key,
@@ -217,9 +1462,6 @@ async def register_single_sensor(
     cg.add(parent.register_sensor(sens))
 
 
-# =============================================================================
-# MAIN SENSOR REGISTRATION FUNCTION
-# =============================================================================
 async def register_sensors(parent, config):
     """Register all sensors with the parent component."""
 

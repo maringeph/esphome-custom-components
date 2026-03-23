@@ -25,15 +25,16 @@ from . import (
 )
 
 # =============================================================================
+# DATETIME ENTITY CLASS
+# =============================================================================
+DeyeDateTime = deye_inverter_ns.class_(
+    "DeyeDateTime", datetime.DateTimeEntity, cg.Component
+)
+
+# =============================================================================
 # DATETIME ENTITY SCHEMA
 # =============================================================================
-DATETIME_ENTITY_SCHEMA = cv.Schema(
-    {
-        cv.Required(CONF_NAME): cv.string,
-        cv.Required(CONF_ID): cv.declare_id(datetime.DateTime),
-        cv.Optional(CONF_DISABLED_BY_DEFAULT, default=False): cv.boolean,
-    }
-)
+DATETIME_ENTITY_SCHEMA = datetime.datetime_schema(DeyeDateTime)
 
 # =============================================================================
 # TIME OF USE DATETIME SCHEMA

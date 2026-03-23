@@ -504,7 +504,6 @@ async def register_switch_entity(
 
 
 async def register_switch_entity_2bit(
-    device_obj,
     config,
     key,
     parent,
@@ -513,6 +512,7 @@ async def register_switch_entity_2bit(
     value_enable,
     value_disable,
     shift,
+    device_obj=None,
 ):
     """Register a 2-bit field switch entity with the parent component.
 
@@ -563,29 +563,28 @@ async def to_code(config):
         # Grid Charge (Register 130, Bit 0)
         if CONF_GRID_CHARGE in grid_config:
             await register_switch_entity(
-                device_obj,
                 grid_config,
                 CONF_GRID_CHARGE,
                 var,
                 REGISTER_GRID_CHARGE,
                 BITMASK_GRID_CHARGE,
+                device_obj,
             )
 
         # Solar Sell (Register 145, Bit 0)
         if CONF_SOLAR_SELL in grid_config:
             await register_switch_entity(
-                device_obj,
                 grid_config,
                 CONF_SOLAR_SELL,
                 var,
                 REGISTER_SOLAR_SELL,
                 BITMASK_SOLAR_SELL,
+                device_obj,
             )
 
         # Grid Peak Shaving (Register 178, Bits 4-5)
         if CONF_GRID_PEAK_SHAVING in grid_config:
             await register_switch_entity_2bit(
-                device_obj,
                 grid_config,
                 CONF_GRID_PEAK_SHAVING,
                 var,
@@ -594,12 +593,12 @@ async def to_code(config):
                 VALUE_ENABLE_GRID_PEAK_SHAVING,
                 VALUE_DISABLE_GRID_PEAK_SHAVING,
                 SHIFT_GRID_PEAK_SHAVING,
+                device_obj,
             )
 
         # Gen Peak Shaving (Register 178, Bits 2-3)
         if CONF_GEN_PEAK_SHAVING in grid_config:
             await register_switch_entity_2bit(
-                device_obj,
                 grid_config,
                 CONF_GEN_PEAK_SHAVING,
                 var,
@@ -608,12 +607,12 @@ async def to_code(config):
                 VALUE_ENABLE_GEN_PEAK_SHAVING,
                 VALUE_DISABLE_GEN_PEAK_SHAVING,
                 SHIFT_GEN_PEAK_SHAVING,
+                device_obj,
             )
 
         # On Grid Always On (Register 178, Bits 6-7)
         if CONF_ON_GRID_ALWAYS_ON in grid_config:
             await register_switch_entity_2bit(
-                device_obj,
                 grid_config,
                 CONF_ON_GRID_ALWAYS_ON,
                 var,
@@ -622,12 +621,12 @@ async def to_code(config):
                 VALUE_ENABLE_ON_GRID_ALWAYS_ON,
                 VALUE_DISABLE_ON_GRID_ALWAYS_ON,
                 SHIFT_ON_GRID_ALWAYS_ON,
+                device_obj,
             )
 
         # Microinverter Export to Grid (Register 178, Bits 0-1)
         if CONF_MICROINVERTER_EXPORT_TO_GRID in grid_config:
             await register_switch_entity_2bit(
-                device_obj,
                 grid_config,
                 CONF_MICROINVERTER_EXPORT_TO_GRID,
                 var,
@@ -636,50 +635,51 @@ async def to_code(config):
                 VALUE_ENABLE_MICROINVERTER_EXPORT,
                 VALUE_DISABLE_MICROINVERTER_EXPORT,
                 SHIFT_MICROINVERTER_EXPORT,
+                device_obj,
             )
 
         # Zero Export Power (Register 145, Bit 1)
         if CONF_ZERO_EXPORT_POWER in grid_config:
             await register_switch_entity(
-                device_obj,
                 grid_config,
                 CONF_ZERO_EXPORT_POWER,
                 var,
                 145,
                 0x0002,
+                device_obj,
             )
 
         # Max Solar Sell Power (Register 145, Bit 2)
         if CONF_MAX_SOLAR_SELL_POWER in grid_config:
             await register_switch_entity(
-                device_obj,
                 grid_config,
                 CONF_MAX_SOLAR_SELL_POWER,
                 var,
                 145,
                 0x0004,
+                device_obj,
             )
 
         # Grid Max Power (Register 146, Bit 1)
         if CONF_GRID_MAX_POWER in grid_config:
             await register_switch_entity(
-                device_obj,
                 grid_config,
                 CONF_GRID_MAX_POWER,
                 var,
                 146,
                 0x0002,
+                device_obj,
             )
 
         # Restore Connection Time (Register 146, Bit 2)
         if CONF_RESTORE_CONNECTION_TIME in grid_config:
             await register_switch_entity(
-                device_obj,
                 grid_config,
                 CONF_RESTORE_CONNECTION_TIME,
                 var,
                 146,
                 0x0004,
+                device_obj,
             )
 
     # Settings Device Switches
@@ -689,7 +689,6 @@ async def to_code(config):
         # External CT Direction Check (Register 179, Bits 0-1)
         if CONF_EXTERNAL_CT_DIRECTION_CHECK in device_config:
             await register_switch_entity_2bit(
-                device_obj,
                 device_config,
                 CONF_EXTERNAL_CT_DIRECTION_CHECK,
                 var,
@@ -698,17 +697,18 @@ async def to_code(config):
                 VALUE_ENABLE_CT_DIRECTION_CHECK,
                 VALUE_DISABLE_CT_DIRECTION_CHECK,
                 SHIFT_CT_DIRECTION_CHECK,
+                device_obj,
             )
 
         # Solar Arc Fault Mode (Register 181, 1-bit)
         if CONF_SOLAR_ARC_FAULT_MODE in device_config:
             await register_switch_entity(
-                device_obj,
                 device_config,
                 CONF_SOLAR_ARC_FAULT_MODE,
                 var,
                 REGISTER_SOLAR_ARC_FAULT_MODE,
                 BITMASK_SOLAR_ARC_FAULT_MODE,
+                device_obj,
             )
 
     # Settings System Switches
@@ -718,45 +718,45 @@ async def to_code(config):
         # System Beeper (Register 64, Bit 0)
         if CONF_SYS_BEEPER in system_config:
             await register_switch_entity(
-                device_obj,
                 system_config,
                 CONF_SYS_BEEPER,
                 var,
                 REGISTER_SYS_BEEPER,
                 BITMASK_SYS_BEEPER,
+                device_obj,
             )
 
         # System LCD Backlight (Register 65, Bit 0)
         if CONF_SYS_LCD_BACKLIGHT in system_config:
             await register_switch_entity(
-                device_obj,
                 system_config,
                 CONF_SYS_LCD_BACKLIGHT,
                 var,
                 REGISTER_SYS_LCD_BACKLIGHT,
                 BITMASK_SYS_LCD_BACKLIGHT,
+                device_obj,
             )
 
         # System DST Enable (Register 66, Bit 0)
         if CONF_SYS_DST_ENABLE in system_config:
             await register_switch_entity(
-                device_obj,
                 system_config,
                 CONF_SYS_DST_ENABLE,
                 var,
                 REGISTER_SYS_DST_ENABLE,
                 BITMASK_SYS_DST_ENABLE,
+                device_obj,
             )
 
         # System Remote Lock (Register 67, Bit 0)
         if CONF_SYS_REMOTE_LOCK in system_config:
             await register_switch_entity(
-                device_obj,
                 system_config,
                 CONF_SYS_REMOTE_LOCK,
                 var,
                 REGISTER_SYS_REMOTE_LOCK,
                 BITMASK_SYS_REMOTE_LOCK,
+                device_obj,
             )
 
     # Settings Time of Use Switches
@@ -766,12 +766,12 @@ async def to_code(config):
         # Time of Use (Register 146, Bit 0)
         if CONF_TIME_OF_USE in tou_config:
             await register_switch_entity(
-                device_obj,
                 tou_config,
                 CONF_TIME_OF_USE,
                 var,
                 REGISTER_TIME_OF_USE,
                 BITMASK_TIME_OF_USE,
+                device_obj,
             )
 
         # Time Point Solar/General Charge Enable switches (Registers 172-177, Bit 0)
@@ -786,12 +786,12 @@ async def to_code(config):
         for conf_key, register_addr in solar_charge_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
-                    device_obj,
                     tou_config,
                     conf_key,
                     var,
                     register_addr,
                     BITMASK_CHARGE_ENABLE_SOLAR,
+                    device_obj,
                 )
 
         # Time Point Grid Charge Enable switches (Registers 172-177, Bit 1)
@@ -806,12 +806,12 @@ async def to_code(config):
         for conf_key, register_addr in grid_charge_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
-                    device_obj,
                     tou_config,
                     conf_key,
                     var,
                     register_addr,
                     BITMASK_CHARGE_ENABLE_GRID,
+                    device_obj,
                 )
 
         # Time Point Generator Charge Enable switches (Registers 172-177, Bit 2)
@@ -826,12 +826,12 @@ async def to_code(config):
         for conf_key, register_addr in gen_charge_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
-                    device_obj,
                     tou_config,
                     conf_key,
                     var,
                     register_addr,
                     BITMASK_CHARGE_ENABLE_GEN,
+                    device_obj,
                 )
 
         # Weekday Enable switches (Register 146, Bits 1-7)
@@ -847,20 +847,19 @@ async def to_code(config):
         for conf_key, bitmask in weekday_switches:
             if conf_key in tou_config:
                 await register_switch_entity(
-                    device_obj,
                     tou_config,
                     conf_key,
                     var,
                     REGISTER_TIME_OF_USE_WEEKDAYS,
                     bitmask,
+                    device_obj,
                 )
 
-    # Settings Working Mode - Forced Off Grid Work (Register 179, Bits 2-3)
+        # Settings Working Mode - Forced Off Grid Work (Register 179, Bits 2-3)
     if CONF_SETTINGS_WORKING_MODE in config:
         working_mode_config = config[CONF_SETTINGS_WORKING_MODE]
         if CONF_FORCED_OFF_GRID_WORK in working_mode_config:
             await register_switch_entity_2bit(
-                device_obj,
                 working_mode_config,
                 CONF_FORCED_OFF_GRID_WORK,
                 var,
@@ -869,6 +868,7 @@ async def to_code(config):
                 VALUE_ENABLE_FORCED_OFF_GRID,
                 VALUE_DISABLE_FORCED_OFF_GRID,
                 SHIFT_FORCED_OFF_GRID,
+                device_obj,
             )
 
     # Settings Battery - Battery Loss Report Fault (Register 178, Bits 10-11)
@@ -876,7 +876,6 @@ async def to_code(config):
         battery_config = config[CONF_SETTINGS_BATTERY]
         if CONF_BATTERY_LOSS_REPORT_FAULT in battery_config:
             await register_switch_entity_2bit(
-                device_obj,
                 battery_config,
                 CONF_BATTERY_LOSS_REPORT_FAULT,
                 var,
@@ -885,6 +884,7 @@ async def to_code(config):
                 VALUE_ENABLE_BATTERY_LOSS_FAULT,
                 VALUE_DISABLE_BATTERY_LOSS_FAULT,
                 SHIFT_BATTERY_LOSS_FAULT,
+                device_obj,
             )
 
     # Settings Generator - External Relay (Register 178, Bits 8-9) & Gen Port Force On
@@ -894,7 +894,6 @@ async def to_code(config):
         # External Relay (Register 178, Bits 8-9)
         if CONF_EXTERNAL_RELAY in generator_config:
             await register_switch_entity_2bit(
-                device_obj,
                 generator_config,
                 CONF_EXTERNAL_RELAY,
                 var,
@@ -903,23 +902,23 @@ async def to_code(config):
                 VALUE_ENABLE_EXTERNAL_RELAY,
                 VALUE_DISABLE_EXTERNAL_RELAY,
                 SHIFT_EXTERNAL_RELAY,
+                device_obj,
             )
 
         # Gen Port Force On (Register 132, Bit 0)
         if CONF_GEN_PORT_FORCE_ON in generator_config:
             await register_switch_entity(
-                device_obj,
                 generator_config,
                 CONF_GEN_PORT_FORCE_ON,
                 var,
                 REGISTER_GEN_PORT_FORCE_ON,
                 BITMASK_GEN_PORT_FORCE_ON,
+                device_obj,
             )
 
         # Gen Port Couple Frequency Limit (Register 178, Bits 12-13)
         if CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT in generator_config:
             await register_switch_entity_2bit(
-                device_obj,
                 generator_config,
                 CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT,
                 var,
@@ -928,12 +927,12 @@ async def to_code(config):
                 0x3000,
                 0x2000,
                 12,
+                device_obj,
             )
 
         # Generator Required Power Start (Register 178, Bits 14-15)
         if CONF_GENERATOR_REQUIRED_POWER_START in generator_config:
             await register_switch_entity_2bit(
-                device_obj,
                 generator_config,
                 CONF_GENERATOR_REQUIRED_POWER_START,
                 var,
@@ -942,4 +941,5 @@ async def to_code(config):
                 0xC000,
                 0x8000,
                 14,
+                device_obj,
             )

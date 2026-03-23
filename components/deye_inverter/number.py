@@ -694,7 +694,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def register_number_entity(
-    device_obj, config, key, parent, address, min_value, max_value, step, scale
+    config, key, parent, address, min_value, max_value, step, scale, device_obj=None
 ):
     """Register a single number entity with the parent component."""
     if key not in config:
@@ -740,7 +740,6 @@ async def to_code(config):
         # Max Charge Current (Register 108, 0-185A, step 0.1, scale 10)
         if CONF_MAX_CHARGE_CURRENT in battery_config:
             await register_number_entity(
-                device_obj,
                 battery_config,
                 CONF_MAX_CHARGE_CURRENT,
                 var,
@@ -749,12 +748,12 @@ async def to_code(config):
                 185,
                 0.1,
                 10.0,
+                device_obj,
             )
 
         # Max Discharge Current (Register 109, 0-185A, step 0.1, scale 10)
         if CONF_MAX_DISCHARGE_CURRENT in battery_config:
             await register_number_entity(
-                device_obj,
                 battery_config,
                 CONF_MAX_DISCHARGE_CURRENT,
                 var,
@@ -763,6 +762,7 @@ async def to_code(config):
                 185,
                 0.1,
                 10.0,
+                device_obj,
             )
 
     # Settings Battery Voltage
@@ -780,7 +780,6 @@ async def to_code(config):
         ]:
             if key in voltage_config:
                 await register_number_entity(
-                    device_obj,
                     voltage_config,
                     key,
                     var,
@@ -789,6 +788,7 @@ async def to_code(config):
                     61.0,
                     0.01,
                     100.0,
+                    device_obj,
                 )
 
     # Settings Battery SOC
@@ -802,7 +802,6 @@ async def to_code(config):
         ]:
             if key in soc_config:
                 await register_number_entity(
-                    device_obj,
                     soc_config,
                     key,
                     var,
@@ -811,6 +810,7 @@ async def to_code(config):
                     100,
                     1,
                     1.0,
+                    device_obj,
                 )
 
     # Settings Battery Additional
@@ -829,7 +829,6 @@ async def to_code(config):
             if key in additional_config:
                 scale = 1.0 if step == 1 else (10.0 if step == 0.1 else 100.0)
                 await register_number_entity(
-                    device_obj,
                     additional_config,
                     key,
                     var,
@@ -838,6 +837,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings Generator
@@ -856,7 +856,6 @@ async def to_code(config):
             if key in gen_config:
                 scale = 1.0 if step == 1 else (10.0 if step == 0.1 else 100.0)
                 await register_number_entity(
-                    device_obj,
                     gen_config,
                     key,
                     var,
@@ -865,6 +864,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings Generator 2
@@ -881,7 +881,6 @@ async def to_code(config):
             if key in gen2_config:
                 scale = 1.0 if step == 1 else (10.0 if step == 0.1 else 100.0)
                 await register_number_entity(
-                    device_obj,
                     gen2_config,
                     key,
                     var,
@@ -890,6 +889,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings Smart Load
@@ -902,7 +902,6 @@ async def to_code(config):
         ]:
             if key in smart_load_config:
                 await register_number_entity(
-                    device_obj,
                     smart_load_config,
                     key,
                     var,
@@ -911,6 +910,7 @@ async def to_code(config):
                     61.0,
                     0.01,
                     100.0,
+                    device_obj,
                 )
 
         for key, address in [
@@ -919,7 +919,6 @@ async def to_code(config):
         ]:
             if key in smart_load_config:
                 await register_number_entity(
-                    device_obj,
                     smart_load_config,
                     key,
                     var,
@@ -928,6 +927,7 @@ async def to_code(config):
                     100,
                     1,
                     1.0,
+                    device_obj,
                 )
 
     # Settings Grid Charge
@@ -943,7 +943,6 @@ async def to_code(config):
             if key in grid_charge_config:
                 scale = 100.0 if step == 0.01 else 1.0
                 await register_number_entity(
-                    device_obj,
                     grid_charge_config,
                     key,
                     var,
@@ -952,6 +951,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings Grid Numbers (distributed from settings_special)
@@ -967,7 +967,6 @@ async def to_code(config):
             if key in grid_numbers_config:
                 scale = 1.0 if step == 1 else (100.0 if step == 0.01 else 10.0)
                 await register_number_entity(
-                    device_obj,
                     grid_numbers_config,
                     key,
                     var,
@@ -976,6 +975,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings Generator Numbers (distributed from settings_special)
@@ -989,7 +989,6 @@ async def to_code(config):
             if key in gen_numbers_config:
                 scale = 1.0 if step == 1 else (100.0 if step == 0.01 else 10.0)
                 await register_number_entity(
-                    device_obj,
                     gen_numbers_config,
                     key,
                     var,
@@ -998,6 +997,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings Time of Use (start times moved to datetime.py)
@@ -1015,7 +1015,6 @@ async def to_code(config):
         ]:
             if key in tou_config:
                 await register_number_entity(
-                    device_obj,
                     tou_config,
                     key,
                     var,
@@ -1024,6 +1023,7 @@ async def to_code(config):
                     6500,
                     1,
                     1.0,
+                    device_obj,
                 )
 
         # Time Point Min Battery Voltage (addresses 160-165)
@@ -1037,7 +1037,6 @@ async def to_code(config):
         ]:
             if key in tou_config:
                 await register_number_entity(
-                    device_obj,
                     tou_config,
                     key,
                     var,
@@ -1046,6 +1045,7 @@ async def to_code(config):
                     63.0,
                     0.01,
                     100.0,
+                    device_obj,
                 )
 
         # Time Point Capacity (addresses 166-171)
@@ -1059,7 +1059,6 @@ async def to_code(config):
         ]:
             if key in tou_config:
                 await register_number_entity(
-                    device_obj,
                     tou_config,
                     key,
                     var,
@@ -1068,6 +1067,7 @@ async def to_code(config):
                     100,
                     5,
                     1.0,
+                    device_obj,
                 )
 
     # Settings System Numbers (NEW - registers 60-97)
@@ -1082,7 +1082,6 @@ async def to_code(config):
             if key in system_config:
                 scale = 10.0 if step == 0.5 else 1.0
                 await register_number_entity(
-                    device_obj,
                     system_config,
                     key,
                     var,
@@ -1091,6 +1090,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings Grid Protection (NEW - registers 185-200)
@@ -1111,7 +1111,6 @@ async def to_code(config):
             if key in gp_config:
                 scale = 100.0 if step == 0.01 else (10.0 if step == 0.1 else 1.0)
                 await register_number_entity(
-                    device_obj,
                     gp_config,
                     key,
                     var,
@@ -1120,6 +1119,7 @@ async def to_code(config):
                     max_val,
                     step,
                     scale,
+                    device_obj,
                 )
 
     # Settings California (NEW - registers 340-499)
@@ -1137,7 +1137,6 @@ async def to_code(config):
         ]:
             if key in ca_config:
                 await register_number_entity(
-                    device_obj,
                     ca_config,
                     key,
                     var,
@@ -1146,6 +1145,7 @@ async def to_code(config):
                     300,
                     0.1,
                     10.0,
+                    device_obj,
                 )
 
         # Power Points (addresses 347-352)
@@ -1159,7 +1159,6 @@ async def to_code(config):
         ]:
             if key in ca_config:
                 await register_number_entity(
-                    device_obj,
                     ca_config,
                     key,
                     var,
@@ -1168,6 +1167,7 @@ async def to_code(config):
                     100,
                     1,
                     1.0,
+                    device_obj,
                 )
 
         # Additional California settings
@@ -1177,7 +1177,6 @@ async def to_code(config):
         ]:
             if key in ca_config:
                 await register_number_entity(
-                    device_obj,
                     ca_config,
                     key,
                     var,
@@ -1186,4 +1185,5 @@ async def to_code(config):
                     max_val,
                     step,
                     1.0,
+                    device_obj,
                 )

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/components/modbus_controller/modbus_controller.h"
+#include "esphome/components/modbus/modbus.h"
 #ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
 #endif
@@ -349,7 +349,7 @@ class DeyeTime : public time::RealTimeClock, public Component {
   
   // Cached inverter time for comparison
   bool inverter_time_valid_ = false;
-  time::ESPTime inverter_time_;
+  ESPTime inverter_time_;
 };
 #endif
 
@@ -373,7 +373,7 @@ template<typename... Ts> class DeyeTimeWriteAction : public Action<Ts...> {
 // =============================================================================
 // MAIN DEYE INVERTER CLASS
 // =============================================================================
-class DeyeInverter : public Component, public modbus_controller::ModbusDevice {
+class DeyeInverter : public Component, public modbus::ModbusDevice {
  public:
   void setup() override;
   void loop() override;
@@ -385,9 +385,6 @@ class DeyeInverter : public Component, public modbus_controller::ModbusDevice {
   void on_modbus_error(uint8_t function_code, uint8_t exception_code);
   
   // Configuration
-  void set_modbus_controller(modbus_controller::ModbusController* controller) { 
-    this->modbus_controller_ = controller; 
-  }
   void set_address(uint8_t address) { this->address_ = address; }
   void set_name(const std::string& name) { this->name_ = name; }
   
@@ -504,7 +501,7 @@ class DeyeInverter : public Component, public modbus_controller::ModbusDevice {
   // Configuration
   std::string name_;
   uint8_t address_ = 1;
-  modbus_controller::ModbusController* modbus_controller_ = nullptr;
+
   
   // Update intervals
   uint32_t interval_live_ = 1000;              // 1 second

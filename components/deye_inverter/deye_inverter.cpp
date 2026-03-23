@@ -320,11 +320,15 @@ void DeyeSwitch::write_state(bool state) {
     if (this->is_2bit_field_) {
       // For 2-bit fields: write the complete value (enable=11 or disable=10)
       uint16_t value = state ? this->value_enable_ : this->value_disable_;
-      this->parent_->write_register_masked(this->address_, value, this->bitmask_);
+      auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(
+          this, this->address_, value);
+      this->queue_command(cmd);
     } else {
       // Standard 1-bit field
       uint16_t value = state ? 0xFFFF : 0x0000;
-      this->parent_->write_register_masked(this->address_, value, this->bitmask_);
+      auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(
+          this, this->address_, value);
+      this->queue_command(cmd);
     }
   }
 }
@@ -357,7 +361,9 @@ void DeyeNumber::control(float value) {
     } else {
       raw_value = static_cast<uint16_t>(value / this->scale_);
     }
-    this->parent_->write_register(this->address_, raw_value);
+    auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(
+        this, this->address_, raw_value);
+    this->queue_command(cmd);
   }
 }
 #endif
@@ -382,7 +388,9 @@ void DeyeSelect::control(const std::string& value) {
   if (this->parent_ != nullptr) {
     auto it = this->reverse_map_.find(value);
     if (it != this->reverse_map_.end()) {
-      this->parent_->write_register(this->address_, it->second);
+      auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(
+          this, this->address_, it->second);
+      this->queue_command(cmd);
     }
   }
 }
@@ -399,7 +407,7 @@ void DeyeDateTime::update_value(uint16_t raw_value) {
   parse_hhmm(raw_value, hour, minute);
   
   // Create time-only datetime (use epoch date 1970-01-01)
-  auto now = time::ESPTime::from_epoch_utc(0);
+  auto now = ESPTime::from_epoch_utc(0);
   now.year = 1970;
   now.month = 1;
   now.day_of_month = 1;
@@ -423,7 +431,7 @@ void DeyeDateTime::control(const datetime::DateTimeCall& call) {
   uint16_t hhmm_value = format_hhmm(hour, minute);
   
   // Update internal state
-  auto now = time::ESPTime::from_epoch_utc(0);
+  auto now = ESPTime::from_epoch_utc(0);
   now.year = 1970;
   now.month = 1;
   now.day_of_month = 1;
@@ -435,7 +443,9 @@ void DeyeDateTime::control(const datetime::DateTimeCall& call) {
   
   // Write to Modbus register
   if (this->parent_ != nullptr) {
-    this->parent_->write_register(this->address_, hhmm_value);
+    auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(
+        this, this->address_, hhmm_value);
+    this->queue_command(cmd);
   }
 }
 
@@ -559,9 +569,17 @@ void DeyeTime::write_time_to_inverter() {
   uint16_t reg64 = (static_cast<uint16_t>(minute) << 8) | second;
   
   // Write to inverter
-  this->parent_->write_register(62, reg62);
-  this->parent_->write_register(63, reg63);
-  this->parent_->write_register(64, reg64);
+  auto cmd62 = modbus_controller::ModbusCommandItem::create_write_single_command(
+      this, 62, reg62);
+  this->queue_command(cmd62);
+  
+  auto cmd63 = modbus_controller::ModbusCommandItem::create_write_single_command(
+      this, 63, reg63);
+  this->queue_command(cmd63);
+  
+  auto cmd64 = modbus_controller::ModbusCommandItem::create_write_single_command(
+      this, 64, reg64);
+  this->queue_command(cmd64);
   
   ESP_LOGI(TAG, "System time written to inverter: %04d-%02d-%02d %02d:%02d:%02d",
            now_time.year, now_time.month, now_time.day_of_month,
@@ -583,7 +601,7 @@ void DeyeTime::on_system_time_received(uint8_t year, uint8_t month, uint8_t day,
   }
   
   // Store inverter time
-  this->inverter_time_ = time::ESPTime::from_epoch_utc(0);
+  this->inverter_time_ = ESPTime::from_epoch_utc(0);
   this->inverter_time_.year = 2000 + year;
   this->inverter_time_.month = month;
   this->inverter_time_.day_of_month = day;
@@ -862,8 +880,14 @@ void DeyeInverter::update_register_range(const RegisterRange& range) {
   ESP_LOGV(TAG, "Reading register range '%s' (0x%04X, %u registers)", 
            range.name, range.start, range.count);
   
-  // Send read holding registers command
-  this->parent_->read_holding_registers(this->address_, range.start, range.count);
+  auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+      this, modbus_controller::ModbusRegisterType::HOLDING, 
+      range.start, range.count);
+  cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, 
+                            uint16_t addr, const std::vector<uint8_t> &data) {
+    this->on_modbus_data(data);
+  };
+  this->queue_command(cmd);
 }
 
 // =============================================================================
@@ -1389,19 +1413,17 @@ std::string DeyeInverter::parse_string(const std::vector<uint8_t>& data, size_t 
 void DeyeInverter::write_register(uint16_t address, uint16_t value) {
   ESP_LOGD(TAG, "Writing register 0x%04X = 0x%04X", address, value);
   
-  if (this->modbus_controller_ != nullptr) {
-    this->modbus_controller_->write_register(this->address_, address, value);
-  }
+  auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(
+      this, address, value);
+  this->queue_command(cmd);
 }
 
 void DeyeInverter::write_register_masked(uint16_t address, uint16_t value, uint16_t mask) {
   ESP_LOGD(TAG, "Writing register 0x%04X with mask 0x%04X = 0x%04X", address, mask, value);
   
-  // For masked writes, we should ideally read first, then modify, then write
-  // This is a simplified implementation - in production, you'd want to queue this
-  if (this->modbus_controller_ != nullptr) {
-    this->modbus_controller_->write_register(this->address_, address, value & mask);
-  }
+  auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(
+      this, address, value & mask);
+  this->queue_command(cmd);
 }
 
 }  // namespace deye_inverter

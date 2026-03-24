@@ -603,7 +603,8 @@ void DeyeTime::update() {
 
 void DeyeInverter::setup() {
   ESP_LOGCONFIG(TAG, "Setting up Deye Inverter...");
-  this->update_device_info();
+  // Queue device info read on startup
+  this->queue_request(RequestType::DEVICE_INFO);
 }
 
 void DeyeInverter::dump_config() {
@@ -689,207 +690,607 @@ void DeyeInverter::register_time(time::RealTimeClock *tm) {
 #endif
 
 // =============================================================================
-// MAIN LOOP
+// UPDATE METHOD - Following ds100_meter pattern
 // =============================================================================
 
-void DeyeInverter::loop() {
-  const uint32_t now = millis();
-  
-  ESP_LOGD(TAG, "loop() called, now=%u, last_live=%u, interval=%u", 
-           now, this->last_live_update_, this->interval_live_);
-  
+void DeyeInverter::update() {
+  uint32_t now = millis();
+
+  // Timeout handling: Reset request_in_progress_ if no response for 500ms
+  if (this->request_in_progress_ && (now - this->last_request_time_ > 500)) {
+    ESP_LOGW(TAG, "Request timeout - resetting request_in_progress");
+    this->request_in_progress_ = false;
+    this->last_request_time_ = 0;
+    this->consecutive_timeouts_++;
+    ESP_LOGV(TAG, "Consecutive timeouts: %d", this->consecutive_timeouts_);
+  }
+
+  // Check which categories are due and add them to the request queue
   if (now - this->last_live_update_ >= this->interval_live_) {
-    this->last_live_update_ = now;
-    ESP_LOGD(TAG, "Starting live data update");
-    this->update_live_data();
+    this->queue_request(RequestType::LIVEDATA);
   }
   
   if (now - this->last_stats_update_ >= this->interval_statistics_) {
-    this->last_stats_update_ = now;
-    this->update_statistics();
+    this->queue_request(RequestType::STATISTICS);
   }
   
   if (now - this->last_battery_modules_update_ >= this->interval_battery_modules_) {
-    this->last_battery_modules_update_ = now;
-    this->update_battery_modules();
+    this->queue_request(RequestType::BATTERY_MODULES);
   }
   
   if (now - this->last_settings_update_ >= this->interval_settings_) {
-    this->last_settings_update_ = now;
-    this->update_settings();
+    this->queue_request(RequestType::SETTINGS);
   }
   
   if (now - this->last_system_settings_update_ >= this->interval_system_settings_) {
-    this->last_system_settings_update_ = now;
-    this->update_system_settings();
+    this->queue_request(RequestType::SYSTEM_SETTINGS);
   }
   
   if (now - this->last_grid_protection_update_ >= this->interval_grid_protection_) {
-    this->last_grid_protection_update_ = now;
-    this->update_grid_protection();
+    this->queue_request(RequestType::GRID_PROTECTION);
   }
   
   if (now - this->last_extended_settings_update_ >= this->interval_extended_settings_) {
-    this->last_extended_settings_update_ = now;
-    this->update_extended_settings();
+    this->queue_request(RequestType::EXTENDED_SETTINGS);
   }
   
   if (now - this->last_california_settings_update_ >= this->interval_california_settings_) {
-    this->last_california_settings_update_ = now;
-    this->update_california_settings();
+    this->queue_request(RequestType::CALIFORNIA_SETTINGS);
   }
   
   if (!this->device_info_initialized_ || 
       (now - this->last_device_info_update_ >= this->interval_device_info_)) {
-    this->last_device_info_update_ = now;
-    this->update_device_info();
+    this->queue_request(RequestType::DEVICE_INFO);
+  }
+
+  ESP_LOGD(TAG, "Update check - pending: 0x%04X, in_progress: %d, timeouts: %d", 
+           this->pending_requests_, this->request_in_progress_, this->consecutive_timeouts_);
+
+  // Process the highest priority pending request if no request is currently in progress
+  if (!this->request_in_progress_ && this->pending_requests_ != 0) {
+    // If bus is overloaded (consecutive timeouts), skip low-priority requests
+    if (this->consecutive_timeouts_ >= MAX_CONSECUTIVE_TIMEOUTS) {
+      // Only process high-priority requests: LIVEDATA and STATISTICS
+      if (this->pending_requests_ & PENDING_LIVEDATA) {
+        this->process_next_request();
+      } else if (this->pending_requests_ & PENDING_STATISTICS) {
+        this->process_next_request();
+      } else {
+        ESP_LOGV(TAG, "Skipping low-priority requests due to bus overload (timeouts: %d)", 
+                 this->consecutive_timeouts_);
+        // Clear pending low-priority requests to prevent queue buildup
+        this->pending_requests_ &= (PENDING_LIVEDATA | PENDING_STATISTICS);
+      }
+    } else {
+      this->process_next_request();
+    }
   }
 }
 
 // =============================================================================
-// UPDATE METHODS
+// REQUEST QUEUE MANAGEMENT - Following ds100_meter pattern
 // =============================================================================
 
-void DeyeInverter::update_live_data() {
-  if (this->current_phase_ == UpdatePhase::IDLE || 
-      this->current_phase_ == UpdatePhase::LIVE_DATA) {
-    this->current_phase_ = UpdatePhase::LIVE_DATA;
-    
-    if (this->current_range_index_ < LIVE_RANGES_COUNT) {
-      this->update_register_range(LIVE_RANGES[this->current_range_index_]);
-      this->current_range_index_++;
-    } else {
-      this->current_range_index_ = 0;
-      this->current_phase_ = UpdatePhase::IDLE;
+void DeyeInverter::queue_request(RequestType type) {
+  switch (type) {
+    case RequestType::LIVEDATA:
+      this->pending_requests_ |= PENDING_LIVEDATA;
+      break;
+    case RequestType::STATISTICS:
+      this->pending_requests_ |= PENDING_STATISTICS;
+      break;
+    case RequestType::BATTERY_MODULES:
+      this->pending_requests_ |= PENDING_BATTERY_MODULES;
+      break;
+    case RequestType::SETTINGS:
+      this->pending_requests_ |= PENDING_SETTINGS;
+      break;
+    case RequestType::SYSTEM_SETTINGS:
+      this->pending_requests_ |= PENDING_SYSTEM_SETTINGS;
+      break;
+    case RequestType::GRID_PROTECTION:
+      this->pending_requests_ |= PENDING_GRID_PROTECTION;
+      break;
+    case RequestType::EXTENDED_SETTINGS:
+      this->pending_requests_ |= PENDING_EXTENDED_SETTINGS;
+      break;
+    case RequestType::CALIFORNIA_SETTINGS:
+      this->pending_requests_ |= PENDING_CALIFORNIA_SETTINGS;
+      break;
+    case RequestType::DEVICE_INFO:
+      this->pending_requests_ |= PENDING_DEVICE_INFO;
+      break;
+  }
+}
+
+DeyeInverter::RequestType DeyeInverter::get_highest_priority_pending() {
+  if (this->pending_requests_ & PENDING_LIVEDATA)
+    return RequestType::LIVEDATA;
+  if (this->pending_requests_ & PENDING_STATISTICS)
+    return RequestType::STATISTICS;
+  if (this->pending_requests_ & PENDING_BATTERY_MODULES)
+    return RequestType::BATTERY_MODULES;
+  if (this->pending_requests_ & PENDING_SETTINGS)
+    return RequestType::SETTINGS;
+  if (this->pending_requests_ & PENDING_SYSTEM_SETTINGS)
+    return RequestType::SYSTEM_SETTINGS;
+  if (this->pending_requests_ & PENDING_GRID_PROTECTION)
+    return RequestType::GRID_PROTECTION;
+  if (this->pending_requests_ & PENDING_EXTENDED_SETTINGS)
+    return RequestType::EXTENDED_SETTINGS;
+  if (this->pending_requests_ & PENDING_CALIFORNIA_SETTINGS)
+    return RequestType::CALIFORNIA_SETTINGS;
+  if (this->pending_requests_ & PENDING_DEVICE_INFO)
+    return RequestType::DEVICE_INFO;
+  return RequestType::LIVEDATA;  // Should never reach here if pending_requests_ != 0
+}
+
+void DeyeInverter::process_next_request() {
+  if (this->pending_requests_ == 0)
+    return;
+
+  RequestType next = this->get_highest_priority_pending();
+  uint32_t now = millis();
+  this->last_request_time_ = now;
+  this->request_in_progress_ = true;
+  this->current_request_type_ = next;
+
+  switch (next) {
+    case RequestType::LIVEDATA: {
+      ESP_LOGD(TAG, "Queueing request: livedata range %zu/%zu", 
+               this->current_range_index_ + 1, LIVE_RANGES_COUNT);
+      this->last_live_update_ = now;
+      
+      if (this->current_range_index_ < LIVE_RANGES_COUNT) {
+        const RegisterRange& range = LIVE_RANGES[this->current_range_index_];
+        this->send_register_range_read(range);
+        this->current_range_index_++;
+        // Keep the request pending if there are more ranges
+        if (this->current_range_index_ >= LIVE_RANGES_COUNT) {
+          this->pending_requests_ &= ~PENDING_LIVEDATA;
+          this->current_range_index_ = 0;
+        }
+      } else {
+        this->pending_requests_ &= ~PENDING_LIVEDATA;
+        this->current_range_index_ = 0;
+      }
+      break;
+    }
+
+    case RequestType::STATISTICS: {
+      ESP_LOGD(TAG, "Queueing request: statistics");
+      this->last_stats_update_ = now;
+      this->pending_requests_ &= ~PENDING_STATISTICS;
+      
+      // Queue all statistics ranges
+      for (size_t i = 0; i < STATS_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING, 
+            STATS_RANGES[i].start, STATS_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_statistics_response(data, STATS_RANGES[i].start);
+        };
+        this->queue_command(cmd);
+      }
+      break;
+    }
+
+    case RequestType::BATTERY_MODULES: {
+      ESP_LOGD(TAG, "Queueing request: battery module %zu/%zu",
+               this->current_battery_module_range_ + 1, BATTERY_MODULE_RANGES_COUNT);
+      this->last_battery_modules_update_ = now;
+      
+      if (this->current_battery_module_range_ < BATTERY_MODULE_RANGES_COUNT) {
+        uint8_t module_idx = this->current_battery_module_range_;
+        const RegisterRange& range = BATTERY_MODULE_RANGES[module_idx];
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            range.start, range.count);
+        cmd.on_data_func = [this, module_idx, range](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                                      const std::vector<uint8_t> &data) {
+          this->handle_battery_module_response(data, range.start, module_idx);
+        };
+        this->queue_command(cmd);
+        this->current_battery_module_range_++;
+        // Keep the request pending if there are more modules
+        if (this->current_battery_module_range_ >= BATTERY_MODULE_RANGES_COUNT) {
+          this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
+          this->current_battery_module_range_ = 0;
+        }
+      } else {
+        this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
+        this->current_battery_module_range_ = 0;
+      }
+      break;
+    }
+
+    case RequestType::SETTINGS: {
+      ESP_LOGD(TAG, "Queueing request: settings");
+      this->last_settings_update_ = now;
+      this->pending_requests_ &= ~PENDING_SETTINGS;
+      
+      // Queue all settings ranges
+      for (size_t i = 0; i < SETTINGS_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            SETTINGS_RANGES[i].start, SETTINGS_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_settings_response(data, SETTINGS_RANGES[i].start);
+        };
+        this->queue_command(cmd);
+      }
+      break;
+    }
+
+    case RequestType::SYSTEM_SETTINGS: {
+      ESP_LOGD(TAG, "Queueing request: system settings");
+      this->last_system_settings_update_ = now;
+      this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS;
+      
+      for (size_t i = 0; i < SETTINGS_SYSTEM_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            SETTINGS_SYSTEM_RANGES[i].start, SETTINGS_SYSTEM_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_system_settings_response(data, SETTINGS_SYSTEM_RANGES[i].start);
+        };
+        this->queue_command(cmd);
+      }
+      break;
+    }
+
+    case RequestType::GRID_PROTECTION: {
+      ESP_LOGD(TAG, "Queueing request: grid protection");
+      this->last_grid_protection_update_ = now;
+      this->pending_requests_ &= ~PENDING_GRID_PROTECTION;
+      
+      for (size_t i = 0; i < SETTINGS_GRID_PROTECTION_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            SETTINGS_GRID_PROTECTION_RANGES[i].start, SETTINGS_GRID_PROTECTION_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_grid_protection_response(data, SETTINGS_GRID_PROTECTION_RANGES[i].start);
+        };
+        this->queue_command(cmd);
+      }
+      break;
+    }
+
+    case RequestType::EXTENDED_SETTINGS: {
+      ESP_LOGD(TAG, "Queueing request: extended settings");
+      this->last_extended_settings_update_ = now;
+      this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
+      
+      for (size_t i = 0; i < SETTINGS_EXTENDED_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            SETTINGS_EXTENDED_RANGES[i].start, SETTINGS_EXTENDED_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_extended_settings_response(data, SETTINGS_EXTENDED_RANGES[i].start);
+        };
+        this->queue_command(cmd);
+      }
+      break;
+    }
+
+    case RequestType::CALIFORNIA_SETTINGS: {
+      ESP_LOGD(TAG, "Queueing request: California settings");
+      this->last_california_settings_update_ = now;
+      this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS;
+      
+      for (size_t i = 0; i < SETTINGS_CALIFORNIA_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            SETTINGS_CALIFORNIA_RANGES[i].start, SETTINGS_CALIFORNIA_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_california_settings_response(data, SETTINGS_CALIFORNIA_RANGES[i].start);
+        };
+        this->queue_command(cmd);
+      }
+      break;
+    }
+
+    case RequestType::DEVICE_INFO: {
+      ESP_LOGD(TAG, "Queueing request: device info");
+      this->last_device_info_update_ = now;
+      this->pending_requests_ &= ~PENDING_DEVICE_INFO;
+      
+      for (size_t i = 0; i < DEVICE_INFO_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            DEVICE_INFO_RANGES[i].start, DEVICE_INFO_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_device_info_response(data, DEVICE_INFO_RANGES[i].start);
+        };
+        this->queue_command(cmd);
+      }
+      this->device_info_initialized_ = true;
+      break;
     }
   }
 }
 
-void DeyeInverter::update_statistics() {
-  if (this->current_phase_ == UpdatePhase::IDLE) {
-    this->current_phase_ = UpdatePhase::STATISTICS;
-    
-    for (size_t i = 0; i < STATS_RANGES_COUNT; i++) {
-      this->update_register_range(STATS_RANGES[i]);
-      delay(10);
-    }
-    
-    this->current_phase_ = UpdatePhase::IDLE;
-  }
-}
+// =============================================================================
+// REGISTER READ COMMAND HELPER
+// =============================================================================
 
-void DeyeInverter::update_battery_modules() {
-  if (this->current_phase_ == UpdatePhase::IDLE || 
-      this->current_phase_ == UpdatePhase::BATTERY_MODULES) {
-    this->current_phase_ = UpdatePhase::BATTERY_MODULES;
-    
-    if (this->current_battery_module_range_ < BATTERY_MODULE_RANGES_COUNT) {
-      this->update_register_range(BATTERY_MODULE_RANGES[this->current_battery_module_range_]);
-      this->current_battery_module_range_++;
-    } else {
-      this->current_battery_module_range_ = 0;
-      this->current_phase_ = UpdatePhase::IDLE;
-    }
-  }
-}
-
-void DeyeInverter::update_settings() {
-  if (this->current_phase_ == UpdatePhase::IDLE) {
-    this->current_phase_ = UpdatePhase::SETTINGS;
-    
-    ESP_LOGD(TAG, "Reading settings...");
-    
-    for (size_t i = 0; i < SETTINGS_RANGES_COUNT; i++) {
-      this->update_register_range(SETTINGS_RANGES[i]);
-      delay(10);
-    }
-    
-    this->current_phase_ = UpdatePhase::IDLE;
-  }
-}
-
-void DeyeInverter::update_system_settings() {
-  if (this->current_phase_ == UpdatePhase::IDLE) {
-    this->current_phase_ = UpdatePhase::SYSTEM_SETTINGS;
-    
-    ESP_LOGD(TAG, "Reading system settings...");
-    
-    for (size_t i = 0; i < SETTINGS_SYSTEM_RANGES_COUNT; i++) {
-      this->update_register_range(SETTINGS_SYSTEM_RANGES[i]);
-      delay(10);
-    }
-    
-    this->current_phase_ = UpdatePhase::IDLE;
-  }
-}
-
-void DeyeInverter::update_grid_protection() {
-  if (this->current_phase_ == UpdatePhase::IDLE) {
-    this->current_phase_ = UpdatePhase::GRID_PROTECTION;
-    
-    ESP_LOGD(TAG, "Reading grid protection settings...");
-    
-    for (size_t i = 0; i < SETTINGS_GRID_PROTECTION_RANGES_COUNT; i++) {
-      this->update_register_range(SETTINGS_GRID_PROTECTION_RANGES[i]);
-      delay(10);
-    }
-    
-    this->current_phase_ = UpdatePhase::IDLE;
-  }
-}
-
-void DeyeInverter::update_extended_settings() {
-  if (this->current_phase_ == UpdatePhase::IDLE) {
-    this->current_phase_ = UpdatePhase::EXTENDED_SETTINGS;
-    
-    ESP_LOGD(TAG, "Reading extended settings...");
-    
-    for (size_t i = 0; i < SETTINGS_EXTENDED_RANGES_COUNT; i++) {
-      this->update_register_range(SETTINGS_EXTENDED_RANGES[i]);
-      delay(10);
-    }
-    
-    this->current_phase_ = UpdatePhase::IDLE;
-  }
-}
-
-void DeyeInverter::update_california_settings() {
-  if (this->current_phase_ == UpdatePhase::IDLE) {
-    this->current_phase_ = UpdatePhase::CALIFORNIA_SETTINGS;
-    
-    ESP_LOGD(TAG, "Reading California compliance settings...");
-    
-    for (size_t i = 0; i < SETTINGS_CALIFORNIA_RANGES_COUNT; i++) {
-      this->update_register_range(SETTINGS_CALIFORNIA_RANGES[i]);
-      delay(10);
-    }
-    
-    this->current_phase_ = UpdatePhase::IDLE;
-  }
-}
-
-void DeyeInverter::update_device_info() {
-  ESP_LOGD(TAG, "Reading device info...");
+void DeyeInverter::send_register_range_read(const RegisterRange& range) {
+  ESP_LOGD(TAG, "Queueing Modbus read: register 0x%04X, count %u (%s)", 
+           range.start, range.count, range.name);
   
-  for (size_t i = 0; i < DEVICE_INFO_RANGES_COUNT; i++) {
-    this->update_register_range(DEVICE_INFO_RANGES[i]);
-    delay(10);
-  }
-  
-  this->device_info_initialized_ = true;
+  auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+      this, modbus_controller::ModbusRegisterType::HOLDING, range.start, range.count);
+  cmd.on_data_func = [this, range](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                    const std::vector<uint8_t> &data) {
+    this->handle_live_data_response(data, range.start);
+  };
+  this->queue_command(cmd);
 }
 
-void DeyeInverter::update_register_range(const RegisterRange& range) {
-  ESP_LOGD(TAG, "Sending Modbus read: register 0x%04X, count %u", 
-           range.start, range.count);
+// =============================================================================
+// RESPONSE HANDLERS
+// =============================================================================
+
+void DeyeInverter::handle_live_data_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received livedata response: %zu bytes for register 0x%04X", data.size(), start_address);
   
-  uint8_t payload[4];
-  payload[0] = (range.start >> 8) & 0xFF;
-  payload[1] = range.start & 0xFF;
-  payload[2] = (range.count >> 8) & 0xFF;
-  payload[3] = range.count & 0xFF;
+  // Reset consecutive timeouts counter on successful response
+  if (this->consecutive_timeouts_ > 0) {
+    ESP_LOGV(TAG, "Resetting consecutive timeouts (was %d)", this->consecutive_timeouts_);
+    this->consecutive_timeouts_ = 0;
+  }
   
-  this->send(0x03, range.start, range.count, 4, payload);
+  this->request_in_progress_ = false;
+  
+  // Process data for all entity types
+  if (start_address >= 3 && start_address <= 14) {
+#ifdef USE_TEXT_SENSOR
+    this->update_serial_number_from_data(start_address, data);
+#endif
+  } else if (start_address >= 27 && start_address <= 29) {
+#ifdef USE_TEXT_SENSOR
+    this->update_firmware_info_from_data(start_address, data);
+#endif
+  } else if (start_address >= 684 && start_address <= 809) {
+#ifdef USE_SENSOR
+    this->update_battery_module_sensors(start_address, data);
+#endif
+  } else if (start_address <= 62 && start_address + (data.size() / 2) > 62) {
+#ifdef USE_TIME
+    this->update_system_time_from_data(start_address, data);
+#endif
+  }
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_BINARY_SENSOR
+  this->update_binary_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_TEXT_SENSOR
+  this->update_text_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_SWITCH
+  this->update_switches_from_data(start_address, data);
+#endif
+#ifdef USE_NUMBER
+  this->update_numbers_from_data(start_address, data);
+#endif
+#ifdef USE_SELECT
+  this->update_selects_from_data(start_address, data);
+#endif
+#ifdef USE_DATETIME
+  this->update_datetimes_from_data(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_statistics_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received statistics response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_BINARY_SENSOR
+  this->update_binary_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_TEXT_SENSOR
+  this->update_text_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_SWITCH
+  this->update_switches_from_data(start_address, data);
+#endif
+#ifdef USE_NUMBER
+  this->update_numbers_from_data(start_address, data);
+#endif
+#ifdef USE_SELECT
+  this->update_selects_from_data(start_address, data);
+#endif
+#ifdef USE_DATETIME
+  this->update_datetimes_from_data(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t module_index) {
+  ESP_LOGV(TAG, "Received battery module %d response: %zu bytes for register 0x%04X", 
+           module_index + 1, data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+#ifdef USE_SENSOR
+  this->update_battery_module_sensors(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received settings response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_BINARY_SENSOR
+  this->update_binary_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_TEXT_SENSOR
+  this->update_text_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_SWITCH
+  this->update_switches_from_data(start_address, data);
+#endif
+#ifdef USE_NUMBER
+  this->update_numbers_from_data(start_address, data);
+#endif
+#ifdef USE_SELECT
+  this->update_selects_from_data(start_address, data);
+#endif
+#ifdef USE_DATETIME
+  this->update_datetimes_from_data(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_system_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received system settings response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+  // Also check for system time
+  if (start_address <= 62 && start_address + (data.size() / 2) > 62) {
+#ifdef USE_TIME
+    this->update_system_time_from_data(start_address, data);
+#endif
+  }
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_BINARY_SENSOR
+  this->update_binary_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_TEXT_SENSOR
+  this->update_text_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_SWITCH
+  this->update_switches_from_data(start_address, data);
+#endif
+#ifdef USE_NUMBER
+  this->update_numbers_from_data(start_address, data);
+#endif
+#ifdef USE_SELECT
+  this->update_selects_from_data(start_address, data);
+#endif
+#ifdef USE_DATETIME
+  this->update_datetimes_from_data(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_grid_protection_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received grid protection response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_BINARY_SENSOR
+  this->update_binary_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_NUMBER
+  this->update_numbers_from_data(start_address, data);
+#endif
+#ifdef USE_SELECT
+  this->update_selects_from_data(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_extended_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received extended settings response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_NUMBER
+  this->update_numbers_from_data(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_california_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received California settings response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_NUMBER
+  this->update_numbers_from_data(start_address, data);
+#endif
+}
+
+void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received device info response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  if (this->consecutive_timeouts_ > 0) {
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+  if (start_address >= 3 && start_address <= 14) {
+#ifdef USE_TEXT_SENSOR
+    this->update_serial_number_from_data(start_address, data);
+#endif
+  } else if (start_address >= 27 && start_address <= 29) {
+#ifdef USE_TEXT_SENSOR
+    this->update_firmware_info_from_data(start_address, data);
+#endif
+  }
+  
+#ifdef USE_SENSOR
+  this->update_sensors_from_data(start_address, data);
+#endif
+#ifdef USE_TEXT_SENSOR
+  this->update_text_sensors_from_data(start_address, data);
+#endif
 }
 
 // =============================================================================
@@ -899,86 +1300,29 @@ void DeyeInverter::update_register_range(const RegisterRange& range) {
 void DeyeInverter::write_register(uint16_t address, uint16_t value) {
   ESP_LOGD(TAG, "Writing register 0x%04X = 0x%04X", address, value);
   
-  uint8_t payload[4];
-  payload[0] = (address >> 8) & 0xFF;
-  payload[1] = address & 0xFF;
-  payload[2] = (value >> 8) & 0xFF;
-  payload[3] = value & 0xFF;
-  
-  this->send(0x06, address, 1, 4, payload);
+  auto cmd = modbus_controller::ModbusCommandItem::create_write_single_command(this, address, value);
+  this->queue_command(cmd);
 }
 
 void DeyeInverter::write_register_masked(uint16_t address, uint16_t value, uint16_t mask) {
   ESP_LOGD(TAG, "Writing register 0x%04X with mask 0x%04X = 0x%04X", address, mask, value);
   
-  uint16_t masked_value = value & mask;
-  this->write_register(address, masked_value);
-}
-
-// =============================================================================
-// MODBUS CALLBACKS
-// =============================================================================
-
-void DeyeInverter::on_modbus_data(const std::vector<uint8_t>& data) {
-  if (data.size() < 4) {
-    ESP_LOGW(TAG, "Received invalid data (too short: %u bytes)", data.size());
-    return;
-  }
-  
-  uint16_t start_address = (data[0] << 8) | data[1];
-  std::vector<uint8_t> reg_data(data.begin() + 2, data.end());
-  
-  ESP_LOGV(TAG, "Received %u bytes for register 0x%04X", reg_data.size(), start_address);
-  
-  if (start_address >= 3 && start_address <= 14) {
-#ifdef USE_TEXT_SENSOR
-    this->update_serial_number_from_data(start_address, reg_data);
-#endif
-  } else if (start_address >= 27 && start_address <= 29) {
-#ifdef USE_TEXT_SENSOR
-    this->update_firmware_info_from_data(start_address, reg_data);
-#endif
-  } else if (start_address >= 684 && start_address <= 809) {
-#ifdef USE_SENSOR
-    this->update_battery_module_sensors(start_address, reg_data);
-#endif
-  } else if (start_address <= 62 && start_address + (reg_data.size() / 2) > 62) {
-#ifdef USE_TIME
-    this->update_system_time_from_data(start_address, reg_data);
-#endif
-  }
-  
-#ifdef USE_SENSOR
-  this->update_sensors_from_data(start_address, reg_data);
-#endif
-#ifdef USE_BINARY_SENSOR
-  this->update_binary_sensors_from_data(start_address, reg_data);
-#endif
-#ifdef USE_TEXT_SENSOR
-  this->update_text_sensors_from_data(start_address, reg_data);
-#endif
-#ifdef USE_SWITCH
-  this->update_switches_from_data(start_address, reg_data);
-#endif
-#ifdef USE_NUMBER
-  this->update_numbers_from_data(start_address, reg_data);
-#endif
-#ifdef USE_SELECT
-  this->update_selects_from_data(start_address, reg_data);
-#endif
-#ifdef USE_DATETIME
-  this->update_datetimes_from_data(start_address, reg_data);
-#endif
-}
-
-void DeyeInverter::on_modbus_error(uint8_t function_code, uint8_t exception_code) {
-  ESP_LOGW(TAG, "Modbus error - Function: 0x%02X, Exception: 0x%02X (%s)", 
-           function_code, exception_code,
-           exception_code == 0x01 ? "Illegal Function" :
-           exception_code == 0x02 ? "Illegal Data Address" :
-           exception_code == 0x03 ? "Illegal Data Value" :
-           exception_code == 0x04 ? "Server Device Failure" :
-           "Unknown");
+  // For masked writes, we need to read the current value first, then modify and write back
+  // Create a read command to get current value
+  auto read_cmd = modbus_controller::ModbusCommandItem::create_read_command(
+      this, modbus_controller::ModbusRegisterType::HOLDING, address, 1);
+  read_cmd.on_data_func = [this, address, value, mask](modbus_controller::ModbusRegisterType rt, 
+                                                        uint16_t addr, 
+                                                        const std::vector<uint8_t> &data) {
+    if (data.size() >= 2) {
+      uint16_t current_value = (data[0] << 8) | data[1];
+      uint16_t new_value = (current_value & ~mask) | (value & mask);
+      ESP_LOGD(TAG, "Read-Modify-Write: current=0x%04X, mask=0x%04X, value=0x%04X, new=0x%04X",
+               current_value, mask, value, new_value);
+      this->write_register(address, new_value);
+    }
+  };
+  this->queue_command(read_cmd);
 }
 
 // =============================================================================

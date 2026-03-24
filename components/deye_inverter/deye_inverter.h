@@ -1,7 +1,8 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/components/modbus/modbus.h"
+#include "esphome/components/modbus_controller/modbus_controller.h"
+
 #ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
 #endif
@@ -26,6 +27,7 @@
 #ifdef USE_TIME
 #include "esphome/components/time/real_time_clock.h"
 #endif
+
 #include "registers.h"
 #include <map>
 #include <vector>
@@ -78,7 +80,7 @@ enum class DataType {
 // =============================================================================
 // DEYE INVERTER CLASS
 // =============================================================================
-class DeyeInverter : public Component, public modbus::ModbusDevice {
+class DeyeInverter : public modbus_controller::ModbusController {
  public:
   // Update intervals (in ms)
   uint32_t interval_live_{1000};
@@ -92,9 +94,8 @@ class DeyeInverter : public Component, public modbus::ModbusDevice {
   uint32_t interval_device_info_{300000};
 
   void setup() override;
-  void loop() override;
+  void update() override;
   void dump_config() override;
-  float get_setup_priority() const override { return setup_priority::DATA; }
 
   // Setter methods for update intervals
   void set_update_interval(uint32_t interval) { interval_live_ = interval; }
@@ -122,14 +123,7 @@ class DeyeInverter : public Component, public modbus::ModbusDevice {
 #endif
   void register_time(time::RealTimeClock *tm);
 
-  // Modbus callbacks
-  void on_modbus_data(const std::vector<uint8_t> &data) override;
-  void on_modbus_error(uint8_t function_code, uint8_t exception_code) override;
-
-  // Register range reading
-  void update_register_range(const RegisterRange& range);
-
-  // Write methods
+  // Write methods using modbus_controller
   void write_register(uint16_t address, uint16_t value);
   void write_register_masked(uint16_t address, uint16_t value, uint16_t mask);
 
@@ -152,27 +146,33 @@ class DeyeInverter : public Component, public modbus::ModbusDevice {
   uint16_t parse_uint16(const std::vector<uint8_t>& data, size_t offset);
   std::string parse_string(const std::vector<uint8_t>& data, size_t offset, size_t length);
 
-  // Static register range arrays
-  static const RegisterRange LIVE_RANGES[];
-  static const RegisterRange STATS_RANGES[];
-  static const RegisterRange SETTINGS_RANGES[];
-  static const RegisterRange SETTINGS_SYSTEM_RANGES[];
-  static const RegisterRange SETTINGS_GRID_PROTECTION_RANGES[];
-  static const RegisterRange SETTINGS_EXTENDED_RANGES[];
-  static const RegisterRange SETTINGS_CALIFORNIA_RANGES[];
-  static const RegisterRange BATTERY_MODULE_RANGES[];
-  static const RegisterRange DEVICE_INFO_RANGES[];
+  // Request queue management (following ds100_meter pattern)
+  enum class RequestType : uint8_t {
+    LIVEDATA = 0,           // Highest priority - real-time data
+    STATISTICS = 1,         // Energy statistics
+    BATTERY_MODULES = 2,    // Battery module data
+    SETTINGS = 3,           // Device settings
+    SYSTEM_SETTINGS = 4,    // System configuration
+    GRID_PROTECTION = 5,    // Grid protection settings
+    EXTENDED_SETTINGS = 6,  // Extended monitoring settings
+    CALIFORNIA_SETTINGS = 7,// California compliance settings
+    DEVICE_INFO = 8,        // Device information (lowest priority)
+  };
 
-  // Range counts
-  static constexpr size_t LIVE_RANGES_COUNT = 11;
-  static constexpr size_t STATS_RANGES_COUNT = 4;
-  static constexpr size_t SETTINGS_RANGES_COUNT = 14;
-  static constexpr size_t SETTINGS_SYSTEM_RANGES_COUNT = 4;
-  static constexpr size_t SETTINGS_GRID_PROTECTION_RANGES_COUNT = 2;
-  static constexpr size_t SETTINGS_EXTENDED_RANGES_COUNT = 6;
-  static constexpr size_t SETTINGS_CALIFORNIA_RANGES_COUNT = 6;
-  static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 9;
-  static constexpr size_t DEVICE_INFO_RANGES_COUNT = 4;
+  void queue_request(RequestType type);
+  RequestType get_highest_priority_pending();
+  void process_next_request();
+
+  // Response handlers for ModbusCommandItem callbacks
+  void handle_live_data_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_statistics_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t module_index);
+  void handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_system_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_grid_protection_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_extended_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_california_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address);
 
  protected:
   // Entity storage - using base types but storing Deye specialized classes
@@ -201,6 +201,28 @@ class DeyeInverter : public Component, public modbus::ModbusDevice {
   std::vector<time::RealTimeClock *> times_;
 #endif
 
+  // Static register range arrays
+  static const RegisterRange LIVE_RANGES[];
+  static const RegisterRange STATS_RANGES[];
+  static const RegisterRange SETTINGS_RANGES[];
+  static const RegisterRange SETTINGS_SYSTEM_RANGES[];
+  static const RegisterRange SETTINGS_GRID_PROTECTION_RANGES[];
+  static const RegisterRange SETTINGS_EXTENDED_RANGES[];
+  static const RegisterRange SETTINGS_CALIFORNIA_RANGES[];
+  static const RegisterRange BATTERY_MODULE_RANGES[];
+  static const RegisterRange DEVICE_INFO_RANGES[];
+
+  // Range counts
+  static constexpr size_t LIVE_RANGES_COUNT = 11;
+  static constexpr size_t STATS_RANGES_COUNT = 4;
+  static constexpr size_t SETTINGS_RANGES_COUNT = 12;  // Adjusted based on actual array
+  static constexpr size_t SETTINGS_SYSTEM_RANGES_COUNT = 4;
+  static constexpr size_t SETTINGS_GRID_PROTECTION_RANGES_COUNT = 2;
+  static constexpr size_t SETTINGS_EXTENDED_RANGES_COUNT = 6;
+  static constexpr size_t SETTINGS_CALIFORNIA_RANGES_COUNT = 6;
+  static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 9;
+  static constexpr size_t DEVICE_INFO_RANGES_COUNT = 4;
+
   // Timing variables
   uint32_t last_live_update_{0};
   uint32_t last_stats_update_{0};
@@ -214,31 +236,30 @@ class DeyeInverter : public Component, public modbus::ModbusDevice {
 
   // State tracking
   bool device_info_initialized_{false};
-  enum class UpdatePhase {
-    IDLE,
-    LIVE_DATA,
-    STATISTICS,
-    BATTERY_MODULES,
-    SETTINGS,
-    SYSTEM_SETTINGS,
-    GRID_PROTECTION,
-    EXTENDED_SETTINGS,
-    CALIFORNIA_SETTINGS
-  };
-  UpdatePhase current_phase_{UpdatePhase::IDLE};
+  
+  // Pending requests bitmask (following ds100_meter pattern)
+  static const uint16_t PENDING_LIVEDATA = 0x0001;
+  static const uint16_t PENDING_STATISTICS = 0x0002;
+  static const uint16_t PENDING_BATTERY_MODULES = 0x0004;
+  static const uint16_t PENDING_SETTINGS = 0x0008;
+  static const uint16_t PENDING_SYSTEM_SETTINGS = 0x0010;
+  static const uint16_t PENDING_GRID_PROTECTION = 0x0020;
+  static const uint16_t PENDING_EXTENDED_SETTINGS = 0x0040;
+  static const uint16_t PENDING_CALIFORNIA_SETTINGS = 0x0080;
+  static const uint16_t PENDING_DEVICE_INFO = 0x0100;
+
+  uint16_t pending_requests_{0};      // Bitmask of pending request types
+  bool request_in_progress_{false};   // True if waiting for Modbus response
+  uint32_t last_request_time_{0};     // Timestamp of last request for timeout tracking
+
+  // Update cycle state tracking
   size_t current_range_index_{0};
   size_t current_battery_module_range_{0};
+  RequestType current_request_type_{RequestType::LIVEDATA};
 
-  // Update methods
-  void update_live_data();
-  void update_statistics();
-  void update_battery_modules();
-  void update_settings();
-  void update_system_settings();
-  void update_grid_protection();
-  void update_extended_settings();
-  void update_california_settings();
-  void update_device_info();
+  // Consecutive timeout tracking (following ds100_meter pattern)
+  uint8_t consecutive_timeouts_{0};
+  static const uint8_t MAX_CONSECUTIVE_TIMEOUTS = 3;
 
   // Entity update methods
 #ifdef USE_SENSOR
@@ -273,6 +294,9 @@ class DeyeInverter : public Component, public modbus::ModbusDevice {
   float parse_battery_module_value(const std::vector<uint8_t>& data, size_t offset, 
                                    uint8_t module_index, uint8_t cell_index, 
                                    bool is_cell_voltage);
+
+  // Helper to send register range read command
+  void send_register_range_read(const RegisterRange& range);
 };
 
 // =============================================================================

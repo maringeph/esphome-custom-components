@@ -600,17 +600,23 @@ void DeyeInverter::register_sensor(sensor::Sensor *sensor) {
   this->sensors_.push_back(sensor);
 }
 
+#ifdef USE_BINARY_SENSOR
 void DeyeInverter::register_binary_sensor(binary_sensor::BinarySensor *sensor) {
   this->binary_sensors_.push_back(sensor);
 }
+#endif
 
+#ifdef USE_TEXT_SENSOR
 void DeyeInverter::register_text_sensor(text_sensor::TextSensor *sensor) {
   this->text_sensors_.push_back(sensor);
 }
+#endif
 
+#ifdef USE_SWITCH
 void DeyeInverter::register_switch(switch_::Switch *sw) {
   this->switches_.push_back(sw);
 }
+#endif
 
 #ifdef USE_NUMBER
 void DeyeInverter::register_number(number::Number *num) {
@@ -782,11 +788,6 @@ void DeyeInverter::process_next_request() {
       cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                  const std::vector<uint8_t> &data) {
         this->handle_time_response(data, REG_SYSTEM_TIME_BYTE1);
-      };
-      cmd.on_error_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr, uint8_t err_code) {
-        ESP_LOGW(TAG, "Modbus error reading time registers: %d", err_code);
-        this->request_in_progress_ = false;
-        this->pending_requests_ &= ~PENDING_TIME;
       };
       this->queue_command(cmd);
       break;
@@ -1310,8 +1311,7 @@ std::string DeyeInverter::parse_string(const std::vector<uint8_t>& data, size_t 
 #ifdef USE_SENSOR
 void DeyeInverter::update_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *base_sensor : this->sensors_) {
-    auto *sensor = dynamic_cast<DeyeSensor*>(base_sensor);
-    if (sensor == nullptr) continue;
+    auto *sensor = static_cast<DeyeSensor*>(base_sensor);
     if (sensor->get_is_battery_module()) continue;
     
     uint16_t sensor_addr = sensor->get_address();
@@ -1367,8 +1367,7 @@ float DeyeInverter::parse_battery_module_value(const std::vector<uint8_t>& data,
 #ifdef USE_BINARY_SENSOR
 void DeyeInverter::update_binary_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *base_sensor : this->binary_sensors_) {
-    auto *sensor = dynamic_cast<DeyeBinarySensor*>(base_sensor);
-    if (sensor == nullptr) continue;
+    auto *sensor = static_cast<DeyeBinarySensor*>(base_sensor);
     uint16_t sensor_addr = sensor->get_address();
     
     if (sensor_addr >= start_address && sensor_addr < start_address + (data.size() / 2)) {

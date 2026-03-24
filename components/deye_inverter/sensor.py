@@ -36,7 +36,7 @@ from esphome.const import (
 )
 from esphome.components import text_sensor
 
-AUTO_LOAD = ["modbus"]
+AUTO_LOAD = ["modbus", "modbus_controller"]
 CODEOWNERS = ["@maringeph"]
 
 # =============================================================================

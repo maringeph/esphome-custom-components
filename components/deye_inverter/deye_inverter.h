@@ -109,17 +109,27 @@ class DeyeInverter : public modbus_controller::ModbusController {
 
   // Register entities with the component
   void register_sensor(sensor::Sensor *sensor);
+#ifdef USE_BINARY_SENSOR
   void register_binary_sensor(binary_sensor::BinarySensor *sensor);
+#endif
+#ifdef USE_TEXT_SENSOR
   void register_text_sensor(text_sensor::TextSensor *sensor);
+#endif
+#ifdef USE_SWITCH
   void register_switch(switch_::Switch *sw);
+#endif
 #ifdef USE_NUMBER
   void register_number(number::Number *num);
 #endif
+#ifdef USE_SELECT
   void register_select(select::Select *sel);
+#endif
 #ifdef USE_DATETIME
   void register_datetime(datetime::DateTimeEntity *dt);
 #endif
+#ifdef USE_TIME
   void register_time(time::RealTimeClock *tm);
+#endif
 
   // Write methods using modbus_controller
   void write_register(uint16_t address, uint16_t value);

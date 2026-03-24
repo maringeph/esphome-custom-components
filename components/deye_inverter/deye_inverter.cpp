@@ -695,6 +695,9 @@ void DeyeInverter::register_time(time::RealTimeClock *tm) {
 
 void DeyeInverter::update() {
   uint32_t now = millis();
+  
+  ESP_LOGD(TAG, "update() called, now=%u, request_in_progress=%s", 
+           now, this->request_in_progress_ ? "true" : "false");
 
   // Timeout handling: Reset request_in_progress_ if no response for 500ms
   if (this->request_in_progress_ && (now - this->last_request_time_ > 500)) {
@@ -706,6 +709,11 @@ void DeyeInverter::update() {
   }
 
   // Check which categories are due and add them to the request queue
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
+  if (now - this->last_time_update_ >= this->interval_time_) {
+    this->queue_request(RequestType::TIME);
+  }
+  
   if (now - this->last_live_update_ >= this->interval_live_) {
     this->queue_request(RequestType::LIVEDATA);
   }
@@ -773,6 +781,9 @@ void DeyeInverter::update() {
 
 void DeyeInverter::queue_request(RequestType type) {
   switch (type) {
+    case RequestType::TIME:
+      this->pending_requests_ |= PENDING_TIME;
+      break;
     case RequestType::LIVEDATA:
       this->pending_requests_ |= PENDING_LIVEDATA;
       break;
@@ -804,6 +815,9 @@ void DeyeInverter::queue_request(RequestType type) {
 }
 
 DeyeInverter::RequestType DeyeInverter::get_highest_priority_pending() {
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
+  if (this->pending_requests_ & PENDING_TIME)
+    return RequestType::TIME;
   if (this->pending_requests_ & PENDING_LIVEDATA)
     return RequestType::LIVEDATA;
   if (this->pending_requests_ & PENDING_STATISTICS)
@@ -836,6 +850,22 @@ void DeyeInverter::process_next_request() {
   this->current_request_type_ = next;
 
   switch (next) {
+    case RequestType::TIME: {
+      ESP_LOGD(TAG, "Queueing request: time sync");
+      this->last_time_update_ = now;
+      this->pending_requests_ &= ~PENDING_TIME;
+      
+      // Read system time registers (62-64)
+      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+          this, modbus_controller::ModbusRegisterType::HOLDING, 62, 3);
+      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                 const std::vector<uint8_t> &data) {
+        this->handle_time_response(data, 62);
+      };
+      this->queue_command(cmd);
+      break;
+    }
+
     case RequestType::LIVEDATA: {
       ESP_LOGD(TAG, "Queueing request: livedata range %zu/%zu", 
                this->current_range_index_ + 1, LIVE_RANGES_COUNT);
@@ -1037,6 +1067,25 @@ void DeyeInverter::send_register_range_read(const RegisterRange& range) {
 // =============================================================================
 // RESPONSE HANDLERS
 // =============================================================================
+
+void DeyeInverter::handle_time_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received time response: %zu bytes for register 0x%04X", data.size(), start_address);
+  
+  // Reset consecutive timeouts counter on successful response
+  if (this->consecutive_timeouts_ > 0) {
+    ESP_LOGV(TAG, "Resetting consecutive timeouts (was %d)", this->consecutive_timeouts_);
+    this->consecutive_timeouts_ = 0;
+  }
+  
+  this->request_in_progress_ = false;
+  
+  // Process time data (registers 62-64)
+  if (data.size() >= 6) {
+#ifdef USE_TIME
+    this->update_system_time_from_data(start_address, data);
+#endif
+  }
+}
 
 void DeyeInverter::handle_live_data_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received livedata response: %zu bytes for register 0x%04X", data.size(), start_address);

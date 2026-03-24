@@ -83,6 +83,7 @@ enum class DataType {
 class DeyeInverter : public modbus_controller::ModbusController {
  public:
   // Update intervals (in ms)
+  uint32_t interval_time_{60000};          // Time sync interval
   uint32_t interval_live_{1000};
   uint32_t interval_statistics_{5000};
   uint32_t interval_settings_{60000};
@@ -99,6 +100,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
 
   // Setter methods for update intervals
   void set_update_interval(uint32_t interval) { interval_live_ = interval; }
+  void set_update_interval_time(uint32_t interval) { interval_time_ = interval; }
   void set_update_interval_live(uint32_t interval) { interval_live_ = interval; }
   void set_update_interval_statistics(uint32_t interval) { interval_statistics_ = interval; }
   void set_update_interval_settings(uint32_t interval) { interval_settings_ = interval; }
@@ -147,16 +149,18 @@ class DeyeInverter : public modbus_controller::ModbusController {
   std::string parse_string(const std::vector<uint8_t>& data, size_t offset, size_t length);
 
   // Request queue management (following ds100_meter pattern)
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
   enum class RequestType : uint8_t {
-    LIVEDATA = 0,           // Highest priority - real-time data
-    STATISTICS = 1,         // Energy statistics
-    BATTERY_MODULES = 2,    // Battery module data
-    SETTINGS = 3,           // Device settings
-    SYSTEM_SETTINGS = 4,    // System configuration
-    GRID_PROTECTION = 5,    // Grid protection settings
-    EXTENDED_SETTINGS = 6,  // Extended monitoring settings
-    CALIFORNIA_SETTINGS = 7,// California compliance settings
-    DEVICE_INFO = 8,        // Device information (lowest priority)
+    TIME = 0,               // Highest priority - system time sync
+    LIVEDATA = 1,           // Real-time data
+    STATISTICS = 2,         // Energy statistics
+    BATTERY_MODULES = 3,    // Battery module data
+    SETTINGS = 4,           // Device settings
+    SYSTEM_SETTINGS = 5,    // System configuration
+    GRID_PROTECTION = 6,    // Grid protection settings
+    EXTENDED_SETTINGS = 7,  // Extended monitoring settings
+    CALIFORNIA_SETTINGS = 8,// California compliance settings
+    DEVICE_INFO = 9,        // Device information (lowest priority)
   };
 
   void queue_request(RequestType type);
@@ -164,6 +168,8 @@ class DeyeInverter : public modbus_controller::ModbusController {
   void process_next_request();
 
   // Response handlers for ModbusCommandItem callbacks
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
+  void handle_time_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_live_data_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_statistics_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t module_index);
@@ -224,6 +230,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static constexpr size_t DEVICE_INFO_RANGES_COUNT = 4;
 
   // Timing variables
+  uint32_t last_time_update_{0};
   uint32_t last_live_update_{0};
   uint32_t last_stats_update_{0};
   uint32_t last_settings_update_{0};
@@ -238,15 +245,16 @@ class DeyeInverter : public modbus_controller::ModbusController {
   bool device_info_initialized_{false};
   
   // Pending requests bitmask (following ds100_meter pattern)
-  static const uint16_t PENDING_LIVEDATA = 0x0001;
-  static const uint16_t PENDING_STATISTICS = 0x0002;
-  static const uint16_t PENDING_BATTERY_MODULES = 0x0004;
-  static const uint16_t PENDING_SETTINGS = 0x0008;
-  static const uint16_t PENDING_SYSTEM_SETTINGS = 0x0010;
-  static const uint16_t PENDING_GRID_PROTECTION = 0x0020;
-  static const uint16_t PENDING_EXTENDED_SETTINGS = 0x0040;
-  static const uint16_t PENDING_CALIFORNIA_SETTINGS = 0x0080;
-  static const uint16_t PENDING_DEVICE_INFO = 0x0100;
+  static const uint16_t PENDING_TIME = 0x0001;            // Highest priority
+  static const uint16_t PENDING_LIVEDATA = 0x0002;
+  static const uint16_t PENDING_STATISTICS = 0x0004;
+  static const uint16_t PENDING_BATTERY_MODULES = 0x0008;
+  static const uint16_t PENDING_SETTINGS = 0x0010;
+  static const uint16_t PENDING_SYSTEM_SETTINGS = 0x0020;
+  static const uint16_t PENDING_GRID_PROTECTION = 0x0040;
+  static const uint16_t PENDING_EXTENDED_SETTINGS = 0x0080;
+  static const uint16_t PENDING_CALIFORNIA_SETTINGS = 0x0100;
+  static const uint16_t PENDING_DEVICE_INFO = 0x0200;
 
   uint16_t pending_requests_{0};      // Bitmask of pending request types
   bool request_in_progress_{false};   // True if waiting for Modbus response

@@ -695,8 +695,12 @@ void DeyeInverter::register_time(time::RealTimeClock *tm) {
 void DeyeInverter::loop() {
   const uint32_t now = millis();
   
+  ESP_LOGD(TAG, "loop() called, now=%u, last_live=%u, interval=%u", 
+           now, this->last_live_update_, this->interval_live_);
+  
   if (now - this->last_live_update_ >= this->interval_live_) {
     this->last_live_update_ = now;
+    ESP_LOGD(TAG, "Starting live data update");
     this->update_live_data();
   }
   
@@ -876,8 +880,8 @@ void DeyeInverter::update_device_info() {
 }
 
 void DeyeInverter::update_register_range(const RegisterRange& range) {
-  ESP_LOGV(TAG, "Reading register range '%s' (0x%04X, %u registers)", 
-           range.name, range.start, range.count);
+  ESP_LOGD(TAG, "Sending Modbus read: register 0x%04X, count %u", 
+           range.start, range.count);
   
   uint8_t payload[4];
   payload[0] = (range.start >> 8) & 0xFF;

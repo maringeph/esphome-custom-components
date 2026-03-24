@@ -87,10 +87,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   uint32_t interval_live_{1000};
   uint32_t interval_statistics_{5000};
   uint32_t interval_settings_{60000};
-  uint32_t interval_system_settings_{120000};
-  uint32_t interval_grid_protection_{120000};
-  uint32_t interval_extended_settings_{120000};
-  uint32_t interval_california_settings_{300000};
+  uint32_t interval_settings_2_{120000};   // Settings 2 (310-419)
   uint32_t interval_battery_modules_{5000};
   uint32_t interval_device_info_{300000};
 
@@ -104,10 +101,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   void set_update_interval_live(uint32_t interval) { interval_live_ = interval; }
   void set_update_interval_statistics(uint32_t interval) { interval_statistics_ = interval; }
   void set_update_interval_settings(uint32_t interval) { interval_settings_ = interval; }
-  void set_update_interval_system_settings(uint32_t interval) { interval_system_settings_ = interval; }
-  void set_update_interval_grid_protection(uint32_t interval) { interval_grid_protection_ = interval; }
-  void set_update_interval_extended_settings(uint32_t interval) { interval_extended_settings_ = interval; }
-  void set_update_interval_california_settings(uint32_t interval) { interval_california_settings_ = interval; }
+  void set_update_interval_settings_2(uint32_t interval) { interval_settings_2_ = interval; }
   void set_update_interval_battery_modules(uint32_t interval) { interval_battery_modules_ = interval; }
   void set_update_interval_device_info(uint32_t interval) { interval_device_info_ = interval; }
 
@@ -149,18 +143,15 @@ class DeyeInverter : public modbus_controller::ModbusController {
   std::string parse_string(const std::vector<uint8_t>& data, size_t offset, size_t length);
 
   // Request queue management (following ds100_meter pattern)
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
   enum class RequestType : uint8_t {
     TIME = 0,               // Highest priority - system time sync
     LIVEDATA = 1,           // Real-time data
     STATISTICS = 2,         // Energy statistics
-    BATTERY_MODULES = 3,    // Battery module data
-    SETTINGS = 4,           // Device settings
-    SYSTEM_SETTINGS = 5,    // System configuration
-    GRID_PROTECTION = 6,    // Grid protection settings
-    EXTENDED_SETTINGS = 7,  // Extended monitoring settings
-    CALIFORNIA_SETTINGS = 8,// California compliance settings
-    DEVICE_INFO = 9,        // Device information (lowest priority)
+    SETTINGS = 3,           // Device settings (60-228)
+    SETTINGS_2 = 4,         // Settings 2 (310-419)
+    BATTERY_MODULES = 5,    // Battery module data
+    DEVICE_INFO = 6,        // Device information (lowest priority)
   };
 
   void queue_request(RequestType type);
@@ -168,16 +159,13 @@ class DeyeInverter : public modbus_controller::ModbusController {
   void process_next_request();
 
   // Response handlers for ModbusCommandItem callbacks
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
   void handle_time_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_live_data_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_statistics_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t module_index);
   void handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
-  void handle_system_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
-  void handle_grid_protection_response(const std::vector<uint8_t> &data, uint16_t start_address);
-  void handle_extended_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
-  void handle_california_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
+  void handle_settings_2_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address);
 
  protected:
@@ -207,37 +195,28 @@ class DeyeInverter : public modbus_controller::ModbusController {
   std::vector<time::RealTimeClock *> times_;
 #endif
 
-  // Static register range arrays
+  // Static register range arrays - Simplified big contiguous blocks
   static const RegisterRange LIVE_RANGES[];
   static const RegisterRange STATS_RANGES[];
   static const RegisterRange SETTINGS_RANGES[];
-  static const RegisterRange SETTINGS_SYSTEM_RANGES[];
-  static const RegisterRange SETTINGS_GRID_PROTECTION_RANGES[];
-  static const RegisterRange SETTINGS_EXTENDED_RANGES[];
-  static const RegisterRange SETTINGS_CALIFORNIA_RANGES[];
+  static const RegisterRange SETTINGS_2_RANGES[];
   static const RegisterRange BATTERY_MODULE_RANGES[];
   static const RegisterRange DEVICE_INFO_RANGES[];
 
   // Range counts
-  static constexpr size_t LIVE_RANGES_COUNT = 11;
+  static constexpr size_t LIVE_RANGES_COUNT = 1;       // Single block 500-683
   static constexpr size_t STATS_RANGES_COUNT = 4;
-  static constexpr size_t SETTINGS_RANGES_COUNT = 12;  // Adjusted based on actual array
-  static constexpr size_t SETTINGS_SYSTEM_RANGES_COUNT = 4;
-  static constexpr size_t SETTINGS_GRID_PROTECTION_RANGES_COUNT = 2;
-  static constexpr size_t SETTINGS_EXTENDED_RANGES_COUNT = 6;
-  static constexpr size_t SETTINGS_CALIFORNIA_RANGES_COUNT = 6;
+  static constexpr size_t SETTINGS_RANGES_COUNT = 1;   // Single block 60-228
+  static constexpr size_t SETTINGS_2_RANGES_COUNT = 1; // Single block 310-419
   static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 9;
-  static constexpr size_t DEVICE_INFO_RANGES_COUNT = 4;
+  static constexpr size_t DEVICE_INFO_RANGES_COUNT = 1; // Single block 0-29
 
   // Timing variables
   uint32_t last_time_update_{0};
   uint32_t last_live_update_{0};
   uint32_t last_stats_update_{0};
   uint32_t last_settings_update_{0};
-  uint32_t last_system_settings_update_{0};
-  uint32_t last_grid_protection_update_{0};
-  uint32_t last_extended_settings_update_{0};
-  uint32_t last_california_settings_update_{0};
+  uint32_t last_settings_2_update_{0};     // Settings 2 (310-419)
   uint32_t last_battery_modules_update_{0};
   uint32_t last_device_info_update_{0};
 
@@ -245,16 +224,14 @@ class DeyeInverter : public modbus_controller::ModbusController {
   bool device_info_initialized_{false};
   
   // Pending requests bitmask (following ds100_meter pattern)
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
   static const uint16_t PENDING_TIME = 0x0001;            // Highest priority
   static const uint16_t PENDING_LIVEDATA = 0x0002;
   static const uint16_t PENDING_STATISTICS = 0x0004;
-  static const uint16_t PENDING_BATTERY_MODULES = 0x0008;
-  static const uint16_t PENDING_SETTINGS = 0x0010;
-  static const uint16_t PENDING_SYSTEM_SETTINGS = 0x0020;
-  static const uint16_t PENDING_GRID_PROTECTION = 0x0040;
-  static const uint16_t PENDING_EXTENDED_SETTINGS = 0x0080;
-  static const uint16_t PENDING_CALIFORNIA_SETTINGS = 0x0100;
-  static const uint16_t PENDING_DEVICE_INFO = 0x0200;
+  static const uint16_t PENDING_SETTINGS = 0x0008;
+  static const uint16_t PENDING_SETTINGS_2 = 0x0010;
+  static const uint16_t PENDING_BATTERY_MODULES = 0x0020;
+  static const uint16_t PENDING_DEVICE_INFO = 0x0040;     // Lowest priority
 
   uint16_t pending_requests_{0};      // Bitmask of pending request types
   bool request_in_progress_{false};   // True if waiting for Modbus response

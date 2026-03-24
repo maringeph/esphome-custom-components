@@ -7,94 +7,48 @@ namespace deye_inverter {
 static const char *const TAG = "deye_inverter";
 
 // =============================================================================
-// STATIC REGISTER RANGE DEFINITIONS
+// SIMPLIFIED REGISTER RANGE DEFINITIONS - Big contiguous blocks
 // =============================================================================
 
-const RegisterRange DeyeInverter::LIVE_RANGES[] = {
-    {212, 7, "DC Extended"},
-    {500, 1, "Running Status"},
-    {548, 38, "Comm Status"},
-    {540, 8, "Temperatures"},
-    {586, 12, "Battery Live"},
-    {598, 15, "Grid Port Live"},
-    {613, 14, "Grid Meter Live"},
-    {627, 13, "Inverter Output Live"},
-    {640, 4, "UPS Load Live"},
-    {644, 17, "Load Port Live"},
-    {661, 11, "Generator Port Live"},
-    {672, 12, "PV Live"}
-};
-
-const RegisterRange DeyeInverter::STATS_RANGES[] = {
-    {501, 14, "Daily Stats"},
-    {514, 6, "Battery Stats"},
-    {520, 10, "Grid Stats"},
-    {529, 11, "PV Stats"}
-};
-
-const RegisterRange DeyeInverter::SETTINGS_RANGES[] = {
-    {98, 23, "Battery Settings 1"},
-    {121, 7, "Generator Settings 1"},
-    {128, 20, "Grid Settings"},
-    {148, 6, "Time Point Start"},
-    {154, 6, "Time Point Power"},
-    {160, 6, "Time Point Voltage"},
-    {166, 6, "Time Point Capacity"},
-    {172, 6, "Time Point Charge"},
-    {178, 7, "Special Functions"},
-    {201, 22, "Battery Settings 2"},
-    {223, 8, "Generator Settings 2"},
-    {340, 1, "Solar Settings"}
-};
-
-const RegisterRange DeyeInverter::SETTINGS_SYSTEM_RANGES[] = {
-    {60, 10, "System Settings 60-69"},
-    {70, 10, "System Settings 70-79"},
-    {80, 10, "System Settings 80-89"},
-    {90, 8, "System Settings 90-97"}
-};
-
-const RegisterRange DeyeInverter::SETTINGS_GRID_PROTECTION_RANGES[] = {
-    {185, 8, "Grid Protection 185-192"},
-    {193, 8, "Grid Protection 193-200"}
-};
-
-const RegisterRange DeyeInverter::SETTINGS_EXTENDED_RANGES[] = {
-    {231, 15, "Extended Settings 231-245"},
-    {246, 15, "Extended Settings 246-260"},
-    {261, 15, "Extended Settings 261-275"},
-    {276, 15, "Extended Settings 276-290"},
-    {291, 24, "Extended Settings 291-314"},
-    {315, 25, "Extended Settings 315-339"}
-};
-
-const RegisterRange DeyeInverter::SETTINGS_CALIFORNIA_RANGES[] = {
-    {340, 20, "California Settings 340-359"},
-    {360, 20, "California Settings 360-379"},
-    {380, 20, "California Settings 380-399"},
-    {400, 40, "California Settings 400-439"},
-    {440, 30, "California Settings 440-469"},
-    {470, 30, "California Settings 470-499"}
-};
-
-const RegisterRange DeyeInverter::BATTERY_MODULE_RANGES[] = {
-    {684, 14, "Battery Module 1"},
-    {698, 14, "Battery Module 2"},
-    {712, 14, "Battery Module 3"},
-    {726, 14, "Battery Module 4"},
-    {740, 14, "Battery Module 5"},
-    {754, 14, "Battery Module 6"},
-    {768, 14, "Battery Module 7"},
-    {782, 14, "Battery Module 8"},
-    {796, 14, "Battery Module 9"}
-};
-
+// Device Info: 0-29 (30 registers) - ONE block
 const RegisterRange DeyeInverter::DEVICE_INFO_RANGES[] = {
-    {0, 2, "Device Info"},
-    {3, 12, "Serial Number"},
-    {20, 7, "Device Details"},
-    {27, 3, "Firmware Versions"},
-    {40, 20, "Hardware Info"}
+    {0, 30, "Device Info"}  // 0-29: Device Type, Modbus Address, Serial Number, Firmware
+};
+
+// Livedata: 500-683 (184 registers) - ONE block
+const RegisterRange DeyeInverter::LIVE_RANGES[] = {
+    {500, 184, "Livedata"}  // 500-683: Status, Temps, Battery, Grid, Output, Load, Generator, PV
+};
+
+// Statistics: Multiple ranges for different stat categories
+const RegisterRange DeyeInverter::STATS_RANGES[] = {
+    {501, 14, "Daily Stats"},   // 501-514
+    {514, 6, "Battery Stats"},  // 514-519
+    {520, 10, "Grid Stats"},    // 520-529
+    {529, 11, "PV Stats"}       // 529-539
+};
+
+// Settings: 60-228 (169 registers) - ONE block
+const RegisterRange DeyeInverter::SETTINGS_RANGES[] = {
+    {60, 169, "Settings"}  // 60-228: System Settings, Battery, Grid, Time Points
+};
+
+// Settings 2: 310-419 (110 registers) - ONE block
+const RegisterRange DeyeInverter::SETTINGS_2_RANGES[] = {
+    {310, 110, "Settings 2"}  // 310-419: Extended Monitoring, California Compliance, Solar
+};
+
+// Battery Modules: 9 separate ranges for 9 battery modules (684-809)
+const RegisterRange DeyeInverter::BATTERY_MODULE_RANGES[] = {
+    {684, 14, "Battery Module 1"},  // 684-697
+    {698, 14, "Battery Module 2"},  // 698-711
+    {712, 14, "Battery Module 3"},  // 712-725
+    {726, 14, "Battery Module 4"},  // 726-739
+    {740, 14, "Battery Module 5"},  // 740-753
+    {754, 14, "Battery Module 6"},  // 754-767
+    {768, 14, "Battery Module 7"},  // 768-781
+    {782, 14, "Battery Module 8"},  // 782-795
+    {796, 14, "Battery Module 9"}   // 796-809
 };
 
 // =============================================================================
@@ -613,10 +567,7 @@ void DeyeInverter::dump_config() {
   ESP_LOGCONFIG(TAG, "  Live Update Interval: %u ms", this->interval_live_);
   ESP_LOGCONFIG(TAG, "  Stats Update Interval: %u ms", this->interval_statistics_);
   ESP_LOGCONFIG(TAG, "  Settings Update Interval: %u ms", this->interval_settings_);
-  ESP_LOGCONFIG(TAG, "  System Settings Update Interval: %u ms", this->interval_system_settings_);
-  ESP_LOGCONFIG(TAG, "  Grid Protection Update Interval: %u ms", this->interval_grid_protection_);
-  ESP_LOGCONFIG(TAG, "  Extended Settings Update Interval: %u ms", this->interval_extended_settings_);
-  ESP_LOGCONFIG(TAG, "  California Settings Update Interval: %u ms", this->interval_california_settings_);
+  ESP_LOGCONFIG(TAG, "  Settings 2 Update Interval: %u ms", this->interval_settings_2_);
   ESP_LOGCONFIG(TAG, "  Battery Module Update Interval: %u ms", this->interval_battery_modules_);
   ESP_LOGCONFIG(TAG, "  Device Info Update Interval: %u ms", this->interval_device_info_);
 #ifdef USE_SENSOR
@@ -710,7 +661,7 @@ void DeyeInverter::update() {
   }
 
   // Check which categories are due and add them to the request queue
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
   if (now - this->last_time_update_ >= this->interval_time_) {
     this->queue_request(RequestType::TIME);
   }
@@ -723,28 +674,16 @@ void DeyeInverter::update() {
     this->queue_request(RequestType::STATISTICS);
   }
   
-  if (now - this->last_battery_modules_update_ >= this->interval_battery_modules_) {
-    this->queue_request(RequestType::BATTERY_MODULES);
-  }
-  
   if (now - this->last_settings_update_ >= this->interval_settings_) {
     this->queue_request(RequestType::SETTINGS);
   }
   
-  if (now - this->last_system_settings_update_ >= this->interval_system_settings_) {
-    this->queue_request(RequestType::SYSTEM_SETTINGS);
+  if (now - this->last_settings_2_update_ >= this->interval_settings_2_) {
+    this->queue_request(RequestType::SETTINGS_2);
   }
   
-  if (now - this->last_grid_protection_update_ >= this->interval_grid_protection_) {
-    this->queue_request(RequestType::GRID_PROTECTION);
-  }
-  
-  if (now - this->last_extended_settings_update_ >= this->interval_extended_settings_) {
-    this->queue_request(RequestType::EXTENDED_SETTINGS);
-  }
-  
-  if (now - this->last_california_settings_update_ >= this->interval_california_settings_) {
-    this->queue_request(RequestType::CALIFORNIA_SETTINGS);
+  if (now - this->last_battery_modules_update_ >= this->interval_battery_modules_) {
+    this->queue_request(RequestType::BATTERY_MODULES);
   }
   
   if (!this->device_info_initialized_ || 
@@ -770,12 +709,9 @@ void DeyeInverter::update() {
                  static_cast<int>(next), this->consecutive_timeouts_);
         // Clear this specific pending request to prevent queue buildup
         switch (next) {
-          case RequestType::BATTERY_MODULES: this->pending_requests_ &= ~PENDING_BATTERY_MODULES; break;
           case RequestType::SETTINGS: this->pending_requests_ &= ~PENDING_SETTINGS; break;
-          case RequestType::SYSTEM_SETTINGS: this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS; break;
-          case RequestType::GRID_PROTECTION: this->pending_requests_ &= ~PENDING_GRID_PROTECTION; break;
-          case RequestType::EXTENDED_SETTINGS: this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS; break;
-          case RequestType::CALIFORNIA_SETTINGS: this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS; break;
+          case RequestType::SETTINGS_2: this->pending_requests_ &= ~PENDING_SETTINGS_2; break;
+          case RequestType::BATTERY_MODULES: this->pending_requests_ &= ~PENDING_BATTERY_MODULES; break;
           case RequestType::DEVICE_INFO: this->pending_requests_ &= ~PENDING_DEVICE_INFO; break;
           default: break;
         }
@@ -801,23 +737,14 @@ void DeyeInverter::queue_request(RequestType type) {
     case RequestType::STATISTICS:
       this->pending_requests_ |= PENDING_STATISTICS;
       break;
-    case RequestType::BATTERY_MODULES:
-      this->pending_requests_ |= PENDING_BATTERY_MODULES;
-      break;
     case RequestType::SETTINGS:
       this->pending_requests_ |= PENDING_SETTINGS;
       break;
-    case RequestType::SYSTEM_SETTINGS:
-      this->pending_requests_ |= PENDING_SYSTEM_SETTINGS;
+    case RequestType::SETTINGS_2:
+      this->pending_requests_ |= PENDING_SETTINGS_2;
       break;
-    case RequestType::GRID_PROTECTION:
-      this->pending_requests_ |= PENDING_GRID_PROTECTION;
-      break;
-    case RequestType::EXTENDED_SETTINGS:
-      this->pending_requests_ |= PENDING_EXTENDED_SETTINGS;
-      break;
-    case RequestType::CALIFORNIA_SETTINGS:
-      this->pending_requests_ |= PENDING_CALIFORNIA_SETTINGS;
+    case RequestType::BATTERY_MODULES:
+      this->pending_requests_ |= PENDING_BATTERY_MODULES;
       break;
     case RequestType::DEVICE_INFO:
       this->pending_requests_ |= PENDING_DEVICE_INFO;
@@ -826,25 +753,19 @@ void DeyeInverter::queue_request(RequestType type) {
 }
 
 DeyeInverter::RequestType DeyeInverter::get_highest_priority_pending() {
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → DEVICE_INFO
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
   if (this->pending_requests_ & PENDING_TIME)
     return RequestType::TIME;
   if (this->pending_requests_ & PENDING_LIVEDATA)
     return RequestType::LIVEDATA;
   if (this->pending_requests_ & PENDING_STATISTICS)
     return RequestType::STATISTICS;
-  if (this->pending_requests_ & PENDING_BATTERY_MODULES)
-    return RequestType::BATTERY_MODULES;
   if (this->pending_requests_ & PENDING_SETTINGS)
     return RequestType::SETTINGS;
-  if (this->pending_requests_ & PENDING_SYSTEM_SETTINGS)
-    return RequestType::SYSTEM_SETTINGS;
-  if (this->pending_requests_ & PENDING_GRID_PROTECTION)
-    return RequestType::GRID_PROTECTION;
-  if (this->pending_requests_ & PENDING_EXTENDED_SETTINGS)
-    return RequestType::EXTENDED_SETTINGS;
-  if (this->pending_requests_ & PENDING_CALIFORNIA_SETTINGS)
-    return RequestType::CALIFORNIA_SETTINGS;
+  if (this->pending_requests_ & PENDING_SETTINGS_2)
+    return RequestType::SETTINGS_2;
+  if (this->pending_requests_ & PENDING_BATTERY_MODULES)
+    return RequestType::BATTERY_MODULES;
   if (this->pending_requests_ & PENDING_DEVICE_INFO)
     return RequestType::DEVICE_INFO;
   return RequestType::LIVEDATA;  // Should never reach here if pending_requests_ != 0
@@ -960,166 +881,54 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::SETTINGS: {
-      ESP_LOGD(TAG, "Queueing request: settings");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
-
-      // Initialize command counter for multi-command request
-      this->outstanding_commands_ = SETTINGS_RANGES_COUNT;
-
-      // Queue all settings ranges
-      for (size_t i = 0; i < SETTINGS_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            SETTINGS_RANGES[i].start, SETTINGS_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_settings_response(data, SETTINGS_RANGES[i].start);
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            this->pending_requests_ &= ~PENDING_SETTINGS;
-            this->last_settings_update_ = millis();
-          }
-        };
-        this->queue_command(cmd);
-      }
+      ESP_LOGD(TAG, "Queueing request: settings (60-228, 169 registers)");
+      // Single big block read - 60-228: System Settings, Battery, Grid, Time Points
+      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+          this, modbus_controller::ModbusRegisterType::HOLDING,
+          SETTINGS_RANGES[0].start, SETTINGS_RANGES[0].count);
+      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                const std::vector<uint8_t> &data) {
+        this->handle_settings_response(data, addr);
+        this->request_in_progress_ = false;
+        this->pending_requests_ &= ~PENDING_SETTINGS;
+        this->last_settings_update_ = millis();
+      };
+      this->queue_command(cmd);
       break;
     }
 
-    case RequestType::SYSTEM_SETTINGS: {
-      ESP_LOGD(TAG, "Queueing request: system settings");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
-
-      // Initialize command counter for multi-command request
-      this->outstanding_commands_ = SETTINGS_SYSTEM_RANGES_COUNT;
-
-      for (size_t i = 0; i < SETTINGS_SYSTEM_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            SETTINGS_SYSTEM_RANGES[i].start, SETTINGS_SYSTEM_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_system_settings_response(data, SETTINGS_SYSTEM_RANGES[i].start);
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS;
-            this->last_system_settings_update_ = millis();
-          }
-        };
-        this->queue_command(cmd);
-      }
-      break;
-    }
-
-    case RequestType::GRID_PROTECTION: {
-      ESP_LOGD(TAG, "Queueing request: grid protection");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
-
-      // Initialize command counter for multi-command request
-      this->outstanding_commands_ = SETTINGS_GRID_PROTECTION_RANGES_COUNT;
-
-      for (size_t i = 0; i < SETTINGS_GRID_PROTECTION_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            SETTINGS_GRID_PROTECTION_RANGES[i].start, SETTINGS_GRID_PROTECTION_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_grid_protection_response(data, SETTINGS_GRID_PROTECTION_RANGES[i].start);
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            this->pending_requests_ &= ~PENDING_GRID_PROTECTION;
-            this->last_grid_protection_update_ = millis();
-          }
-        };
-        this->queue_command(cmd);
-      }
-      break;
-    }
-
-    case RequestType::EXTENDED_SETTINGS: {
-      ESP_LOGD(TAG, "Queueing request: extended settings");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
-
-      // Initialize command counter for multi-command request
-      this->outstanding_commands_ = SETTINGS_EXTENDED_RANGES_COUNT;
-
-      for (size_t i = 0; i < SETTINGS_EXTENDED_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            SETTINGS_EXTENDED_RANGES[i].start, SETTINGS_EXTENDED_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_extended_settings_response(data, SETTINGS_EXTENDED_RANGES[i].start);
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
-            this->last_extended_settings_update_ = millis();
-          }
-        };
-        this->queue_command(cmd);
-      }
-      break;
-    }
-
-    case RequestType::CALIFORNIA_SETTINGS: {
-      ESP_LOGD(TAG, "Queueing request: California settings");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
-
-      // Initialize command counter for multi-command request
-      this->outstanding_commands_ = SETTINGS_CALIFORNIA_RANGES_COUNT;
-
-      for (size_t i = 0; i < SETTINGS_CALIFORNIA_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            SETTINGS_CALIFORNIA_RANGES[i].start, SETTINGS_CALIFORNIA_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_california_settings_response(data, SETTINGS_CALIFORNIA_RANGES[i].start);
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS;
-            this->last_california_settings_update_ = millis();
-          }
-        };
-        this->queue_command(cmd);
-      }
+    case RequestType::SETTINGS_2: {
+      ESP_LOGD(TAG, "Queueing request: settings 2 (310-419, 110 registers)");
+      // Single big block read - 310-419: Extended Monitoring, California Compliance, Solar
+      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+          this, modbus_controller::ModbusRegisterType::HOLDING,
+          SETTINGS_2_RANGES[0].start, SETTINGS_2_RANGES[0].count);
+      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                const std::vector<uint8_t> &data) {
+        this->handle_settings_2_response(data, addr);
+        this->request_in_progress_ = false;
+        this->pending_requests_ &= ~PENDING_SETTINGS_2;
+        this->last_settings_2_update_ = millis();
+      };
+      this->queue_command(cmd);
       break;
     }
 
     case RequestType::DEVICE_INFO: {
-      ESP_LOGD(TAG, "Queueing request: device info");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
-
-      // Initialize command counter for multi-command request
-      this->outstanding_commands_ = DEVICE_INFO_RANGES_COUNT;
-
-      for (size_t i = 0; i < DEVICE_INFO_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            DEVICE_INFO_RANGES[i].start, DEVICE_INFO_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_device_info_response(data, DEVICE_INFO_RANGES[i].start);
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            this->pending_requests_ &= ~PENDING_DEVICE_INFO;
-            this->last_device_info_update_ = millis();
-            this->device_info_initialized_ = true;
-          }
-        };
-        this->queue_command(cmd);
-      }
+      ESP_LOGD(TAG, "Queueing request: device info (0-29, 30 registers)");
+      // Single big block read - 0-29: Device Type, Serial Number, Firmware
+      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+          this, modbus_controller::ModbusRegisterType::HOLDING,
+          DEVICE_INFO_RANGES[0].start, DEVICE_INFO_RANGES[0].count);
+      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                const std::vector<uint8_t> &data) {
+        this->handle_device_info_response(data, addr);
+        this->request_in_progress_ = false;
+        this->pending_requests_ &= ~PENDING_DEVICE_INFO;
+        this->last_device_info_update_ = millis();
+        this->device_info_initialized_ = true;
+      };
+      this->queue_command(cmd);
       break;
     }
   }
@@ -1321,83 +1130,14 @@ void DeyeInverter::handle_settings_response(const std::vector<uint8_t> &data, ui
 #endif
 }
 
-void DeyeInverter::handle_system_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
-  ESP_LOGV(TAG, "Received system settings response: %zu bytes for register 0x%04X", data.size(), start_address);
+void DeyeInverter::handle_settings_2_response(const std::vector<uint8_t> &data, uint16_t start_address) {
+  ESP_LOGV(TAG, "Received settings 2 response: %zu bytes for register 0x%04X", data.size(), start_address);
 
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
 
-  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
-  // based on outstanding_commands_ counter
-  
-  // Also check for system time
-  if (start_address <= 62 && start_address + (data.size() / 2) > 62) {
-#ifdef USE_TIME
-    this->update_system_time_from_data(start_address, data);
-#endif
-  }
-  
-#ifdef USE_SENSOR
-  this->update_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_BINARY_SENSOR
-  this->update_binary_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_TEXT_SENSOR
-  this->update_text_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_SWITCH
-  this->update_switches_from_data(start_address, data);
-#endif
-#ifdef USE_NUMBER
-  this->update_numbers_from_data(start_address, data);
-#endif
-#ifdef USE_SELECT
-  this->update_selects_from_data(start_address, data);
-#endif
-#ifdef USE_DATETIME
-  this->update_datetimes_from_data(start_address, data);
-#endif
-}
-
-void DeyeInverter::handle_grid_protection_response(const std::vector<uint8_t> &data, uint16_t start_address) {
-  ESP_LOGV(TAG, "Received grid protection response: %zu bytes for register 0x%04X", data.size(), start_address);
-
-  if (this->consecutive_timeouts_ > 0) {
-    this->consecutive_timeouts_ = 0;
-  }
-
-  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
-  // based on outstanding_commands_ counter
-  
-  // Update all entity types consistently
-  this->update_all_entities(start_address, data);
-}
-
-void DeyeInverter::handle_extended_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
-  ESP_LOGV(TAG, "Received extended settings response: %zu bytes for register 0x%04X", data.size(), start_address);
-
-  if (this->consecutive_timeouts_ > 0) {
-    this->consecutive_timeouts_ = 0;
-  }
-
-  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
-  // based on outstanding_commands_ counter
-  
-  // Update all entity types consistently
-  this->update_all_entities(start_address, data);
-}
-
-void DeyeInverter::handle_california_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
-  ESP_LOGV(TAG, "Received California settings response: %zu bytes for register 0x%04X", data.size(), start_address);
-
-  if (this->consecutive_timeouts_ > 0) {
-    this->consecutive_timeouts_ = 0;
-  }
-
-  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
-  // based on outstanding_commands_ counter
+  // Note: request_in_progress_, pending flag, and timestamp are managed in the callback
   
   // Update all entity types consistently
   this->update_all_entities(start_address, data);

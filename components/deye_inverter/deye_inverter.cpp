@@ -652,11 +652,13 @@ void DeyeInverter::update() {
 
   // Timeout handling: Reset request_in_progress_ if no response for 500ms
   if (this->request_in_progress_ && (now - this->last_request_time_ > 500)) {
-    ESP_LOGW(TAG, "Request timeout - resetting request_in_progress");
+    ESP_LOGW(TAG, "Request timeout - resetting state");
     this->request_in_progress_ = false;
     this->outstanding_commands_ = 0;  // Reset counter on timeout
     this->last_request_time_ = 0;
     this->consecutive_timeouts_++;
+    // Clear all pending flags - requests will be retried at next interval
+    this->pending_requests_ = 0;
     ESP_LOGV(TAG, "Consecutive timeouts: %d", this->consecutive_timeouts_);
   }
 

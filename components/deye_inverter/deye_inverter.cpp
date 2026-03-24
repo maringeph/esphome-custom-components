@@ -29,9 +29,10 @@ const RegisterRange DeyeInverter::STATS_RANGES[] = {
     {STATS_PV_ADDR, STATS_PV_LEN, "PV Stats"}
 };
 
-// Settings Ranges
+// Settings Ranges (split into 2 blocks, max 128 per request)
 const RegisterRange DeyeInverter::SETTINGS_RANGES[] = {
-    {SETTINGS_ADDR, SETTINGS_LEN, "Settings"}
+    {SETTINGS_PART1_ADDR, SETTINGS_PART1_LEN, "Settings Part 1"},
+    {SETTINGS_PART2_ADDR, SETTINGS_PART2_LEN, "Settings Part 2"}
 };
 
 // Settings 2 Range
@@ -880,20 +881,29 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::SETTINGS: {
-      ESP_LOGD(TAG, "Queueing request: settings (%d-%d, %d registers)",
-               SETTINGS_RANGES[0].start, SETTINGS_RANGES[0].start + SETTINGS_RANGES[0].count - 1, SETTINGS_RANGES[0].count);
-      // Single big block read
-      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-          this, modbus_controller::ModbusRegisterType::HOLDING,
-          SETTINGS_RANGES[0].start, SETTINGS_RANGES[0].count);
-      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                const std::vector<uint8_t> &data) {
-        this->handle_settings_response(data, addr);
-        this->request_in_progress_ = false;
-        this->pending_requests_ &= ~PENDING_SETTINGS;
-        this->last_settings_update_ = millis();
-      };
-      this->queue_command(cmd);
+      ESP_LOGD(TAG, "Queueing request: settings (%zu blocks)", SETTINGS_RANGES_COUNT);
+      // Multiple blocks - use counter to track completion
+      this->outstanding_commands_ = SETTINGS_RANGES_COUNT;
+
+      for (size_t i = 0; i < SETTINGS_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            SETTINGS_RANGES[i].start, SETTINGS_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_settings_response(data, SETTINGS_RANGES[i].start);
+          // Guard against underflow if timeout already reset the counter
+          if (this->outstanding_commands_ > 0) {
+            this->outstanding_commands_--;
+            if (this->outstanding_commands_ == 0) {
+              this->request_in_progress_ = false;
+              this->pending_requests_ &= ~PENDING_SETTINGS;
+              this->last_settings_update_ = millis();
+            }
+          }
+        };
+        this->queue_command(cmd);
+      }
       break;
     }
 

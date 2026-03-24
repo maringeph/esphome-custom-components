@@ -74,9 +74,11 @@ constexpr uint16_t STATS_GRID_LEN = 9;
 constexpr uint16_t STATS_PV_ADDR = 529;
 constexpr uint16_t STATS_PV_LEN = 11;
 
-// Settings Ranges
-constexpr uint16_t SETTINGS_ADDR = 60;
-constexpr uint16_t SETTINGS_LEN = 171;
+// Settings Ranges (split to stay under 128 register limit)
+constexpr uint16_t SETTINGS_PART1_ADDR = 60;
+constexpr uint16_t SETTINGS_PART1_LEN = 118;   // 60-177
+constexpr uint16_t SETTINGS_PART2_ADDR = 178;
+constexpr uint16_t SETTINGS_PART2_LEN = 53;    // 178-230
 constexpr uint16_t SETTINGS2_ADDR = 310;
 constexpr uint16_t SETTINGS2_LEN = 110;
 

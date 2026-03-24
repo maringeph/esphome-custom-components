@@ -218,7 +218,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   // Range counts
   static constexpr size_t LIVE_RANGES_COUNT = 2;       // Split into 2 blocks (max 128 per request)
   static constexpr size_t STATS_RANGES_COUNT = 4;
-  static constexpr size_t SETTINGS_RANGES_COUNT = 1;   // Single block 60-228
+  static constexpr size_t SETTINGS_RANGES_COUNT = 2;   // Split into 2 blocks (60-187, 188-230)
   static constexpr size_t SETTINGS_2_RANGES_COUNT = 1; // Single block 310-419
   static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 3;
   static constexpr size_t DEVICE_INFO_RANGES_COUNT = 1; // Single block 0-29

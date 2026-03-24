@@ -754,20 +754,29 @@ void DeyeInverter::update() {
   ESP_LOGD(TAG, "Update check - pending: 0x%04X, in_progress: %d, timeouts: %d", 
            this->pending_requests_, this->request_in_progress_, this->consecutive_timeouts_);
 
-  // Process the highest priority pending request if no request is currently in progress
+  // Process only ONE request per update() call to avoid bus overload
+  // The individual intervals (1s, 5s, 60s) are still respected by queue_request()
   if (!this->request_in_progress_ && this->pending_requests_ != 0) {
-    // If bus is overloaded (consecutive timeouts), skip low-priority requests
+    RequestType next = this->get_highest_priority_pending();
+    
+    // If bus is overloaded, only process high-priority requests (TIME, LIVEDATA, STATISTICS)
     if (this->consecutive_timeouts_ >= MAX_CONSECUTIVE_TIMEOUTS) {
-      // Only process high-priority requests: LIVEDATA and STATISTICS
-      if (this->pending_requests_ & PENDING_LIVEDATA) {
-        this->process_next_request();
-      } else if (this->pending_requests_ & PENDING_STATISTICS) {
+      if (next == RequestType::TIME || next == RequestType::LIVEDATA || next == RequestType::STATISTICS) {
         this->process_next_request();
       } else {
-        ESP_LOGV(TAG, "Skipping low-priority requests due to bus overload (timeouts: %d)", 
-                 this->consecutive_timeouts_);
-        // Clear pending low-priority requests to prevent queue buildup
-        this->pending_requests_ &= (PENDING_LIVEDATA | PENDING_STATISTICS);
+        ESP_LOGV(TAG, "Skipping low-priority request %d due to bus overload (timeouts: %d)", 
+                 static_cast<int>(next), this->consecutive_timeouts_);
+        // Clear this specific pending request to prevent queue buildup
+        switch (next) {
+          case RequestType::BATTERY_MODULES: this->pending_requests_ &= ~PENDING_BATTERY_MODULES; break;
+          case RequestType::SETTINGS: this->pending_requests_ &= ~PENDING_SETTINGS; break;
+          case RequestType::SYSTEM_SETTINGS: this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS; break;
+          case RequestType::GRID_PROTECTION: this->pending_requests_ &= ~PENDING_GRID_PROTECTION; break;
+          case RequestType::EXTENDED_SETTINGS: this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS; break;
+          case RequestType::CALIFORNIA_SETTINGS: this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS; break;
+          case RequestType::DEVICE_INFO: this->pending_requests_ &= ~PENDING_DEVICE_INFO; break;
+          default: break;
+        }
       }
     } else {
       this->process_next_request();

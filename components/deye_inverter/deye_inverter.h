@@ -260,9 +260,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   bool request_in_progress_{false};   // True if waiting for Modbus response
   uint32_t last_request_time_{0};     // Timestamp of last request for timeout tracking
 
-  // Update cycle state tracking
-  size_t current_range_index_{0};
-  size_t current_battery_module_range_{0};
+  // Current request type being processed
   RequestType current_request_type_{RequestType::LIVEDATA};
 
   // Consecutive timeout tracking (following ds100_meter pattern)

@@ -163,7 +163,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   void handle_time_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_live_data_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_statistics_response(const std::vector<uint8_t> &data, uint16_t start_address);
-  void handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t module_index);
+  void handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t block_index);
   void handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_settings_2_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address);
@@ -204,11 +204,11 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static const RegisterRange DEVICE_INFO_RANGES[];
 
   // Range counts
-  static constexpr size_t LIVE_RANGES_COUNT = 1;       // Single block 500-683
+  static constexpr size_t LIVE_RANGES_COUNT = 2;       // Split into 2 blocks (max 128 per request)
   static constexpr size_t STATS_RANGES_COUNT = 4;
   static constexpr size_t SETTINGS_RANGES_COUNT = 1;   // Single block 60-228
   static constexpr size_t SETTINGS_2_RANGES_COUNT = 1; // Single block 310-419
-  static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 9;
+  static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 3;
   static constexpr size_t DEVICE_INFO_RANGES_COUNT = 1; // Single block 0-29
 
   // Timing variables

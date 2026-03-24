@@ -15,9 +15,10 @@ const RegisterRange DeyeInverter::DEVICE_INFO_RANGES[] = {
     {0, 30, "Device Info"}  // 0-29: Device Type, Modbus Address, Serial Number, Firmware
 };
 
-// Livedata: 500-683 (184 registers) - ONE block
+// Livedata: 500-683 (184 registers) - Split into 2 blocks (max 128 per request)
 const RegisterRange DeyeInverter::LIVE_RANGES[] = {
-    {500, 184, "Livedata"}  // 500-683: Status, Temps, Battery, Grid, Output, Load, Generator, PV
+    {500, 93, "Livedata Part 1"},    // 500-592
+    {598, 86, "Livedata Part 2"}     // 598-683
 };
 
 // Statistics: Multiple ranges for different stat categories
@@ -38,17 +39,11 @@ const RegisterRange DeyeInverter::SETTINGS_2_RANGES[] = {
     {310, 110, "Settings 2"}  // 310-419: Extended Monitoring, California Compliance, Solar
 };
 
-// Battery Modules: 9 separate ranges for 9 battery modules (684-809)
+// Battery Modules: 3 blocks (2000-2999 range) - Split to stay under 128 register limit
 const RegisterRange DeyeInverter::BATTERY_MODULE_RANGES[] = {
-    {684, 14, "Battery Module 1"},  // 684-697
-    {698, 14, "Battery Module 2"},  // 698-711
-    {712, 14, "Battery Module 3"},  // 712-725
-    {726, 14, "Battery Module 4"},  // 726-739
-    {740, 14, "Battery Module 5"},  // 740-753
-    {754, 14, "Battery Module 6"},  // 754-767
-    {768, 14, "Battery Module 7"},  // 768-781
-    {782, 14, "Battery Module 8"},  // 782-795
-    {796, 14, "Battery Module 9"}   // 796-809
+    {2500, 90, "Battery Block 1"},   // 2500-2589
+    {2600, 112, "Battery Block 2"},  // 2600-2711
+    {2712, 98, "Battery Block 3"}    // 2712-2809
 };
 
 // =============================================================================
@@ -792,16 +787,29 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::LIVEDATA: {
-      ESP_LOGD(TAG, "Queueing request: livedata");
-      // Single block - no phasing needed
-      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-          this, modbus_controller::ModbusRegisterType::HOLDING,
-          LIVE_RANGES[0].start, LIVE_RANGES[0].count);
-      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                const std::vector<uint8_t> &data) {
-        this->handle_live_data_response(data, addr);
-      };
-      this->queue_command(cmd);
+      ESP_LOGD(TAG, "Queueing request: livedata (%zu blocks)", LIVE_RANGES_COUNT);
+      // Multiple blocks - use counter to track completion
+      this->outstanding_commands_ = LIVE_RANGES_COUNT;
+      
+      for (size_t i = 0; i < LIVE_RANGES_COUNT; i++) {
+        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+            this, modbus_controller::ModbusRegisterType::HOLDING,
+            LIVE_RANGES[i].start, LIVE_RANGES[i].count);
+        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                      const std::vector<uint8_t> &data) {
+          this->handle_live_data_response(data, LIVE_RANGES[i].start);
+          // Guard against underflow if timeout already reset the counter
+          if (this->outstanding_commands_ > 0) {
+            this->outstanding_commands_--;
+            if (this->outstanding_commands_ == 0) {
+              this->request_in_progress_ = false;
+              this->pending_requests_ &= ~PENDING_LIVEDATA;
+              this->last_live_update_ = millis();
+            }
+          }
+        };
+        this->queue_command(cmd);
+      }
       break;
     }
 
@@ -837,19 +845,19 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::BATTERY_MODULES: {
-      ESP_LOGD(TAG, "Queueing request: battery modules (range %zu/%zu: %s)",
+      ESP_LOGD(TAG, "Queueing request: battery block %zu/%zu (%s)",
                this->current_battery_module_range_ + 1, BATTERY_MODULE_RANGES_COUNT,
                BATTERY_MODULE_RANGES[this->current_battery_module_range_].name);
       
       // Queue ONLY ONE range per call to allow interleaving with other categories
       const RegisterRange& range = BATTERY_MODULE_RANGES[this->current_battery_module_range_];
-      uint8_t module_idx = static_cast<uint8_t>(this->current_battery_module_range_);
+      uint8_t block_idx = static_cast<uint8_t>(this->current_battery_module_range_);
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
           this, modbus_controller::ModbusRegisterType::HOLDING,
           range.start, range.count);
-      cmd.on_data_func = [this, module_idx](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                            const std::vector<uint8_t> &data) {
-        this->handle_battery_module_response(data, addr, module_idx);
+      cmd.on_data_func = [this, block_idx](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                           const std::vector<uint8_t> &data) {
+        this->handle_battery_module_response(data, addr, block_idx);
       };
       this->queue_command(cmd);
       
@@ -971,11 +979,8 @@ void DeyeInverter::handle_live_data_response(const std::vector<uint8_t> &data, u
     this->consecutive_timeouts_ = 0;
   }
   
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp (single block, no phasing)
-  this->pending_requests_ &= ~PENDING_LIVEDATA;
-  this->last_live_update_ = millis();
+  // Note: request_in_progress_, pending flag, and timestamp are managed in the callback
+  // based on outstanding_commands_ counter
   
   // LIVEDATA only handles registers 500-683, other address ranges are handled elsewhere
   
@@ -1035,9 +1040,9 @@ void DeyeInverter::handle_statistics_response(const std::vector<uint8_t> &data, 
 #endif
 }
 
-void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t module_index) {
-  ESP_LOGV(TAG, "Received battery module %d response: %zu bytes for register 0x%04X", 
-           module_index + 1, data.size(), start_address);
+void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t block_index) {
+  ESP_LOGV(TAG, "Received battery block %d response: %zu bytes for register 0x%04X", 
+           block_index + 1, data.size(), start_address);
   
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
@@ -1052,9 +1057,9 @@ void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &da
     this->last_battery_modules_update_ = millis();
   }
   
-  // Update battery module sensors first (special handling)
+  // Update battery sensors (2000-2999 range)
 #ifdef USE_SENSOR
-  this->update_battery_module_sensors(start_address, data);
+  this->update_sensors_from_data(start_address, data);
 #endif
   
   // Then update all other entity types consistently

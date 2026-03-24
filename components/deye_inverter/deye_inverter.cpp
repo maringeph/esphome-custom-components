@@ -708,10 +708,10 @@ void DeyeInverter::update() {
         ESP_LOGV(TAG, "Skipping low-priority request %d due to bus overload (timeouts: %d)", 
                  static_cast<int>(next), this->consecutive_timeouts_);
         // Clear this specific pending request to prevent queue buildup
+        // BATTERY_MODULES is treated as high-priority, so don't clear it here
         switch (next) {
           case RequestType::SETTINGS: this->pending_requests_ &= ~PENDING_SETTINGS; break;
           case RequestType::SETTINGS_2: this->pending_requests_ &= ~PENDING_SETTINGS_2; break;
-          case RequestType::BATTERY_MODULES: this->pending_requests_ &= ~PENDING_BATTERY_MODULES; break;
           case RequestType::DEVICE_INFO: this->pending_requests_ &= ~PENDING_DEVICE_INFO; break;
           default: break;
         }
@@ -798,29 +798,16 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::LIVEDATA: {
-      ESP_LOGD(TAG, "Queueing request: livedata (range %zu/%zu: %s)", 
-               this->current_range_index_ + 1, LIVE_RANGES_COUNT,
-               LIVE_RANGES[this->current_range_index_].name);
-      
-      // Queue ONLY ONE range per call to allow interleaving with other categories
-      const RegisterRange& range = LIVE_RANGES[this->current_range_index_];
+      ESP_LOGD(TAG, "Queueing request: livedata");
+      // Single block - no phasing needed
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
           this, modbus_controller::ModbusRegisterType::HOLDING,
-          range.start, range.count);
+          LIVE_RANGES[0].start, LIVE_RANGES[0].count);
       cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                 const std::vector<uint8_t> &data) {
         this->handle_live_data_response(data, addr);
       };
       this->queue_command(cmd);
-      
-      // Don't clear pending flag here - wait for last range to complete in handler
-      // Don't update timestamp here - wait for last range to complete
-      
-      // Increment index for next time (will be checked in handler for completion)
-      this->current_range_index_++;
-      if (this->current_range_index_ >= LIVE_RANGES_COUNT) {
-        this->current_range_index_ = 0;
-      }
       break;
     }
 
@@ -840,11 +827,14 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_statistics_response(data, STATS_RANGES[i].start);
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            this->pending_requests_ &= ~PENDING_STATISTICS;
-            this->last_stats_update_ = millis();
+          // Guard against underflow if timeout already reset the counter
+          if (this->outstanding_commands_ > 0) {
+            this->outstanding_commands_--;
+            if (this->outstanding_commands_ == 0) {
+              this->request_in_progress_ = false;
+              this->pending_requests_ &= ~PENDING_STATISTICS;
+              this->last_stats_update_ = millis();
+            }
           }
         };
         this->queue_command(cmd);
@@ -989,31 +979,11 @@ void DeyeInverter::handle_live_data_response(const std::vector<uint8_t> &data, u
   
   this->request_in_progress_ = false;
   
-  // For phased requests: clear flag and update timestamp only when last range completes
-  // The index was already incremented in process_next_request(), so 0 means we just wrapped
-  if (this->current_range_index_ == 0) {
-    this->pending_requests_ &= ~PENDING_LIVEDATA;
-    this->last_live_update_ = millis();
-  }
+  // Clear pending flag and update timestamp (single block, no phasing)
+  this->pending_requests_ &= ~PENDING_LIVEDATA;
+  this->last_live_update_ = millis();
   
-  // Process data for all entity types
-  if (start_address >= 3 && start_address <= 14) {
-#ifdef USE_TEXT_SENSOR
-    this->update_serial_number_from_data(start_address, data);
-#endif
-  } else if (start_address >= 27 && start_address <= 29) {
-#ifdef USE_TEXT_SENSOR
-    this->update_firmware_info_from_data(start_address, data);
-#endif
-  } else if (start_address >= 684 && start_address <= 809) {
-#ifdef USE_SENSOR
-    this->update_battery_module_sensors(start_address, data);
-#endif
-  } else if (start_address <= 62 && start_address + (data.size() / 2) > 62) {
-#ifdef USE_TIME
-    this->update_system_time_from_data(start_address, data);
-#endif
-  }
+  // LIVEDATA only handles registers 500-683, other address ranges are handled elsewhere
   
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);

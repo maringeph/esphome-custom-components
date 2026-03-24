@@ -15,6 +15,11 @@ const RegisterRange DeyeInverter::DEVICE_INFO_RANGES[] = {
     {DEV_INFO_ADDR, DEV_INFO_LEN, "Device Info"}
 };
 
+// Time Range
+const RegisterRange DeyeInverter::TIME_RANGES[] = {
+    {REG_SYSTEM_TIME_BYTE1, 3, "Time"}
+};
+
 // Livedata Ranges
 const RegisterRange DeyeInverter::LIVE_RANGES[] = {
     {LIVE_PART1_ADDR, LIVE_PART1_LEN, "Livedata Part 1"},
@@ -644,80 +649,57 @@ void DeyeInverter::register_time(time::RealTimeClock *tm) {
 #endif
 
 // =============================================================================
-// UPDATE METHOD - Following ds100_meter pattern
+// UPDATE METHOD - One pending bit per range, not per category
 // =============================================================================
 
 void DeyeInverter::update() {
   uint32_t now = millis();
 
-  // Timeout handling: Reset request_in_progress_ if no response for 500ms
-  if (this->request_in_progress_ && (now - this->last_request_time_ > 500)) {
-    ESP_LOGW(TAG, "Request timeout - resetting state");
-    this->request_in_progress_ = false;
-    this->outstanding_commands_ = 0;  // Reset counter on timeout
+  // Timeout handling: Check if active request timed out
+  if (this->active_requests_ != 0 && (now - this->last_request_time_ > 500)) {
+    ESP_LOGW(TAG, "Request timeout - resetting active requests");
+    // Move active back to pending for retry
+    this->pending_requests_ |= this->active_requests_;
+    this->active_requests_ = 0;
     this->last_request_time_ = 0;
     this->consecutive_timeouts_++;
-    // Clear all pending flags - requests will be retried at next interval
-    this->pending_requests_ = 0;
     ESP_LOGV(TAG, "Consecutive timeouts: %d", this->consecutive_timeouts_);
   }
 
-  // Check which categories are due and add them to the request queue
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
+  // Check intervals and queue individual ranges (not categories)
+  // Device Info
+  if (!this->device_info_initialized_ || (now - this->last_device_info_update_ >= this->interval_device_info_)) {
+    this->pending_requests_ |= PENDING_DEVICE_INFO;
+  }
+  
+  // Time
   if (now - this->last_time_update_ >= this->interval_time_) {
-    this->queue_request(RequestType::TIME);
+    this->pending_requests_ |= PENDING_TIME;
   }
   
+  // Livedata - 2 ranges
   if (now - this->last_live_update_ >= this->interval_live_) {
-    this->queue_request(RequestType::LIVEDATA);
+    this->pending_requests_ |= PENDING_LIVE_0 | PENDING_LIVE_1;
   }
   
+  // Statistics - 4 ranges
   if (now - this->last_stats_update_ >= this->interval_statistics_) {
-    this->queue_request(RequestType::STATISTICS);
+    this->pending_requests_ |= PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3;
   }
   
+  // Settings (both parts share same interval)
   if (now - this->last_settings_update_ >= this->interval_settings_) {
-    this->queue_request(RequestType::SETTINGS);
+    this->pending_requests_ |= PENDING_SETTINGS_0 | PENDING_SETTINGS_1 | PENDING_SETTINGS2_0;
   }
   
-  if (now - this->last_settings_2_update_ >= this->interval_settings_2_) {
-    this->queue_request(RequestType::SETTINGS_2);
-  }
-  
+  // Battery Modules - 3 ranges
   if (now - this->last_battery_modules_update_ >= this->interval_battery_modules_) {
-    this->queue_request(RequestType::BATTERY_MODULES);
-  }
-  
-  if (!this->device_info_initialized_ || 
-      (now - this->last_device_info_update_ >= this->interval_device_info_)) {
-    this->queue_request(RequestType::DEVICE_INFO);
+    this->pending_requests_ |= PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
   }
 
-  // Process only ONE request per update() call to avoid bus overload
-  // The individual intervals (1s, 5s, 60s) are still respected by queue_request()
-  if (!this->request_in_progress_ && this->pending_requests_ != 0) {
-    RequestType next = this->get_highest_priority_pending();
-    
-    // If bus is overloaded, only process high-priority requests (TIME, LIVEDATA, STATISTICS, BATTERY_MODULES)
-    if (this->consecutive_timeouts_ >= MAX_CONSECUTIVE_TIMEOUTS) {
-      if (next == RequestType::TIME || next == RequestType::LIVEDATA || 
-          next == RequestType::STATISTICS || next == RequestType::BATTERY_MODULES) {
-        this->process_next_request();
-      } else {
-        ESP_LOGV(TAG, "Skipping low-priority request %d due to bus overload (timeouts: %d)", 
-                 static_cast<int>(next), this->consecutive_timeouts_);
-        // Clear this specific pending request to prevent queue buildup
-        // BATTERY_MODULES is treated as high-priority, so don't clear it here
-        switch (next) {
-          case RequestType::SETTINGS: this->pending_requests_ &= ~PENDING_SETTINGS; break;
-          case RequestType::SETTINGS_2: this->pending_requests_ &= ~PENDING_SETTINGS_2; break;
-          case RequestType::DEVICE_INFO: this->pending_requests_ &= ~PENDING_DEVICE_INFO; break;
-          default: break;
-        }
-      }
-    } else {
-      this->process_next_request();
-    }
+  // Process only ONE range per update() call
+  if (this->active_requests_ == 0 && this->pending_requests_ != 0) {
+    this->process_next_request();
   }
 }
 

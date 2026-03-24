@@ -207,55 +207,59 @@ class DeyeInverter : public modbus_controller::ModbusController {
   std::vector<time::RealTimeClock *> times_;
 #endif
 
-  // Static register range arrays - Simplified big contiguous blocks
+  // Static register range arrays - Each range has its own pending bit
+  static const RegisterRange DEVICE_INFO_RANGES[];
+  static const RegisterRange TIME_RANGES[];
   static const RegisterRange LIVE_RANGES[];
   static const RegisterRange STATS_RANGES[];
   static const RegisterRange SETTINGS_RANGES[];
   static const RegisterRange SETTINGS_2_RANGES[];
   static const RegisterRange BATTERY_MODULE_RANGES[];
-  static const RegisterRange DEVICE_INFO_RANGES[];
 
   // Range counts
+  static constexpr size_t DEVICE_INFO_RANGES_COUNT = 1;
+  static constexpr size_t TIME_RANGES_COUNT = 1;
   static constexpr size_t LIVE_RANGES_COUNT = 2;       // Split into 2 blocks (max 128 per request)
   static constexpr size_t STATS_RANGES_COUNT = 4;
-  static constexpr size_t SETTINGS_RANGES_COUNT = 2;   // Split into 2 blocks (60-187, 188-230)
+  static constexpr size_t SETTINGS_RANGES_COUNT = 2;   // Split into 2 blocks (60-177, 178-230)
   static constexpr size_t SETTINGS_2_RANGES_COUNT = 1; // Single block 310-419
   static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 3;
-  static constexpr size_t DEVICE_INFO_RANGES_COUNT = 1; // Single block 0-29
 
-  // Timing variables
+  // Pending request bits - one per range (not per category)
+  // Priority: DEVICE_INFO(0) → TIME(1) → LIVE_0(2) → LIVE_1(3) → STATS_0(4) → ... → BATTERY_2(16)
+  static constexpr uint32_t PENDING_DEVICE_INFO = 0x00000001;
+  static constexpr uint32_t PENDING_TIME = 0x00000002;
+  static constexpr uint32_t PENDING_LIVE_0 = 0x00000004;
+  static constexpr uint32_t PENDING_LIVE_1 = 0x00000008;
+  static constexpr uint32_t PENDING_STATS_0 = 0x00000010;
+  static constexpr uint32_t PENDING_STATS_1 = 0x00000020;
+  static constexpr uint32_t PENDING_STATS_2 = 0x00000040;
+  static constexpr uint32_t PENDING_STATS_3 = 0x00000080;
+  static constexpr uint32_t PENDING_SETTINGS_0 = 0x00000100;
+  static constexpr uint32_t PENDING_SETTINGS_1 = 0x00000200;
+  static constexpr uint32_t PENDING_SETTINGS2_0 = 0x00000400;
+  static constexpr uint32_t PENDING_BATTERY_0 = 0x00000800;
+  static constexpr uint32_t PENDING_BATTERY_1 = 0x00001000;
+  static constexpr uint32_t PENDING_BATTERY_2 = 0x00002000;
+
+  uint32_t pending_requests_{0};      // Bitmask of pending ranges to send
+  uint32_t active_requests_{0};       // Bitmask of currently active ranges
+  uint32_t last_request_time_{0};     // Timestamp of last request sent
+  
+  // Timing variables - per category (ranges within category share interval)
+  uint32_t last_device_info_update_{0};
   uint32_t last_time_update_{0};
   uint32_t last_live_update_{0};
   uint32_t last_stats_update_{0};
-  uint32_t last_settings_update_{0};
-  uint32_t last_settings_2_update_{0};     // Settings 2 (310-419)
+  uint32_t last_settings_update_{0};   // Both SETTINGS and SETTINGS_2
   uint32_t last_battery_modules_update_{0};
-  uint32_t last_device_info_update_{0};
 
   // State tracking
   bool device_info_initialized_{false};
-  
-  // Pending requests bitmask (following ds100_meter pattern)
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
-  static const uint16_t PENDING_TIME = 0x0001;            // Highest priority
-  static const uint16_t PENDING_LIVEDATA = 0x0002;
-  static const uint16_t PENDING_STATISTICS = 0x0004;
-  static const uint16_t PENDING_SETTINGS = 0x0008;
-  static const uint16_t PENDING_SETTINGS_2 = 0x0010;
-  static const uint16_t PENDING_BATTERY_MODULES = 0x0020;
-  static const uint16_t PENDING_DEVICE_INFO = 0x0040;     // Lowest priority
 
-  uint16_t pending_requests_{0};      // Bitmask of pending request types
-  bool request_in_progress_{false};   // True if waiting for Modbus response
-  uint32_t last_request_time_{0};     // Timestamp of last request for timeout tracking
-  std::atomic<uint8_t> outstanding_commands_{0};   // Count of commands in flight - thread-safe for multi-range requests
-
-  // Range index tracking for phased requests (queue one range at a time)
-  size_t current_battery_module_range_{0};     // For BATTERY_MODULES ranges
-
-  // Consecutive timeout tracking (following ds100_meter pattern)
+  // Consecutive timeout tracking
   uint8_t consecutive_timeouts_{0};
-  static const uint8_t MAX_CONSECUTIVE_TIMEOUTS = 3;
+  static constexpr uint8_t MAX_CONSECUTIVE_TIMEOUTS = 3;
 
   // Entity update methods
 #ifdef USE_SENSOR

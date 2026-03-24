@@ -703,6 +703,7 @@ void DeyeInverter::update() {
   if (this->request_in_progress_ && (now - this->last_request_time_ > 500)) {
     ESP_LOGW(TAG, "Request timeout - resetting request_in_progress");
     this->request_in_progress_ = false;
+    this->outstanding_commands_ = 0;  // Reset counter on timeout
     this->last_request_time_ = 0;
     this->consecutive_timeouts_++;
     ESP_LOGV(TAG, "Consecutive timeouts: %d", this->consecutive_timeouts_);
@@ -871,11 +872,6 @@ void DeyeInverter::process_next_request() {
                                  const std::vector<uint8_t> &data) {
         this->handle_time_response(data, 62);
       };
-      cmd.on_error_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                  modbus_controller::ModbusErrorType error) {
-        ESP_LOGW(TAG, "Modbus error reading time registers at 0x%04X: %d", addr, static_cast<int>(error));
-        this->request_in_progress_ = false;
-      };
       this->queue_command(cmd);
       break;
     }
@@ -893,12 +889,6 @@ void DeyeInverter::process_next_request() {
       cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                 const std::vector<uint8_t> &data) {
         this->handle_live_data_response(data, addr);
-      };
-      cmd.on_error_func = [this, range](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                         modbus_controller::ModbusErrorType error) {
-        ESP_LOGW(TAG, "Modbus error reading livedata range '%s' at 0x%04X: %d", 
-                 range.name, addr, static_cast<int>(error));
-        this->request_in_progress_ = false;
       };
       this->queue_command(cmd);
       
@@ -936,16 +926,6 @@ void DeyeInverter::process_next_request() {
             this->last_stats_update_ = millis();
           }
         };
-        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                       modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading statistics range '%s' at 0x%04X: %d",
-                   STATS_RANGES[i].name, addr, static_cast<int>(error));
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            // Don't clear pending flag on error - will retry
-          }
-        };
         this->queue_command(cmd);
       }
       break;
@@ -965,12 +945,6 @@ void DeyeInverter::process_next_request() {
       cmd.on_data_func = [this, module_idx](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                             const std::vector<uint8_t> &data) {
         this->handle_battery_module_response(data, addr, module_idx);
-      };
-      cmd.on_error_func = [this, range](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                         modbus_controller::ModbusErrorType error) {
-        ESP_LOGW(TAG, "Modbus error reading battery module range '%s' at 0x%04X: %d", 
-                 range.name, addr, static_cast<int>(error));
-        this->request_in_progress_ = false;
       };
       this->queue_command(cmd);
       
@@ -1008,16 +982,6 @@ void DeyeInverter::process_next_request() {
             this->last_settings_update_ = millis();
           }
         };
-        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                       modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading settings range '%s' at 0x%04X: %d",
-                   SETTINGS_RANGES[i].name, addr, static_cast<int>(error));
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            // Don't clear pending flag on error - will retry
-          }
-        };
         this->queue_command(cmd);
       }
       break;
@@ -1043,16 +1007,6 @@ void DeyeInverter::process_next_request() {
             this->request_in_progress_ = false;
             this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS;
             this->last_system_settings_update_ = millis();
-          }
-        };
-        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                       modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading system settings range '%s' at 0x%04X: %d",
-                   SETTINGS_SYSTEM_RANGES[i].name, addr, static_cast<int>(error));
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            // Don't clear pending flag on error - will retry
           }
         };
         this->queue_command(cmd);
@@ -1082,16 +1036,6 @@ void DeyeInverter::process_next_request() {
             this->last_grid_protection_update_ = millis();
           }
         };
-        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                       modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading grid protection range '%s' at 0x%04X: %d",
-                   SETTINGS_GRID_PROTECTION_RANGES[i].name, addr, static_cast<int>(error));
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            // Don't clear pending flag on error - will retry
-          }
-        };
         this->queue_command(cmd);
       }
       break;
@@ -1117,16 +1061,6 @@ void DeyeInverter::process_next_request() {
             this->request_in_progress_ = false;
             this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
             this->last_extended_settings_update_ = millis();
-          }
-        };
-        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                       modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading extended settings range '%s' at 0x%04X: %d",
-                   SETTINGS_EXTENDED_RANGES[i].name, addr, static_cast<int>(error));
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            // Don't clear pending flag on error - will retry
           }
         };
         this->queue_command(cmd);
@@ -1156,16 +1090,6 @@ void DeyeInverter::process_next_request() {
             this->last_california_settings_update_ = millis();
           }
         };
-        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                       modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading California settings range '%s' at 0x%04X: %d",
-                   SETTINGS_CALIFORNIA_RANGES[i].name, addr, static_cast<int>(error));
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            // Don't clear pending flag on error - will retry
-          }
-        };
         this->queue_command(cmd);
       }
       break;
@@ -1192,16 +1116,6 @@ void DeyeInverter::process_next_request() {
             this->pending_requests_ &= ~PENDING_DEVICE_INFO;
             this->last_device_info_update_ = millis();
             this->device_info_initialized_ = true;
-          }
-        };
-        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                       modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading device info range '%s' at 0x%04X: %d",
-                   DEVICE_INFO_RANGES[i].name, addr, static_cast<int>(error));
-          this->outstanding_commands_--;
-          if (this->outstanding_commands_ == 0) {
-            this->request_in_progress_ = false;
-            // Don't clear pending flag on error - will retry
           }
         };
         this->queue_command(cmd);

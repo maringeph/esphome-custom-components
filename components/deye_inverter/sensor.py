@@ -1555,6 +1555,9 @@ async def to_code(config):
         var.set_update_interval_device_info(config[CONF_UPDATE_INTERVAL_DEVICE_INFO])
     )
 
+    # Set base update interval for modbus_controller polling (use live interval)
+    cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL_LIVE]))
+
     # Register all sensors (pass device_obj for sensor grouping)
     await register_sensors(var, config, device_obj)
 

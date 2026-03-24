@@ -857,7 +857,6 @@ void DeyeInverter::process_next_request() {
   uint32_t now = millis();
   this->last_request_time_ = now;
   this->request_in_progress_ = true;
-  this->current_request_type_ = next;
 
   switch (next) {
     case RequestType::TIME: {
@@ -871,6 +870,11 @@ void DeyeInverter::process_next_request() {
       cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                  const std::vector<uint8_t> &data) {
         this->handle_time_response(data, 62);
+      };
+      cmd.on_error_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                  modbus_controller::ModbusErrorType error) {
+        ESP_LOGW(TAG, "Modbus error reading time registers at 0x%04X: %d", addr, static_cast<int>(error));
+        this->request_in_progress_ = false;
       };
       this->queue_command(cmd);
       break;
@@ -889,6 +893,12 @@ void DeyeInverter::process_next_request() {
       cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                 const std::vector<uint8_t> &data) {
         this->handle_live_data_response(data, addr);
+      };
+      cmd.on_error_func = [this, range](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                         modbus_controller::ModbusErrorType error) {
+        ESP_LOGW(TAG, "Modbus error reading livedata range '%s' at 0x%04X: %d", 
+                 range.name, addr, static_cast<int>(error));
+        this->request_in_progress_ = false;
       };
       this->queue_command(cmd);
       
@@ -917,6 +927,12 @@ void DeyeInverter::process_next_request() {
                                       const std::vector<uint8_t> &data) {
           this->handle_statistics_response(data, STATS_RANGES[i].start);
         };
+        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                       modbus_controller::ModbusErrorType error) {
+          ESP_LOGW(TAG, "Modbus error reading statistics range '%s' at 0x%04X: %d", 
+                   STATS_RANGES[i].name, addr, static_cast<int>(error));
+          this->request_in_progress_ = false;
+        };
         this->queue_command(cmd);
       }
       break;
@@ -936,6 +952,12 @@ void DeyeInverter::process_next_request() {
       cmd.on_data_func = [this, module_idx](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                             const std::vector<uint8_t> &data) {
         this->handle_battery_module_response(data, addr, module_idx);
+      };
+      cmd.on_error_func = [this, range](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                         modbus_controller::ModbusErrorType error) {
+        ESP_LOGW(TAG, "Modbus error reading battery module range '%s' at 0x%04X: %d", 
+                 range.name, addr, static_cast<int>(error));
+        this->request_in_progress_ = false;
       };
       this->queue_command(cmd);
       
@@ -964,6 +986,12 @@ void DeyeInverter::process_next_request() {
                                       const std::vector<uint8_t> &data) {
           this->handle_settings_response(data, SETTINGS_RANGES[i].start);
         };
+        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                       modbus_controller::ModbusErrorType error) {
+          ESP_LOGW(TAG, "Modbus error reading settings range '%s' at 0x%04X: %d",
+                   SETTINGS_RANGES[i].name, addr, static_cast<int>(error));
+          this->request_in_progress_ = false;
+        };
         this->queue_command(cmd);
       }
       break;
@@ -981,6 +1009,12 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_system_settings_response(data, SETTINGS_SYSTEM_RANGES[i].start);
+        };
+        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                       modbus_controller::ModbusErrorType error) {
+          ESP_LOGW(TAG, "Modbus error reading system settings range '%s' at 0x%04X: %d",
+                   SETTINGS_SYSTEM_RANGES[i].name, addr, static_cast<int>(error));
+          this->request_in_progress_ = false;
         };
         this->queue_command(cmd);
       }
@@ -1000,6 +1034,12 @@ void DeyeInverter::process_next_request() {
                                       const std::vector<uint8_t> &data) {
           this->handle_grid_protection_response(data, SETTINGS_GRID_PROTECTION_RANGES[i].start);
         };
+        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                       modbus_controller::ModbusErrorType error) {
+          ESP_LOGW(TAG, "Modbus error reading grid protection range '%s' at 0x%04X: %d",
+                   SETTINGS_GRID_PROTECTION_RANGES[i].name, addr, static_cast<int>(error));
+          this->request_in_progress_ = false;
+        };
         this->queue_command(cmd);
       }
       break;
@@ -1017,6 +1057,12 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_extended_settings_response(data, SETTINGS_EXTENDED_RANGES[i].start);
+        };
+        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                       modbus_controller::ModbusErrorType error) {
+          ESP_LOGW(TAG, "Modbus error reading extended settings range '%s' at 0x%04X: %d",
+                   SETTINGS_EXTENDED_RANGES[i].name, addr, static_cast<int>(error));
+          this->request_in_progress_ = false;
         };
         this->queue_command(cmd);
       }
@@ -1036,6 +1082,12 @@ void DeyeInverter::process_next_request() {
                                       const std::vector<uint8_t> &data) {
           this->handle_california_settings_response(data, SETTINGS_CALIFORNIA_RANGES[i].start);
         };
+        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                       modbus_controller::ModbusErrorType error) {
+          ESP_LOGW(TAG, "Modbus error reading California settings range '%s' at 0x%04X: %d",
+                   SETTINGS_CALIFORNIA_RANGES[i].name, addr, static_cast<int>(error));
+          this->request_in_progress_ = false;
+        };
         this->queue_command(cmd);
       }
       break;
@@ -1053,6 +1105,12 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_device_info_response(data, DEVICE_INFO_RANGES[i].start);
+        };
+        cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                       modbus_controller::ModbusErrorType error) {
+          ESP_LOGW(TAG, "Modbus error reading device info range '%s' at 0x%04X: %d",
+                   DEVICE_INFO_RANGES[i].name, addr, static_cast<int>(error));
+          this->request_in_progress_ = false;
         };
         this->queue_command(cmd);
       }
@@ -1218,9 +1276,13 @@ void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &da
     this->last_battery_modules_update_ = millis();
   }
   
+  // Update battery module sensors first (special handling)
 #ifdef USE_SENSOR
   this->update_battery_module_sensors(start_address, data);
 #endif
+  
+  // Then update all other entity types consistently
+  this->update_all_entities(start_address, data);
 }
 
 void DeyeInverter::handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
@@ -1315,18 +1377,8 @@ void DeyeInverter::handle_grid_protection_response(const std::vector<uint8_t> &d
   this->pending_requests_ &= ~PENDING_GRID_PROTECTION;
   this->last_grid_protection_update_ = millis();
   
-#ifdef USE_SENSOR
-  this->update_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_BINARY_SENSOR
-  this->update_binary_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_NUMBER
-  this->update_numbers_from_data(start_address, data);
-#endif
-#ifdef USE_SELECT
-  this->update_selects_from_data(start_address, data);
-#endif
+  // Update all entity types consistently
+  this->update_all_entities(start_address, data);
 }
 
 void DeyeInverter::handle_extended_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
@@ -1342,12 +1394,8 @@ void DeyeInverter::handle_extended_settings_response(const std::vector<uint8_t> 
   this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
   this->last_extended_settings_update_ = millis();
   
-#ifdef USE_SENSOR
-  this->update_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_NUMBER
-  this->update_numbers_from_data(start_address, data);
-#endif
+  // Update all entity types consistently
+  this->update_all_entities(start_address, data);
 }
 
 void DeyeInverter::handle_california_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
@@ -1363,12 +1411,8 @@ void DeyeInverter::handle_california_settings_response(const std::vector<uint8_t
   this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS;
   this->last_california_settings_update_ = millis();
   
-#ifdef USE_SENSOR
-  this->update_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_NUMBER
-  this->update_numbers_from_data(start_address, data);
-#endif
+  // Update all entity types consistently
+  this->update_all_entities(start_address, data);
 }
 
 void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address) {
@@ -1395,12 +1439,8 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
 #endif
   }
   
-#ifdef USE_SENSOR
-  this->update_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_TEXT_SENSOR
-  this->update_text_sensors_from_data(start_address, data);
-#endif
+  // Update all entity types consistently
+  this->update_all_entities(start_address, data);
 }
 
 // =============================================================================

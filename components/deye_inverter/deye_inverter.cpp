@@ -782,8 +782,8 @@ void DeyeInverter::process_next_request() {
   switch (next) {
     case RequestType::TIME: {
       ESP_LOGD(TAG, "Queueing request: time sync");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
+      // Clear pending flag immediately - request is now in modbus_controller queue
+      this->pending_requests_ &= ~PENDING_TIME;
       
       // Read system time registers (REG_SYSTEM_TIME_BYTE1 - REG_SYSTEM_TIME_BYTE5)
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -798,6 +798,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::LIVEDATA: {
       ESP_LOGD(TAG, "Queueing request: livedata (%zu blocks)", LIVE_RANGES_COUNT);
+      // Clear pending flag immediately - all requests are now going to modbus_controller queue
+      this->pending_requests_ &= ~PENDING_LIVEDATA;
       // Multiple blocks - use counter to track completion
       this->outstanding_commands_ = LIVE_RANGES_COUNT;
       
@@ -813,7 +815,6 @@ void DeyeInverter::process_next_request() {
             this->outstanding_commands_--;
             if (this->outstanding_commands_ == 0) {
               this->request_in_progress_ = false;
-              this->pending_requests_ &= ~PENDING_LIVEDATA;
               this->last_live_update_ = millis();
             }
           }
@@ -825,8 +826,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::STATISTICS: {
       ESP_LOGD(TAG, "Queueing request: statistics");
-      // Don't clear pending flag here - wait for successful response in handler
-      // Don't update timestamp here - wait for successful response
+      // Clear pending flag immediately - all requests are now going to modbus_controller queue
+      this->pending_requests_ &= ~PENDING_STATISTICS;
 
       // Initialize command counter for multi-command request
       this->outstanding_commands_ = STATS_RANGES_COUNT;
@@ -844,7 +845,6 @@ void DeyeInverter::process_next_request() {
             this->outstanding_commands_--;
             if (this->outstanding_commands_ == 0) {
               this->request_in_progress_ = false;
-              this->pending_requests_ &= ~PENDING_STATISTICS;
               this->last_stats_update_ = millis();
             }
           }
@@ -858,6 +858,8 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: battery block %zu/%zu (%s)",
                this->current_battery_module_range_ + 1, BATTERY_MODULE_RANGES_COUNT,
                BATTERY_MODULE_RANGES[this->current_battery_module_range_].name);
+      // Clear pending flag immediately - request is now in modbus_controller queue
+      this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
       
       // Queue ONLY ONE range per call to allow interleaving with other categories
       const RegisterRange& range = BATTERY_MODULE_RANGES[this->current_battery_module_range_];
@@ -868,13 +870,14 @@ void DeyeInverter::process_next_request() {
       cmd.on_data_func = [this, block_idx](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                            const std::vector<uint8_t> &data) {
         this->handle_battery_module_response(data, addr, block_idx);
+        // For phased requests, update timestamp when last range completes
+        if (this->current_battery_module_range_ == 0) {
+          this->last_battery_modules_update_ = millis();
+        }
       };
       this->queue_command(cmd);
       
-      // Don't clear pending flag here - wait for last range to complete in handler
-      // Don't update timestamp here - wait for last range to complete
-      
-      // Increment index for next time (will be checked in handler for completion)
+      // Increment index for next time
       this->current_battery_module_range_++;
       if (this->current_battery_module_range_ >= BATTERY_MODULE_RANGES_COUNT) {
         this->current_battery_module_range_ = 0;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "esphome/core/component.h"
 #include "esphome/components/modbus_controller/modbus_controller.h"
 
@@ -236,7 +238,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   uint16_t pending_requests_{0};      // Bitmask of pending request types
   bool request_in_progress_{false};   // True if waiting for Modbus response
   uint32_t last_request_time_{0};     // Timestamp of last request for timeout tracking
-  uint8_t outstanding_commands_{0};   // Count of commands in flight - currently used only for STATISTICS (multi-range)
+  std::atomic<uint8_t> outstanding_commands_{0};   // Count of commands in flight - thread-safe for multi-range requests
 
   // Range index tracking for phased requests (queue one range at a time)
   size_t current_battery_module_range_{0};     // For BATTERY_MODULES ranges

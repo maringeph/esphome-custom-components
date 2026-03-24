@@ -58,11 +58,11 @@ constexpr uint16_t REG_RANGE_FW_INFO_END = 29;              // Firmware info ran
 constexpr uint16_t DEV_INFO_ADDR = 0;
 constexpr uint16_t DEV_INFO_LEN = 30;
 
-// Livedata Ranges
+// Livedata Ranges (contiguous: 500-683)
 constexpr uint16_t LIVE_PART1_ADDR = 500;
-constexpr uint16_t LIVE_PART1_LEN = 93;
+constexpr uint16_t LIVE_PART1_LEN = 98;  // 500-597 (incl. battery temp 586-597)
 constexpr uint16_t LIVE_PART2_ADDR = 598;
-constexpr uint16_t LIVE_PART2_LEN = 86;
+constexpr uint16_t LIVE_PART2_LEN = 86;  // 598-683
 
 // Statistics Ranges
 constexpr uint16_t STATS_DAILY_ADDR = 501;

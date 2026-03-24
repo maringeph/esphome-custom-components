@@ -783,6 +783,11 @@ void DeyeInverter::process_next_request() {
                                  const std::vector<uint8_t> &data) {
         this->handle_time_response(data, REG_SYSTEM_TIME_BYTE1);
       };
+      cmd.on_error_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr, uint8_t err_code) {
+        ESP_LOGW(TAG, "Modbus error reading time registers: %d", err_code);
+        this->request_in_progress_ = false;
+        this->pending_requests_ &= ~PENDING_TIME;
+      };
       this->queue_command(cmd);
       break;
     }
@@ -1305,7 +1310,8 @@ std::string DeyeInverter::parse_string(const std::vector<uint8_t>& data, size_t 
 #ifdef USE_SENSOR
 void DeyeInverter::update_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *base_sensor : this->sensors_) {
-    auto *sensor = static_cast<DeyeSensor*>(base_sensor);
+    auto *sensor = dynamic_cast<DeyeSensor*>(base_sensor);
+    if (sensor == nullptr) continue;
     if (sensor->get_is_battery_module()) continue;
     
     uint16_t sensor_addr = sensor->get_address();
@@ -1361,7 +1367,8 @@ float DeyeInverter::parse_battery_module_value(const std::vector<uint8_t>& data,
 #ifdef USE_BINARY_SENSOR
 void DeyeInverter::update_binary_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
   for (auto *base_sensor : this->binary_sensors_) {
-    auto *sensor = static_cast<DeyeBinarySensor*>(base_sensor);
+    auto *sensor = dynamic_cast<DeyeBinarySensor*>(base_sensor);
+    if (sensor == nullptr) continue;
     uint16_t sensor_addr = sensor->get_address();
     
     if (sensor_addr >= start_address && sensor_addr < start_address + (data.size() / 2)) {

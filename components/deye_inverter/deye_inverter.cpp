@@ -917,21 +917,34 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: statistics");
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
-      
+
+      // Initialize command counter for multi-command request
+      this->outstanding_commands_ = STATS_RANGES_COUNT;
+
       // Queue all statistics ranges
       for (size_t i = 0; i < STATS_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING, 
+            this, modbus_controller::ModbusRegisterType::HOLDING,
             STATS_RANGES[i].start, STATS_RANGES[i].count);
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_statistics_response(data, STATS_RANGES[i].start);
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            this->pending_requests_ &= ~PENDING_STATISTICS;
+            this->last_stats_update_ = millis();
+          }
         };
         cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                        modbus_controller::ModbusErrorType error) {
-          ESP_LOGW(TAG, "Modbus error reading statistics range '%s' at 0x%04X: %d", 
+          ESP_LOGW(TAG, "Modbus error reading statistics range '%s' at 0x%04X: %d",
                    STATS_RANGES[i].name, addr, static_cast<int>(error));
-          this->request_in_progress_ = false;
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            // Don't clear pending flag on error - will retry
+          }
         };
         this->queue_command(cmd);
       }
@@ -976,7 +989,10 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: settings");
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
-      
+
+      // Initialize command counter for multi-command request
+      this->outstanding_commands_ = SETTINGS_RANGES_COUNT;
+
       // Queue all settings ranges
       for (size_t i = 0; i < SETTINGS_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -985,12 +1001,22 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_settings_response(data, SETTINGS_RANGES[i].start);
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            this->pending_requests_ &= ~PENDING_SETTINGS;
+            this->last_settings_update_ = millis();
+          }
         };
         cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                        modbus_controller::ModbusErrorType error) {
           ESP_LOGW(TAG, "Modbus error reading settings range '%s' at 0x%04X: %d",
                    SETTINGS_RANGES[i].name, addr, static_cast<int>(error));
-          this->request_in_progress_ = false;
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            // Don't clear pending flag on error - will retry
+          }
         };
         this->queue_command(cmd);
       }
@@ -1001,7 +1027,10 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: system settings");
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
-      
+
+      // Initialize command counter for multi-command request
+      this->outstanding_commands_ = SETTINGS_SYSTEM_RANGES_COUNT;
+
       for (size_t i = 0; i < SETTINGS_SYSTEM_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
             this, modbus_controller::ModbusRegisterType::HOLDING,
@@ -1009,12 +1038,22 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_system_settings_response(data, SETTINGS_SYSTEM_RANGES[i].start);
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS;
+            this->last_system_settings_update_ = millis();
+          }
         };
         cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                        modbus_controller::ModbusErrorType error) {
           ESP_LOGW(TAG, "Modbus error reading system settings range '%s' at 0x%04X: %d",
                    SETTINGS_SYSTEM_RANGES[i].name, addr, static_cast<int>(error));
-          this->request_in_progress_ = false;
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            // Don't clear pending flag on error - will retry
+          }
         };
         this->queue_command(cmd);
       }
@@ -1025,7 +1064,10 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: grid protection");
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
-      
+
+      // Initialize command counter for multi-command request
+      this->outstanding_commands_ = SETTINGS_GRID_PROTECTION_RANGES_COUNT;
+
       for (size_t i = 0; i < SETTINGS_GRID_PROTECTION_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
             this, modbus_controller::ModbusRegisterType::HOLDING,
@@ -1033,12 +1075,22 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_grid_protection_response(data, SETTINGS_GRID_PROTECTION_RANGES[i].start);
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            this->pending_requests_ &= ~PENDING_GRID_PROTECTION;
+            this->last_grid_protection_update_ = millis();
+          }
         };
         cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                        modbus_controller::ModbusErrorType error) {
           ESP_LOGW(TAG, "Modbus error reading grid protection range '%s' at 0x%04X: %d",
                    SETTINGS_GRID_PROTECTION_RANGES[i].name, addr, static_cast<int>(error));
-          this->request_in_progress_ = false;
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            // Don't clear pending flag on error - will retry
+          }
         };
         this->queue_command(cmd);
       }
@@ -1049,7 +1101,10 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: extended settings");
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
-      
+
+      // Initialize command counter for multi-command request
+      this->outstanding_commands_ = SETTINGS_EXTENDED_RANGES_COUNT;
+
       for (size_t i = 0; i < SETTINGS_EXTENDED_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
             this, modbus_controller::ModbusRegisterType::HOLDING,
@@ -1057,12 +1112,22 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_extended_settings_response(data, SETTINGS_EXTENDED_RANGES[i].start);
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
+            this->last_extended_settings_update_ = millis();
+          }
         };
         cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                        modbus_controller::ModbusErrorType error) {
           ESP_LOGW(TAG, "Modbus error reading extended settings range '%s' at 0x%04X: %d",
                    SETTINGS_EXTENDED_RANGES[i].name, addr, static_cast<int>(error));
-          this->request_in_progress_ = false;
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            // Don't clear pending flag on error - will retry
+          }
         };
         this->queue_command(cmd);
       }
@@ -1073,7 +1138,10 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: California settings");
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
-      
+
+      // Initialize command counter for multi-command request
+      this->outstanding_commands_ = SETTINGS_CALIFORNIA_RANGES_COUNT;
+
       for (size_t i = 0; i < SETTINGS_CALIFORNIA_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
             this, modbus_controller::ModbusRegisterType::HOLDING,
@@ -1081,12 +1149,22 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_california_settings_response(data, SETTINGS_CALIFORNIA_RANGES[i].start);
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS;
+            this->last_california_settings_update_ = millis();
+          }
         };
         cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                        modbus_controller::ModbusErrorType error) {
           ESP_LOGW(TAG, "Modbus error reading California settings range '%s' at 0x%04X: %d",
                    SETTINGS_CALIFORNIA_RANGES[i].name, addr, static_cast<int>(error));
-          this->request_in_progress_ = false;
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            // Don't clear pending flag on error - will retry
+          }
         };
         this->queue_command(cmd);
       }
@@ -1097,7 +1175,10 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: device info");
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
-      
+
+      // Initialize command counter for multi-command request
+      this->outstanding_commands_ = DEVICE_INFO_RANGES_COUNT;
+
       for (size_t i = 0; i < DEVICE_INFO_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
             this, modbus_controller::ModbusRegisterType::HOLDING,
@@ -1105,12 +1186,23 @@ void DeyeInverter::process_next_request() {
         cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                       const std::vector<uint8_t> &data) {
           this->handle_device_info_response(data, DEVICE_INFO_RANGES[i].start);
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            this->pending_requests_ &= ~PENDING_DEVICE_INFO;
+            this->last_device_info_update_ = millis();
+            this->device_info_initialized_ = true;
+          }
         };
         cmd.on_error_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                        modbus_controller::ModbusErrorType error) {
           ESP_LOGW(TAG, "Modbus error reading device info range '%s' at 0x%04X: %d",
                    DEVICE_INFO_RANGES[i].name, addr, static_cast<int>(error));
-          this->request_in_progress_ = false;
+          this->outstanding_commands_--;
+          if (this->outstanding_commands_ == 0) {
+            this->request_in_progress_ = false;
+            // Don't clear pending flag on error - will retry
+          }
         };
         this->queue_command(cmd);
       }
@@ -1225,16 +1317,13 @@ void DeyeInverter::handle_live_data_response(const std::vector<uint8_t> &data, u
 
 void DeyeInverter::handle_statistics_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received statistics response: %zu bytes for register 0x%04X", data.size(), start_address);
-  
+
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_STATISTICS;
-  this->last_stats_update_ = millis();
+
+  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
+  // based on outstanding_commands_ counter
   
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);
@@ -1287,16 +1376,13 @@ void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &da
 
 void DeyeInverter::handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received settings response: %zu bytes for register 0x%04X", data.size(), start_address);
-  
+
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_SETTINGS;
-  this->last_settings_update_ = millis();
+
+  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
+  // based on outstanding_commands_ counter
   
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);
@@ -1323,16 +1409,13 @@ void DeyeInverter::handle_settings_response(const std::vector<uint8_t> &data, ui
 
 void DeyeInverter::handle_system_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received system settings response: %zu bytes for register 0x%04X", data.size(), start_address);
-  
+
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS;
-  this->last_system_settings_update_ = millis();
+
+  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
+  // based on outstanding_commands_ counter
   
   // Also check for system time
   if (start_address <= 62 && start_address + (data.size() / 2) > 62) {
@@ -1366,16 +1449,13 @@ void DeyeInverter::handle_system_settings_response(const std::vector<uint8_t> &d
 
 void DeyeInverter::handle_grid_protection_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received grid protection response: %zu bytes for register 0x%04X", data.size(), start_address);
-  
+
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_GRID_PROTECTION;
-  this->last_grid_protection_update_ = millis();
+
+  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
+  // based on outstanding_commands_ counter
   
   // Update all entity types consistently
   this->update_all_entities(start_address, data);
@@ -1383,16 +1463,13 @@ void DeyeInverter::handle_grid_protection_response(const std::vector<uint8_t> &d
 
 void DeyeInverter::handle_extended_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received extended settings response: %zu bytes for register 0x%04X", data.size(), start_address);
-  
+
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
-  this->last_extended_settings_update_ = millis();
+
+  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
+  // based on outstanding_commands_ counter
   
   // Update all entity types consistently
   this->update_all_entities(start_address, data);
@@ -1400,16 +1477,13 @@ void DeyeInverter::handle_extended_settings_response(const std::vector<uint8_t> 
 
 void DeyeInverter::handle_california_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received California settings response: %zu bytes for register 0x%04X", data.size(), start_address);
-  
+
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS;
-  this->last_california_settings_update_ = millis();
+
+  // Note: request_in_progress_, pending flag, and timestamp are now managed in the callback
+  // based on outstanding_commands_ counter
   
   // Update all entity types consistently
   this->update_all_entities(start_address, data);
@@ -1417,17 +1491,13 @@ void DeyeInverter::handle_california_settings_response(const std::vector<uint8_t
 
 void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received device info response: %zu bytes for register 0x%04X", data.size(), start_address);
-  
+
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
   }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_DEVICE_INFO;
-  this->last_device_info_update_ = millis();
-  this->device_info_initialized_ = true;
+
+  // Note: request_in_progress_, pending flag, timestamp, and device_info_initialized_ are now managed in the callback
+  // based on outstanding_commands_ counter
   
   if (start_address >= 3 && start_address <= 14) {
 #ifdef USE_TEXT_SENSOR

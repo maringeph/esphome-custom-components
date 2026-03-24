@@ -239,7 +239,6 @@ class DeyeInverter : public modbus_controller::ModbusController {
   uint8_t outstanding_commands_{0};   // Count of commands in flight - currently used only for STATISTICS (multi-range)
 
   // Range index tracking for phased requests (queue one range at a time)
-  size_t current_range_index_{0};              // For LIVEDATA ranges
   size_t current_battery_module_range_{0};     // For BATTERY_MODULES ranges
 
   // Consecutive timeout tracking (following ds100_meter pattern)

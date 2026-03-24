@@ -1555,8 +1555,22 @@ async def to_code(config):
         var.set_update_interval_device_info(config[CONF_UPDATE_INTERVAL_DEVICE_INFO])
     )
 
-    # Set base update interval for modbus_controller polling (use live interval)
-    cg.add(var.set_update_interval(config[CONF_UPDATE_INTERVAL_LIVE]))
+    # Calculate base update interval for modbus_controller polling
+    # Following ds100_meter pattern: GCD of all intervals divided by 5
+    from math import gcd
+
+    intervals = [
+        config[CONF_UPDATE_INTERVAL_LIVE].total_milliseconds,
+        config[CONF_UPDATE_INTERVAL_STATISTICS].total_milliseconds,
+        config[CONF_UPDATE_INTERVAL_DEVICE_INFO].total_milliseconds,
+    ]
+    base_interval = intervals[0]
+    for interval in intervals[1:]:
+        base_interval = gcd(base_interval, interval)
+
+    # Divide by 5 for smooth polling
+    base_interval = max(base_interval // 5, 50)  # Minimum 50ms
+    cg.add(var.set_update_interval(base_interval))
 
     # Register all sensors (pass device_obj for sensor grouping)
     await register_sensors(var, config, device_obj)

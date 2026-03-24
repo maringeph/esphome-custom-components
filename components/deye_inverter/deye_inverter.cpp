@@ -646,9 +646,6 @@ void DeyeInverter::register_time(time::RealTimeClock *tm) {
 
 void DeyeInverter::update() {
   uint32_t now = millis();
-  
-  ESP_LOGD(TAG, "update() called, now=%u, request_in_progress=%s", 
-           now, this->request_in_progress_ ? "true" : "false");
 
   // Timeout handling: Reset request_in_progress_ if no response for 500ms
   if (this->request_in_progress_ && (now - this->last_request_time_ > 500)) {
@@ -690,9 +687,6 @@ void DeyeInverter::update() {
       (now - this->last_device_info_update_ >= this->interval_device_info_)) {
     this->queue_request(RequestType::DEVICE_INFO);
   }
-
-  ESP_LOGD(TAG, "Update check - pending: 0x%04X, in_progress: %d, timeouts: %d", 
-           this->pending_requests_, this->request_in_progress_, this->consecutive_timeouts_);
 
   // Process only ONE request per update() call to avoid bus overload
   // The individual intervals (1s, 5s, 60s) are still respected by queue_request()

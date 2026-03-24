@@ -248,7 +248,6 @@ class DeyeInverter : public modbus_controller::ModbusController {
   // Entity update methods
 #ifdef USE_SENSOR
   void update_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data);
-  void update_battery_module_sensors(uint16_t start_address, const std::vector<uint8_t>& data);
 #endif
 #ifdef USE_BINARY_SENSOR
   void update_binary_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data);

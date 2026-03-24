@@ -10,40 +10,41 @@ static const char *const TAG = "deye_inverter";
 // SIMPLIFIED REGISTER RANGE DEFINITIONS - Big contiguous blocks
 // =============================================================================
 
-// Device Info: 0-29 (30 registers) - ONE block
+// Device Info Range
 const RegisterRange DeyeInverter::DEVICE_INFO_RANGES[] = {
-    {0, 30, "Device Info"}  // 0-29: Device Type, Modbus Address, Serial Number, Firmware
+    {DEV_INFO_ADDR, DEV_INFO_LEN, "Device Info"}
 };
 
-// Livedata: 500-683 (184 registers) - Split into 2 blocks (max 128 per request)
+// Livedata Ranges
 const RegisterRange DeyeInverter::LIVE_RANGES[] = {
-    {500, 93, "Livedata Part 1"},    // 500-592
-    {598, 86, "Livedata Part 2"}     // 598-683
+    {LIVE_PART1_ADDR, LIVE_PART1_LEN, "Livedata Part 1"},
+    {LIVE_PART2_ADDR, LIVE_PART2_LEN, "Livedata Part 2"}
 };
 
-// Statistics: Multiple ranges for different stat categories
+// Statistics Ranges
 const RegisterRange DeyeInverter::STATS_RANGES[] = {
-    {501, 14, "Daily Stats"},   // 501-514
-    {514, 6, "Battery Stats"},  // 514-519
-    {520, 10, "Grid Stats"},    // 520-529
-    {529, 11, "PV Stats"}       // 529-539
+    {STATS_DAILY_ADDR, STATS_DAILY_LEN, "Daily Stats"},
+    {STATS_BATTERY_ADDR, STATS_BATTERY_LEN, "Battery Stats"},
+    {STATS_GRID_ADDR, STATS_GRID_LEN, "Grid Stats"},
+    {STATS_PV_ADDR, STATS_PV_LEN, "PV Stats"}
 };
 
-// Settings: 60-228 (169 registers) - ONE block
+// Settings Ranges
 const RegisterRange DeyeInverter::SETTINGS_RANGES[] = {
-    {60, 169, "Settings"}  // 60-228: System Settings, Battery, Grid, Time Points
+    {SETTINGS_ADDR, SETTINGS_LEN, "Settings"}
 };
 
-// Settings 2: 310-419 (110 registers) - ONE block
+// Settings 2 Range
 const RegisterRange DeyeInverter::SETTINGS_2_RANGES[] = {
-    {310, 110, "Settings 2"}  // 310-419: Extended Monitoring, California Compliance, Solar
+    {SETTINGS2_ADDR, SETTINGS2_LEN, "Settings 2"}
 };
 
-// Battery Modules: 3 blocks (2000-2999 range) - Split to stay under 128 register limit
+// BMS Registers (2000-2999 range, actual = table + 2000)
+// Structure: 16 modules, each with 6 ID registers (ASCII) and 14 data registers
 const RegisterRange DeyeInverter::BATTERY_MODULE_RANGES[] = {
-    {2500, 90, "Battery Block 1"},   // 2500-2589
-    {2600, 112, "Battery Block 2"},  // 2600-2711
-    {2712, 98, "Battery Block 3"}    // 2712-2809
+    {BMS_IDS_ADDR, BMS_IDS_LEN, "BMS IDs"},              // 2500-2595: All 16 modules IDs
+    {BMS_DATA_1_8_ADDR, BMS_DATA_1_8_LEN, "BMS Data 1-8"},      // 2600-2711: Modules 1-8 data
+    {BMS_DATA_9_16_ADDR, BMS_DATA_9_16_LEN, "BMS Data 9-16"}      // 2712-2823: Modules 9-16 data
 };
 
 // =============================================================================
@@ -500,13 +501,13 @@ void DeyeTime::write_time_to_inverter() {
   if (minute > 59) minute = 0;
   if (second > 59) second = 0;
   
-  uint16_t reg62 = (static_cast<uint16_t>(year_offset) << 8) | month;
-  uint16_t reg63 = (static_cast<uint16_t>(day) << 8) | hour;
-  uint16_t reg64 = (static_cast<uint16_t>(minute) << 8) | second;
+  uint16_t year_month_value = (static_cast<uint16_t>(year_offset) << 8) | month;
+  uint16_t day_hour_value = (static_cast<uint16_t>(day) << 8) | hour;
+  uint16_t minute_second_value = (static_cast<uint16_t>(minute) << 8) | second;
   
-  this->parent_->write_register(62, reg62);
-  this->parent_->write_register(63, reg63);
-  this->parent_->write_register(64, reg64);
+  this->parent_->write_register(REG_SYSTEM_TIME_BYTE1, year_month_value);
+  this->parent_->write_register(REG_SYSTEM_TIME_BYTE3, day_hour_value);
+  this->parent_->write_register(REG_SYSTEM_TIME_BYTE5, minute_second_value);
   
   ESP_LOGI(TAG, "System time written to inverter: %04d-%02d-%02d %02d:%02d:%02d",
            now_time.year, now_time.month, now_time.day_of_month,
@@ -775,12 +776,12 @@ void DeyeInverter::process_next_request() {
       // Don't clear pending flag here - wait for successful response in handler
       // Don't update timestamp here - wait for successful response
       
-      // Read system time registers (62-64)
+      // Read system time registers (REG_SYSTEM_TIME_BYTE1 - REG_SYSTEM_TIME_BYTE5)
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-          this, modbus_controller::ModbusRegisterType::HOLDING, 62, 3);
+          this, modbus_controller::ModbusRegisterType::HOLDING, REG_SYSTEM_TIME_BYTE1, 3);
       cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
                                  const std::vector<uint8_t> &data) {
-        this->handle_time_response(data, 62);
+        this->handle_time_response(data, REG_SYSTEM_TIME_BYTE1);
       };
       this->queue_command(cmd);
       break;
@@ -873,8 +874,9 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::SETTINGS: {
-      ESP_LOGD(TAG, "Queueing request: settings (60-228, 169 registers)");
-      // Single big block read - 60-228: System Settings, Battery, Grid, Time Points
+      ESP_LOGD(TAG, "Queueing request: settings (%d-%d, %d registers)",
+               SETTINGS_RANGES[0].start, SETTINGS_RANGES[0].start + SETTINGS_RANGES[0].count - 1, SETTINGS_RANGES[0].count);
+      // Single big block read
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
           this, modbus_controller::ModbusRegisterType::HOLDING,
           SETTINGS_RANGES[0].start, SETTINGS_RANGES[0].count);
@@ -890,8 +892,9 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::SETTINGS_2: {
-      ESP_LOGD(TAG, "Queueing request: settings 2 (310-419, 110 registers)");
-      // Single big block read - 310-419: Extended Monitoring, California Compliance, Solar
+      ESP_LOGD(TAG, "Queueing request: settings 2 (%d-%d, %d registers)",
+               SETTINGS_2_RANGES[0].start, SETTINGS_2_RANGES[0].start + SETTINGS_2_RANGES[0].count - 1, SETTINGS_2_RANGES[0].count);
+      // Single big block read
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
           this, modbus_controller::ModbusRegisterType::HOLDING,
           SETTINGS_2_RANGES[0].start, SETTINGS_2_RANGES[0].count);
@@ -907,8 +910,9 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::DEVICE_INFO: {
-      ESP_LOGD(TAG, "Queueing request: device info (0-29, 30 registers)");
-      // Single big block read - 0-29: Device Type, Serial Number, Firmware
+      ESP_LOGD(TAG, "Queueing request: device info (%d-%d, %d registers)",
+               DEVICE_INFO_RANGES[0].start, DEVICE_INFO_RANGES[0].start + DEVICE_INFO_RANGES[0].count - 1, DEVICE_INFO_RANGES[0].count);
+      // Single big block read
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
           this, modbus_controller::ModbusRegisterType::HOLDING,
           DEVICE_INFO_RANGES[0].start, DEVICE_INFO_RANGES[0].count);
@@ -1122,11 +1126,11 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
   // Note: request_in_progress_, pending flag, timestamp, and device_info_initialized_ are now managed in the callback
   // based on outstanding_commands_ counter
   
-  if (start_address >= 3 && start_address <= 14) {
+  if (start_address >= REG_RANGE_SERIAL_START && start_address <= REG_RANGE_SERIAL_END) {
 #ifdef USE_TEXT_SENSOR
     this->update_serial_number_from_data(start_address, data);
 #endif
-  } else if (start_address >= 27 && start_address <= 29) {
+  } else if (start_address >= REG_RANGE_FW_INFO_START && start_address <= REG_RANGE_FW_INFO_END) {
 #ifdef USE_TEXT_SENSOR
     this->update_firmware_info_from_data(start_address, data);
 #endif
@@ -1338,46 +1342,6 @@ void DeyeInverter::update_sensors_from_data(uint16_t start_address, const std::v
   }
 }
 
-void DeyeInverter::update_battery_module_sensors(uint16_t start_address, const std::vector<uint8_t>& data) {
-  uint8_t module_index = 0;
-  if (start_address >= 684 && start_address <= 697) module_index = 0;
-  else if (start_address >= 698 && start_address <= 711) module_index = 1;
-  else if (start_address >= 712 && start_address <= 725) module_index = 2;
-  else if (start_address >= 726 && start_address <= 739) module_index = 3;
-  else if (start_address >= 740 && start_address <= 753) module_index = 4;
-  else if (start_address >= 754 && start_address <= 767) module_index = 5;
-  else if (start_address >= 768 && start_address <= 781) module_index = 6;
-  else if (start_address >= 782 && start_address <= 795) module_index = 7;
-  else if (start_address >= 796 && start_address <= 809) module_index = 8;
-  
-  for (auto *base_sensor : this->sensors_) {
-    auto *sensor = static_cast<DeyeSensor*>(base_sensor);
-    if (sensor->get_is_battery_module() && sensor->get_module_index() == module_index) {
-      uint16_t sensor_addr = sensor->get_address();
-      
-      if (sensor_addr >= start_address && sensor_addr < start_address + (data.size() / 2)) {
-        size_t offset = (sensor_addr - start_address) * 2;
-        
-        if (offset + 2 <= data.size()) {
-          uint16_t raw_value = this->parse_uint16(data, offset);
-          
-          if (sensor->get_is_cell_voltage()) {
-            uint8_t cell_idx = sensor->get_cell_index();
-            if (cell_idx < 8) {
-              size_t cell_offset = 4 + (cell_idx * 2);
-              if (cell_offset + 2 <= data.size()) {
-                uint16_t cell_value = this->parse_uint16(data, cell_offset);
-                sensor->update_value(cell_value);
-              }
-            }
-          } else {
-            sensor->update_value(raw_value);
-          }
-        }
-      }
-    }
-  }
-}
 #endif
 
 float DeyeInverter::parse_battery_module_value(const std::vector<uint8_t>& data, size_t offset, 
@@ -1441,7 +1405,7 @@ void DeyeInverter::update_text_sensors_from_data(uint16_t start_address, const s
 }
 
 void DeyeInverter::update_serial_number_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
-  if (start_address > 14) return;
+  if (start_address > REG_RANGE_SERIAL_END) return;
   
   for (auto *base_sensor : this->text_sensors_) {
     auto *sensor = static_cast<DeyeTextSensor*>(base_sensor);
@@ -1453,7 +1417,7 @@ void DeyeInverter::update_serial_number_from_data(uint16_t start_address, const 
 }
 
 void DeyeInverter::update_firmware_info_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
-  if (start_address < 27 || start_address > 29) return;
+  if (start_address < REG_RANGE_FW_INFO_START || start_address > REG_RANGE_FW_INFO_END) return;
   
   for (auto *base_sensor : this->text_sensors_) {
     auto *sensor = static_cast<DeyeTextSensor*>(base_sensor);
@@ -1545,21 +1509,21 @@ void DeyeInverter::update_datetimes_from_data(uint16_t start_address, const std:
 
 #ifdef USE_TIME
 void DeyeInverter::update_system_time_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
-  if (start_address > 62 || data.size() < 6) {
+  if (start_address > REG_SYSTEM_TIME_BYTE1 || data.size() < 6) {
     return;
   }
   
-  size_t offset62 = (62 - start_address) * 2;
-  if (offset62 + 6 > data.size()) {
+  size_t time_offset = (REG_SYSTEM_TIME_BYTE1 - start_address) * 2;
+  if (time_offset + 6 > data.size()) {
     return;
   }
   
-  uint8_t year = data[offset62];
-  uint8_t month = data[offset62 + 1];
-  uint8_t day = data[offset62 + 2];
-  uint8_t hour = data[offset62 + 3];
-  uint8_t minute = data[offset62 + 4];
-  uint8_t second = data[offset62 + 5];
+  uint8_t year = data[time_offset];
+  uint8_t month = data[time_offset + 1];
+  uint8_t day = data[time_offset + 2];
+  uint8_t hour = data[time_offset + 3];
+  uint8_t minute = data[time_offset + 4];
+  uint8_t second = data[time_offset + 5];
   
   ESP_LOGD(TAG, "Inverter system time: %02d-%02d-%02d %02d:%02d:%02d",
            year, month, day, hour, minute, second);

@@ -263,6 +263,10 @@ class DeyeInverter : public modbus_controller::ModbusController {
   // Current request type being processed
   RequestType current_request_type_{RequestType::LIVEDATA};
 
+  // Range index tracking for phased requests (queue one range at a time)
+  size_t current_range_index_{0};              // For LIVEDATA ranges
+  size_t current_battery_module_range_{0};     // For BATTERY_MODULES ranges
+
   // Consecutive timeout tracking (following ds100_meter pattern)
   uint8_t consecutive_timeouts_{0};
   static const uint8_t MAX_CONSECUTIVE_TIMEOUTS = 3;

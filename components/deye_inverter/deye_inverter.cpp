@@ -876,20 +876,29 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::LIVEDATA: {
-      ESP_LOGD(TAG, "Queueing request: livedata (all %zu ranges)", LIVE_RANGES_COUNT);
+      ESP_LOGD(TAG, "Queueing request: livedata (range %zu/%zu: %s)", 
+               this->current_range_index_ + 1, LIVE_RANGES_COUNT,
+               LIVE_RANGES[this->current_range_index_].name);
       this->last_live_update_ = now;
+      
+      // Queue ONLY ONE range per call to allow interleaving with other categories
+      const RegisterRange& range = LIVE_RANGES[this->current_range_index_];
+      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+          this, modbus_controller::ModbusRegisterType::HOLDING,
+          range.start, range.count);
+      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                const std::vector<uint8_t> &data) {
+        this->handle_live_data_response(data, addr);
+      };
+      this->queue_command(cmd);
+      
+      // Clear pending flag immediately to allow other categories
       this->pending_requests_ &= ~PENDING_LIVEDATA;
       
-      // Queue ALL live data ranges at once (like STATISTICS does)
-      for (size_t i = 0; i < LIVE_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            LIVE_RANGES[i].start, LIVE_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_live_data_response(data, LIVE_RANGES[i].start);
-        };
-        this->queue_command(cmd);
+      // Increment index for next time
+      this->current_range_index_++;
+      if (this->current_range_index_ >= LIVE_RANGES_COUNT) {
+        this->current_range_index_ = 0;
       }
       break;
     }
@@ -914,22 +923,30 @@ void DeyeInverter::process_next_request() {
     }
 
     case RequestType::BATTERY_MODULES: {
-      ESP_LOGD(TAG, "Queueing request: battery modules (all %zu ranges)",
-               BATTERY_MODULE_RANGES_COUNT);
+      ESP_LOGD(TAG, "Queueing request: battery modules (range %zu/%zu: %s)",
+               this->current_battery_module_range_ + 1, BATTERY_MODULE_RANGES_COUNT,
+               BATTERY_MODULE_RANGES[this->current_battery_module_range_].name);
       this->last_battery_modules_update_ = now;
+      
+      // Queue ONLY ONE range per call to allow interleaving with other categories
+      const RegisterRange& range = BATTERY_MODULE_RANGES[this->current_battery_module_range_];
+      uint8_t module_idx = static_cast<uint8_t>(this->current_battery_module_range_);
+      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+          this, modbus_controller::ModbusRegisterType::HOLDING,
+          range.start, range.count);
+      cmd.on_data_func = [this, module_idx](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                            const std::vector<uint8_t> &data) {
+        this->handle_battery_module_response(data, addr, module_idx);
+      };
+      this->queue_command(cmd);
+      
+      // Clear pending flag immediately to allow other categories
       this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
       
-      // Queue ALL battery module ranges at once
-      for (size_t i = 0; i < BATTERY_MODULE_RANGES_COUNT; i++) {
-        uint8_t module_idx = static_cast<uint8_t>(i);
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            BATTERY_MODULE_RANGES[i].start, BATTERY_MODULE_RANGES[i].count);
-        cmd.on_data_func = [this, module_idx, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                                  const std::vector<uint8_t> &data) {
-          this->handle_battery_module_response(data, BATTERY_MODULE_RANGES[i].start, module_idx);
-        };
-        this->queue_command(cmd);
+      // Increment index for next time
+      this->current_battery_module_range_++;
+      if (this->current_battery_module_range_ >= BATTERY_MODULE_RANGES_COUNT) {
+        this->current_battery_module_range_ = 0;
       }
       break;
     }

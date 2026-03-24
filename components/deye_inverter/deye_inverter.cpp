@@ -759,9 +759,10 @@ void DeyeInverter::update() {
   if (!this->request_in_progress_ && this->pending_requests_ != 0) {
     RequestType next = this->get_highest_priority_pending();
     
-    // If bus is overloaded, only process high-priority requests (TIME, LIVEDATA, STATISTICS)
+    // If bus is overloaded, only process high-priority requests (TIME, LIVEDATA, STATISTICS, BATTERY_MODULES)
     if (this->consecutive_timeouts_ >= MAX_CONSECUTIVE_TIMEOUTS) {
-      if (next == RequestType::TIME || next == RequestType::LIVEDATA || next == RequestType::STATISTICS) {
+      if (next == RequestType::TIME || next == RequestType::LIVEDATA || 
+          next == RequestType::STATISTICS || next == RequestType::BATTERY_MODULES) {
         this->process_next_request();
       } else {
         ESP_LOGV(TAG, "Skipping low-priority request %d due to bus overload (timeouts: %d)", 
@@ -861,8 +862,8 @@ void DeyeInverter::process_next_request() {
   switch (next) {
     case RequestType::TIME: {
       ESP_LOGD(TAG, "Queueing request: time sync");
-      this->last_time_update_ = now;
-      this->pending_requests_ &= ~PENDING_TIME;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       // Read system time registers (62-64)
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -879,7 +880,6 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: livedata (range %zu/%zu: %s)", 
                this->current_range_index_ + 1, LIVE_RANGES_COUNT,
                LIVE_RANGES[this->current_range_index_].name);
-      this->last_live_update_ = now;
       
       // Queue ONLY ONE range per call to allow interleaving with other categories
       const RegisterRange& range = LIVE_RANGES[this->current_range_index_];
@@ -892,10 +892,10 @@ void DeyeInverter::process_next_request() {
       };
       this->queue_command(cmd);
       
-      // Clear pending flag immediately to allow other categories
-      this->pending_requests_ &= ~PENDING_LIVEDATA;
+      // Don't clear pending flag here - wait for last range to complete in handler
+      // Don't update timestamp here - wait for last range to complete
       
-      // Increment index for next time
+      // Increment index for next time (will be checked in handler for completion)
       this->current_range_index_++;
       if (this->current_range_index_ >= LIVE_RANGES_COUNT) {
         this->current_range_index_ = 0;
@@ -905,8 +905,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::STATISTICS: {
       ESP_LOGD(TAG, "Queueing request: statistics");
-      this->last_stats_update_ = now;
-      this->pending_requests_ &= ~PENDING_STATISTICS;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       // Queue all statistics ranges
       for (size_t i = 0; i < STATS_RANGES_COUNT; i++) {
@@ -926,7 +926,6 @@ void DeyeInverter::process_next_request() {
       ESP_LOGD(TAG, "Queueing request: battery modules (range %zu/%zu: %s)",
                this->current_battery_module_range_ + 1, BATTERY_MODULE_RANGES_COUNT,
                BATTERY_MODULE_RANGES[this->current_battery_module_range_].name);
-      this->last_battery_modules_update_ = now;
       
       // Queue ONLY ONE range per call to allow interleaving with other categories
       const RegisterRange& range = BATTERY_MODULE_RANGES[this->current_battery_module_range_];
@@ -940,10 +939,10 @@ void DeyeInverter::process_next_request() {
       };
       this->queue_command(cmd);
       
-      // Clear pending flag immediately to allow other categories
-      this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
+      // Don't clear pending flag here - wait for last range to complete in handler
+      // Don't update timestamp here - wait for last range to complete
       
-      // Increment index for next time
+      // Increment index for next time (will be checked in handler for completion)
       this->current_battery_module_range_++;
       if (this->current_battery_module_range_ >= BATTERY_MODULE_RANGES_COUNT) {
         this->current_battery_module_range_ = 0;
@@ -953,8 +952,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::SETTINGS: {
       ESP_LOGD(TAG, "Queueing request: settings");
-      this->last_settings_update_ = now;
-      this->pending_requests_ &= ~PENDING_SETTINGS;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       // Queue all settings ranges
       for (size_t i = 0; i < SETTINGS_RANGES_COUNT; i++) {
@@ -972,8 +971,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::SYSTEM_SETTINGS: {
       ESP_LOGD(TAG, "Queueing request: system settings");
-      this->last_system_settings_update_ = now;
-      this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       for (size_t i = 0; i < SETTINGS_SYSTEM_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -990,8 +989,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::GRID_PROTECTION: {
       ESP_LOGD(TAG, "Queueing request: grid protection");
-      this->last_grid_protection_update_ = now;
-      this->pending_requests_ &= ~PENDING_GRID_PROTECTION;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       for (size_t i = 0; i < SETTINGS_GRID_PROTECTION_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -1008,8 +1007,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::EXTENDED_SETTINGS: {
       ESP_LOGD(TAG, "Queueing request: extended settings");
-      this->last_extended_settings_update_ = now;
-      this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       for (size_t i = 0; i < SETTINGS_EXTENDED_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -1026,8 +1025,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::CALIFORNIA_SETTINGS: {
       ESP_LOGD(TAG, "Queueing request: California settings");
-      this->last_california_settings_update_ = now;
-      this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       for (size_t i = 0; i < SETTINGS_CALIFORNIA_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -1044,8 +1043,8 @@ void DeyeInverter::process_next_request() {
 
     case RequestType::DEVICE_INFO: {
       ESP_LOGD(TAG, "Queueing request: device info");
-      this->last_device_info_update_ = now;
-      this->pending_requests_ &= ~PENDING_DEVICE_INFO;
+      // Don't clear pending flag here - wait for successful response in handler
+      // Don't update timestamp here - wait for successful response
       
       for (size_t i = 0; i < DEVICE_INFO_RANGES_COUNT; i++) {
         auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -1057,7 +1056,6 @@ void DeyeInverter::process_next_request() {
         };
         this->queue_command(cmd);
       }
-      this->device_info_initialized_ = true;
       break;
     }
   }
@@ -1095,6 +1093,10 @@ void DeyeInverter::handle_time_response(const std::vector<uint8_t> &data, uint16
   
   this->request_in_progress_ = false;
   
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_TIME;
+  this->last_time_update_ = millis();
+  
   // Process time data (registers 62-64)
   if (data.size() >= 6) {
 #ifdef USE_TIME
@@ -1113,6 +1115,13 @@ void DeyeInverter::handle_live_data_response(const std::vector<uint8_t> &data, u
   }
   
   this->request_in_progress_ = false;
+  
+  // For phased requests: clear flag and update timestamp only when last range completes
+  // The index was already incremented in process_next_request(), so 0 means we just wrapped
+  if (this->current_range_index_ == 0) {
+    this->pending_requests_ &= ~PENDING_LIVEDATA;
+    this->last_live_update_ = millis();
+  }
   
   // Process data for all entity types
   if (start_address >= 3 && start_address <= 14) {
@@ -1165,6 +1174,10 @@ void DeyeInverter::handle_statistics_response(const std::vector<uint8_t> &data, 
   
   this->request_in_progress_ = false;
   
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_STATISTICS;
+  this->last_stats_update_ = millis();
+  
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);
 #endif
@@ -1198,6 +1211,13 @@ void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &da
   
   this->request_in_progress_ = false;
   
+  // For phased requests: clear flag and update timestamp only when last range completes
+  // The index was already incremented in process_next_request(), so 0 means we just wrapped
+  if (this->current_battery_module_range_ == 0) {
+    this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
+    this->last_battery_modules_update_ = millis();
+  }
+  
 #ifdef USE_SENSOR
   this->update_battery_module_sensors(start_address, data);
 #endif
@@ -1211,6 +1231,10 @@ void DeyeInverter::handle_settings_response(const std::vector<uint8_t> &data, ui
   }
   
   this->request_in_progress_ = false;
+  
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_SETTINGS;
+  this->last_settings_update_ = millis();
   
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);
@@ -1243,6 +1267,10 @@ void DeyeInverter::handle_system_settings_response(const std::vector<uint8_t> &d
   }
   
   this->request_in_progress_ = false;
+  
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_SYSTEM_SETTINGS;
+  this->last_system_settings_update_ = millis();
   
   // Also check for system time
   if (start_address <= 62 && start_address + (data.size() / 2) > 62) {
@@ -1283,6 +1311,10 @@ void DeyeInverter::handle_grid_protection_response(const std::vector<uint8_t> &d
   
   this->request_in_progress_ = false;
   
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_GRID_PROTECTION;
+  this->last_grid_protection_update_ = millis();
+  
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);
 #endif
@@ -1306,6 +1338,10 @@ void DeyeInverter::handle_extended_settings_response(const std::vector<uint8_t> 
   
   this->request_in_progress_ = false;
   
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_EXTENDED_SETTINGS;
+  this->last_extended_settings_update_ = millis();
+  
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);
 #endif
@@ -1323,6 +1359,10 @@ void DeyeInverter::handle_california_settings_response(const std::vector<uint8_t
   
   this->request_in_progress_ = false;
   
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_CALIFORNIA_SETTINGS;
+  this->last_california_settings_update_ = millis();
+  
 #ifdef USE_SENSOR
   this->update_sensors_from_data(start_address, data);
 #endif
@@ -1339,6 +1379,11 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
   }
   
   this->request_in_progress_ = false;
+  
+  // Clear pending flag and update timestamp on successful response
+  this->pending_requests_ &= ~PENDING_DEVICE_INFO;
+  this->last_device_info_update_ = millis();
+  this->device_info_initialized_ = true;
   
   if (start_address >= 3 && start_address <= 14) {
 #ifdef USE_TEXT_SENSOR

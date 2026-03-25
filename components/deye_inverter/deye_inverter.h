@@ -241,10 +241,23 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static constexpr uint32_t PENDING_BATTERY_0 = 0x00000800;
   static constexpr uint32_t PENDING_BATTERY_1 = 0x00001000;
   static constexpr uint32_t PENDING_BATTERY_2 = 0x00002000;
+  
+  // Legacy aliases for backward compatibility during transition
+  static constexpr uint32_t PENDING_LIVEDATA = PENDING_LIVE_0 | PENDING_LIVE_1;
+  static constexpr uint32_t PENDING_STATISTICS = PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3;
+  static constexpr uint32_t PENDING_SETTINGS = PENDING_SETTINGS_0 | PENDING_SETTINGS_1;
+  static constexpr uint32_t PENDING_SETTINGS_2 = PENDING_SETTINGS2_0;
+  static constexpr uint32_t PENDING_BATTERY_MODULES = PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
 
   uint32_t pending_requests_{0};      // Bitmask of pending ranges to send
   uint32_t active_requests_{0};       // Bitmask of currently active ranges
   uint32_t last_request_time_{0};     // Timestamp of last request sent
+  
+  // Legacy compatibility members
+  bool request_in_progress_{false};   // True if any request is active (legacy)
+  uint32_t last_settings_2_update_{0}; // Alias for last_settings_update_
+  size_t current_battery_module_range_{0}; // For phased battery requests
+  std::atomic<uint8_t> outstanding_commands_{0};  // Count of commands in flight
   
   // Timing variables - per category (ranges within category share interval)
   uint32_t last_device_info_update_{0};

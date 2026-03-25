@@ -713,19 +713,19 @@ void DeyeInverter::queue_request(RequestType type) {
       this->pending_requests_ |= PENDING_TIME;
       break;
     case RequestType::LIVEDATA:
-      this->pending_requests_ |= PENDING_LIVEDATA;
+      this->pending_requests_ |= PENDING_LIVE_0 | PENDING_LIVE_1;
       break;
     case RequestType::STATISTICS:
-      this->pending_requests_ |= PENDING_STATISTICS;
+      this->pending_requests_ |= PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3;
       break;
     case RequestType::SETTINGS:
-      this->pending_requests_ |= PENDING_SETTINGS;
+      this->pending_requests_ |= PENDING_SETTINGS_0 | PENDING_SETTINGS_1;
       break;
     case RequestType::SETTINGS_2:
-      this->pending_requests_ |= PENDING_SETTINGS_2;
+      this->pending_requests_ |= PENDING_SETTINGS2_0;
       break;
     case RequestType::BATTERY_MODULES:
-      this->pending_requests_ |= PENDING_BATTERY_MODULES;
+      this->pending_requests_ |= PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
       break;
     case RequestType::DEVICE_INFO:
       this->pending_requests_ |= PENDING_DEVICE_INFO;
@@ -737,200 +737,143 @@ DeyeInverter::RequestType DeyeInverter::get_highest_priority_pending() {
   // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
   if (this->pending_requests_ & PENDING_TIME)
     return RequestType::TIME;
-  if (this->pending_requests_ & PENDING_LIVEDATA)
+  if (this->pending_requests_ & (PENDING_LIVE_0 | PENDING_LIVE_1))
     return RequestType::LIVEDATA;
-  if (this->pending_requests_ & PENDING_STATISTICS)
+  if (this->pending_requests_ & (PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3))
     return RequestType::STATISTICS;
-  if (this->pending_requests_ & PENDING_SETTINGS)
+  if (this->pending_requests_ & (PENDING_SETTINGS_0 | PENDING_SETTINGS_1))
     return RequestType::SETTINGS;
-  if (this->pending_requests_ & PENDING_SETTINGS_2)
+  if (this->pending_requests_ & PENDING_SETTINGS2_0)
     return RequestType::SETTINGS_2;
-  if (this->pending_requests_ & PENDING_BATTERY_MODULES)
+  if (this->pending_requests_ & (PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2))
     return RequestType::BATTERY_MODULES;
   if (this->pending_requests_ & PENDING_DEVICE_INFO)
     return RequestType::DEVICE_INFO;
-  return RequestType::LIVEDATA;  // Should never reach here if pending_requests_ != 0
+  return RequestType::LIVEDATA;
 }
 
 void DeyeInverter::process_next_request() {
-  if (this->pending_requests_ == 0)
+  if (this->active_requests_ != 0 || this->pending_requests_ == 0)
     return;
 
-  RequestType next = this->get_highest_priority_pending();
   uint32_t now = millis();
-  this->last_request_time_ = now;
-  this->request_in_progress_ = true;
-
-  switch (next) {
-    case RequestType::TIME: {
-      ESP_LOGD(TAG, "Queueing request: time sync");
-      // Clear pending flag immediately - request is now in modbus_controller queue
-      this->pending_requests_ &= ~PENDING_TIME;
-      
-      // Read system time registers (REG_SYSTEM_TIME_BYTE1 - REG_SYSTEM_TIME_BYTE5)
-      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-          this, modbus_controller::ModbusRegisterType::HOLDING, REG_SYSTEM_TIME_BYTE1, 3);
-      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                 const std::vector<uint8_t> &data) {
-        this->handle_time_response(data, REG_SYSTEM_TIME_BYTE1);
-      };
-      this->queue_command(cmd);
-      break;
-    }
-
-    case RequestType::LIVEDATA: {
-      ESP_LOGD(TAG, "Queueing request: livedata (%zu blocks)", LIVE_RANGES_COUNT);
-      // Clear pending flag immediately - all requests are now going to modbus_controller queue
-      this->pending_requests_ &= ~PENDING_LIVEDATA;
-      // Multiple blocks - use counter to track completion
-      this->outstanding_commands_ = LIVE_RANGES_COUNT;
-      
-      for (size_t i = 0; i < LIVE_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            LIVE_RANGES[i].start, LIVE_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_live_data_response(data, LIVE_RANGES[i].start);
-          // Guard against underflow if timeout already reset the counter
-          if (this->outstanding_commands_ > 0) {
-            this->outstanding_commands_--;
-            if (this->outstanding_commands_ == 0) {
-              this->request_in_progress_ = false;
-              this->last_live_update_ = millis();
-            }
-          }
-        };
-        this->queue_command(cmd);
-      }
-      break;
-    }
-
-    case RequestType::STATISTICS: {
-      ESP_LOGD(TAG, "Queueing request: statistics");
-      // Clear pending flag immediately - all requests are now going to modbus_controller queue
-      this->pending_requests_ &= ~PENDING_STATISTICS;
-
-      // Initialize command counter for multi-command request
-      this->outstanding_commands_ = STATS_RANGES_COUNT;
-
-      // Queue all statistics ranges
-      for (size_t i = 0; i < STATS_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            STATS_RANGES[i].start, STATS_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_statistics_response(data, STATS_RANGES[i].start);
-          // Guard against underflow if timeout already reset the counter
-          if (this->outstanding_commands_ > 0) {
-            this->outstanding_commands_--;
-            if (this->outstanding_commands_ == 0) {
-              this->request_in_progress_ = false;
-              this->last_stats_update_ = millis();
-            }
-          }
-        };
-        this->queue_command(cmd);
-      }
-      break;
-    }
-
-    case RequestType::BATTERY_MODULES: {
-      ESP_LOGD(TAG, "Queueing request: battery block %zu/%zu (%s)",
-               this->current_battery_module_range_ + 1, BATTERY_MODULE_RANGES_COUNT,
-               BATTERY_MODULE_RANGES[this->current_battery_module_range_].name);
-      // Clear pending flag immediately - request is now in modbus_controller queue
-      this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
-      
-      // Queue ONLY ONE range per call to allow interleaving with other categories
-      const RegisterRange& range = BATTERY_MODULE_RANGES[this->current_battery_module_range_];
-      uint8_t block_idx = static_cast<uint8_t>(this->current_battery_module_range_);
-      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-          this, modbus_controller::ModbusRegisterType::HOLDING,
-          range.start, range.count);
-      cmd.on_data_func = [this, block_idx](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                           const std::vector<uint8_t> &data) {
-        this->handle_battery_module_response(data, addr, block_idx);
-        // For phased requests, update timestamp when last range completes
-        if (this->current_battery_module_range_ == 0) {
-          this->last_battery_modules_update_ = millis();
-        }
-      };
-      this->queue_command(cmd);
-      
-      // Increment index for next time
-      this->current_battery_module_range_++;
-      if (this->current_battery_module_range_ >= BATTERY_MODULE_RANGES_COUNT) {
-        this->current_battery_module_range_ = 0;
-      }
-      break;
-    }
-
-    case RequestType::SETTINGS: {
-      ESP_LOGD(TAG, "Queueing request: settings (%zu blocks)", SETTINGS_RANGES_COUNT);
-      // Multiple blocks - use counter to track completion
-      this->outstanding_commands_ = SETTINGS_RANGES_COUNT;
-
-      for (size_t i = 0; i < SETTINGS_RANGES_COUNT; i++) {
-        auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-            this, modbus_controller::ModbusRegisterType::HOLDING,
-            SETTINGS_RANGES[i].start, SETTINGS_RANGES[i].count);
-        cmd.on_data_func = [this, i](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                      const std::vector<uint8_t> &data) {
-          this->handle_settings_response(data, SETTINGS_RANGES[i].start);
-          // Guard against underflow if timeout already reset the counter
-          if (this->outstanding_commands_ > 0) {
-            this->outstanding_commands_--;
-            if (this->outstanding_commands_ == 0) {
-              this->request_in_progress_ = false;
-              this->pending_requests_ &= ~PENDING_SETTINGS;
-              this->last_settings_update_ = millis();
-            }
-          }
-        };
-        this->queue_command(cmd);
-      }
-      break;
-    }
-
-    case RequestType::SETTINGS_2: {
-      ESP_LOGD(TAG, "Queueing request: settings 2 (%d-%d, %d registers)",
-               SETTINGS_2_RANGES[0].start, SETTINGS_2_RANGES[0].start + SETTINGS_2_RANGES[0].count - 1, SETTINGS_2_RANGES[0].count);
-      // Single big block read
-      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-          this, modbus_controller::ModbusRegisterType::HOLDING,
-          SETTINGS_2_RANGES[0].start, SETTINGS_2_RANGES[0].count);
-      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                const std::vector<uint8_t> &data) {
-        this->handle_settings_2_response(data, addr);
-        this->request_in_progress_ = false;
-        this->pending_requests_ &= ~PENDING_SETTINGS_2;
-        this->last_settings_2_update_ = millis();
-      };
-      this->queue_command(cmd);
-      break;
-    }
-
-    case RequestType::DEVICE_INFO: {
-      ESP_LOGD(TAG, "Queueing request: device info (%d-%d, %d registers)",
-               DEVICE_INFO_RANGES[0].start, DEVICE_INFO_RANGES[0].start + DEVICE_INFO_RANGES[0].count - 1, DEVICE_INFO_RANGES[0].count);
-      // Single big block read
-      auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
-          this, modbus_controller::ModbusRegisterType::HOLDING,
-          DEVICE_INFO_RANGES[0].start, DEVICE_INFO_RANGES[0].count);
-      cmd.on_data_func = [this](modbus_controller::ModbusRegisterType rt, uint16_t addr,
-                                const std::vector<uint8_t> &data) {
-        this->handle_device_info_response(data, addr);
-        this->request_in_progress_ = false;
-        this->pending_requests_ &= ~PENDING_DEVICE_INFO;
-        this->last_device_info_update_ = millis();
-        this->device_info_initialized_ = true;
-      };
-      this->queue_command(cmd);
-      break;
-    }
+  uint32_t range_bit = 0;
+  const RegisterRange* range = nullptr;
+  
+  // Priority order: Check highest priority first
+  if (this->pending_requests_ & PENDING_DEVICE_INFO) {
+    range_bit = PENDING_DEVICE_INFO;
+    range = &DEVICE_INFO_RANGES[0];
   }
+  else if (this->pending_requests_ & PENDING_TIME) {
+    range_bit = PENDING_TIME;
+    range = &TIME_RANGES[0];
+  }
+  else if (this->pending_requests_ & PENDING_LIVE_0) {
+    range_bit = PENDING_LIVE_0;
+    range = &LIVE_RANGES[0];
+  }
+  else if (this->pending_requests_ & PENDING_LIVE_1) {
+    range_bit = PENDING_LIVE_1;
+    range = &LIVE_RANGES[1];
+  }
+  else if (this->pending_requests_ & PENDING_STATS_0) {
+    range_bit = PENDING_STATS_0;
+    range = &STATS_RANGES[0];
+  }
+  else if (this->pending_requests_ & PENDING_STATS_1) {
+    range_bit = PENDING_STATS_1;
+    range = &STATS_RANGES[1];
+  }
+  else if (this->pending_requests_ & PENDING_STATS_2) {
+    range_bit = PENDING_STATS_2;
+    range = &STATS_RANGES[2];
+  }
+  else if (this->pending_requests_ & PENDING_STATS_3) {
+    range_bit = PENDING_STATS_3;
+    range = &STATS_RANGES[3];
+  }
+  else if (this->pending_requests_ & PENDING_SETTINGS_0) {
+    range_bit = PENDING_SETTINGS_0;
+    range = &SETTINGS_RANGES[0];
+  }
+  else if (this->pending_requests_ & PENDING_SETTINGS_1) {
+    range_bit = PENDING_SETTINGS_1;
+    range = &SETTINGS_RANGES[1];
+  }
+  else if (this->pending_requests_ & PENDING_SETTINGS2_0) {
+    range_bit = PENDING_SETTINGS2_0;
+    range = &SETTINGS_2_RANGES[0];
+  }
+  else if (this->pending_requests_ & PENDING_BATTERY_0) {
+    range_bit = PENDING_BATTERY_0;
+    range = &BATTERY_MODULE_RANGES[0];
+  }
+  else if (this->pending_requests_ & PENDING_BATTERY_1) {
+    range_bit = PENDING_BATTERY_1;
+    range = &BATTERY_MODULE_RANGES[1];
+  }
+  else if (this->pending_requests_ & PENDING_BATTERY_2) {
+    range_bit = PENDING_BATTERY_2;
+    range = &BATTERY_MODULE_RANGES[2];
+  }
+  
+  if (range == nullptr)
+    return;
+
+  // Move from pending to active
+  this->pending_requests_ &= ~range_bit;
+  this->active_requests_ |= range_bit;
+  this->last_request_time_ = now;
+
+  ESP_LOGD(TAG, "Queueing request: %s (0x%04X, %d registers)",
+           range->name, range->start, range->count);
+
+  auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
+      this, modbus_controller::ModbusRegisterType::HOLDING,
+      range->start, range->count);
+  
+  cmd.on_data_func = [this, range_bit, range](modbus_controller::ModbusRegisterType rt, uint16_t addr,
+                                               const std::vector<uint8_t> &data) {
+    // Clear active bit
+    this->active_requests_ &= ~range_bit;
+    this->consecutive_timeouts_ = 0;
+    
+    // Update appropriate timestamp based on range category
+    if (range_bit == PENDING_DEVICE_INFO) {
+      this->last_device_info_update_ = millis();
+      this->device_info_initialized_ = true;
+      this->handle_device_info_response(data, range->start);
+    }
+    else if (range_bit == PENDING_TIME) {
+      this->last_time_update_ = millis();
+      this->handle_time_response(data, range->start);
+    }
+    else if (range_bit == PENDING_LIVE_0 || range_bit == PENDING_LIVE_1) {
+      this->last_live_update_ = millis();
+      this->handle_live_data_response(data, range->start);
+    }
+    else if ((range_bit >= PENDING_STATS_0 && range_bit <= PENDING_STATS_3)) {
+      this->last_stats_update_ = millis();
+      this->handle_statistics_response(data, range->start);
+    }
+    else if ((range_bit >= PENDING_SETTINGS_0 && range_bit <= PENDING_SETTINGS2_0)) {
+      this->last_settings_update_ = millis();
+      if (range_bit == PENDING_SETTINGS2_0) {
+        this->handle_settings_2_response(data, range->start);
+      } else {
+        this->handle_settings_response(data, range->start);
+      }
+    }
+    else if ((range_bit >= PENDING_BATTERY_0 && range_bit <= PENDING_BATTERY_2)) {
+      this->last_battery_modules_update_ = millis();
+      uint8_t block_idx = (range_bit == PENDING_BATTERY_0) ? 0 : 
+                          (range_bit == PENDING_BATTERY_1) ? 1 : 2;
+      this->handle_battery_module_response(data, range->start, block_idx);
+    }
+  };
+  
+  this->queue_command(cmd);
 }
 
 // =============================================================================
@@ -957,17 +900,7 @@ void DeyeInverter::send_register_range_read(const RegisterRange& range) {
 void DeyeInverter::handle_time_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received time response: %zu bytes for register 0x%04X", data.size(), start_address);
   
-  // Reset consecutive timeouts counter on successful response
-  if (this->consecutive_timeouts_ > 0) {
-    ESP_LOGV(TAG, "Resetting consecutive timeouts (was %d)", this->consecutive_timeouts_);
-    this->consecutive_timeouts_ = 0;
-  }
-  
-  this->request_in_progress_ = false;
-  
-  // Clear pending flag and update timestamp on successful response
-  this->pending_requests_ &= ~PENDING_TIME;
-  this->last_time_update_ = millis();
+  // Note: Timestamp updated in process_next_request callback
   
   // Process time data (registers 62-64)
   if (data.size() >= 6) {
@@ -1051,18 +984,7 @@ void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &da
   ESP_LOGV(TAG, "Received battery block %d response: %zu bytes for register 0x%04X", 
            block_index + 1, data.size(), start_address);
   
-  if (this->consecutive_timeouts_ > 0) {
-    this->consecutive_timeouts_ = 0;
-  }
-  
-  this->request_in_progress_ = false;
-  
-  // For phased requests: clear flag and update timestamp only when last range completes
-  // The index was already incremented in process_next_request(), so 0 means we just wrapped
-  if (this->current_battery_module_range_ == 0) {
-    this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
-    this->last_battery_modules_update_ = millis();
-  }
+  // Note: Timestamp updated in process_next_request callback
   
   // Update battery sensors (2000-2999 range)
 #ifdef USE_SENSOR

@@ -697,6 +697,11 @@ void DeyeInverter::update() {
     this->pending_requests_ |= PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
   }
 
+  // Debug: Log pending requests
+  if (this->pending_requests_ != 0) {
+    ESP_LOGD(TAG, "update(): pending=0x%08X, active=0x%08X", this->pending_requests_, this->active_requests_);
+  }
+
   // Process only ONE range per update() call
   if (this->active_requests_ == 0 && this->pending_requests_ != 0) {
     this->process_next_request();

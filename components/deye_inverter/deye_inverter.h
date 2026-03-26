@@ -144,15 +144,13 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static std::string parse_firmware_version(const std::vector<uint8_t>& data, size_t offset);
 
   // Data parsing helpers
-  float parse_value(const std::vector<uint8_t>& data, size_t offset,
-                    uint8_t bytes, DataType data_type, float scale, float offset_val);
-  int16_t parse_int16_value(const std::vector<uint8_t>& data, size_t offset);
-  int32_t parse_int32_value(const std::vector<uint8_t>& data, size_t offset, bool reversed);
-  uint32_t parse_uint32(const std::vector<uint8_t>& data, size_t offset, bool reversed);
-  int32_t parse_int32(const std::vector<uint8_t>& data, size_t offset, bool is_signed);
-  int16_t parse_int16(const std::vector<uint8_t>& data, size_t offset, bool is_signed);
   uint16_t parse_uint16(const std::vector<uint8_t>& data, size_t offset);
-  std::string parse_string(const std::vector<uint8_t>& data, size_t offset, size_t length);
+  int16_t parse_int16(const std::vector<uint8_t>& data, size_t offset);
+  uint32_t parse_uint32(const std::vector<uint8_t>& data, size_t offset);
+  int32_t parse_int32(const std::vector<uint8_t>& data, size_t offset);
+  uint32_t parse_uint32_r(const std::vector<uint8_t>& data, size_t offset);
+  int32_t parse_int32_r(const std::vector<uint8_t>& data, size_t offset);
+  std::string parse_ascii(const std::vector<uint8_t>& data, size_t offset, size_t len);
 
   // Request queue management (following ds100_meter pattern)
   // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
@@ -166,9 +164,9 @@ class DeyeInverter : public modbus_controller::ModbusController {
     DEVICE_INFO = 6,        // Device information (lowest priority)
   };
 
-  void queue_request(RequestType type);
-  RequestType get_highest_priority_pending();
-  void process_next_request();
+  void check_request_due();
+  void get_next_request();
+  void send_next_request(const uint32_t range_bit, const RegisterRange *range);
 
   // Response handlers for ModbusCommandItem callbacks
   // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
@@ -237,22 +235,23 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static constexpr uint32_t PENDING_STATS_3 = 0x00000080;
   static constexpr uint32_t PENDING_SETTINGS_0 = 0x00000100;
   static constexpr uint32_t PENDING_SETTINGS_1 = 0x00000200;
-  static constexpr uint32_t PENDING_SETTINGS2_0 = 0x00000400;
+  static constexpr uint32_t PENDING_SETTINGS_2 = 0x00000400;
   static constexpr uint32_t PENDING_BATTERY_0 = 0x00000800;
   static constexpr uint32_t PENDING_BATTERY_1 = 0x00001000;
   static constexpr uint32_t PENDING_BATTERY_2 = 0x00002000;
+  static constexpr uint32_t REQUEST_TIMEOUT = 500;  // 500ms timeout
 
-  uint32_t pending_requests_{0};      // Bitmask of pending ranges to send
-  uint32_t active_requests_{0};       // Bitmask of currently active ranges
-  uint32_t last_request_time_{0};     // Timestamp of last request sent
-  
-  // Timing variables - per category (ranges within category share interval)
-  uint32_t last_device_info_update_{0};
-  uint32_t last_time_update_{0};
-  uint32_t last_live_update_{0};
-  uint32_t last_stats_update_{0};
-  uint32_t last_settings_update_{0};   // Both SETTINGS and SETTINGS_2
-  uint32_t last_battery_modules_update_{0};
+  // Request state
+  uint32_t pending_requests_{0};       // Bitmask of pending requests
+  bool request_in_progress_{false};    // Request active?
+  uint32_t request_start_time_{0};     // Timestamp when request was sent
+
+  // Next request timestamps (absolute time, not interval)
+  uint32_t next_device_info_request_{0};
+  uint32_t next_settings_request_{0};
+  uint32_t next_live_request_{0};
+  uint32_t next_stats_request_{0};
+  uint32_t next_battery_request_{0};
 
   // State tracking
   bool device_info_initialized_{false};

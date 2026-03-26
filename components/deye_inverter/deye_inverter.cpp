@@ -657,75 +657,33 @@ void DeyeInverter::update() {
 
   // Timeout handling: Check if active request timed out
   if (this->active_requests_ != 0 && (now - this->last_request_time_ > 500)) {
-    ESP_LOGW(TAG, "Request timeout - clearing active requests");
-    // Just clear active bit - interval will trigger next request normally
+    ESP_LOGW(TAG, "Request timeout - clearing active");
     this->active_requests_ = 0;
     this->last_request_time_ = 0;
     this->consecutive_timeouts_++;
-    ESP_LOGV(TAG, "Consecutive timeouts: %d", this->consecutive_timeouts_);
   }
 
-  // Check intervals and queue individual ranges (not categories)
-  // Only set pending bits if not already pending or active
-  
-  // Device Info
-  if ((!this->device_info_initialized_ || (now - this->last_device_info_update_ >= this->interval_device_info_)) &&
-      !(this->pending_requests_ & PENDING_DEVICE_INFO) && !(this->active_requests_ & PENDING_DEVICE_INFO)) {
+  // Check intervals and set pending bits
+  if (!this->device_info_initialized_ || (now - this->last_device_info_update_ >= this->interval_device_info_)) {
     this->pending_requests_ |= PENDING_DEVICE_INFO;
   }
-  
-  // Time
-  if ((now - this->last_time_update_ >= this->interval_time_) &&
-      !(this->pending_requests_ & PENDING_TIME) && !(this->active_requests_ & PENDING_TIME)) {
+  if (now - this->last_time_update_ >= this->interval_time_) {
     this->pending_requests_ |= PENDING_TIME;
   }
-  
-  // Livedata - 2 ranges
-  if ((now - this->last_live_update_ >= this->interval_live_)) {
-    if (!(this->pending_requests_ & PENDING_LIVE_0) && !(this->active_requests_ & PENDING_LIVE_0))
-      this->pending_requests_ |= PENDING_LIVE_0;
-    if (!(this->pending_requests_ & PENDING_LIVE_1) && !(this->active_requests_ & PENDING_LIVE_1))
-      this->pending_requests_ |= PENDING_LIVE_1;
+  if (now - this->last_live_update_ >= this->interval_live_) {
+    this->pending_requests_ |= PENDING_LIVE_0 | PENDING_LIVE_1;
   }
-  
-  // Statistics - 4 ranges
-  if ((now - this->last_stats_update_ >= this->interval_statistics_)) {
-    if (!(this->pending_requests_ & PENDING_STATS_0) && !(this->active_requests_ & PENDING_STATS_0))
-      this->pending_requests_ |= PENDING_STATS_0;
-    if (!(this->pending_requests_ & PENDING_STATS_1) && !(this->active_requests_ & PENDING_STATS_1))
-      this->pending_requests_ |= PENDING_STATS_1;
-    if (!(this->pending_requests_ & PENDING_STATS_2) && !(this->active_requests_ & PENDING_STATS_2))
-      this->pending_requests_ |= PENDING_STATS_2;
-    if (!(this->pending_requests_ & PENDING_STATS_3) && !(this->active_requests_ & PENDING_STATS_3))
-      this->pending_requests_ |= PENDING_STATS_3;
+  if (now - this->last_stats_update_ >= this->interval_statistics_) {
+    this->pending_requests_ |= PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3;
   }
-  
-  // Settings (both parts share same interval)
-  if ((now - this->last_settings_update_ >= this->interval_settings_)) {
-    if (!(this->pending_requests_ & PENDING_SETTINGS_0) && !(this->active_requests_ & PENDING_SETTINGS_0))
-      this->pending_requests_ |= PENDING_SETTINGS_0;
-    if (!(this->pending_requests_ & PENDING_SETTINGS_1) && !(this->active_requests_ & PENDING_SETTINGS_1))
-      this->pending_requests_ |= PENDING_SETTINGS_1;
-    if (!(this->pending_requests_ & PENDING_SETTINGS2_0) && !(this->active_requests_ & PENDING_SETTINGS2_0))
-      this->pending_requests_ |= PENDING_SETTINGS2_0;
+  if (now - this->last_settings_update_ >= this->interval_settings_) {
+    this->pending_requests_ |= PENDING_SETTINGS_0 | PENDING_SETTINGS_1 | PENDING_SETTINGS2_0;
   }
-  
-  // Battery Modules - 3 ranges
-  if ((now - this->last_battery_modules_update_ >= this->interval_battery_modules_)) {
-    if (!(this->pending_requests_ & PENDING_BATTERY_0) && !(this->active_requests_ & PENDING_BATTERY_0))
-      this->pending_requests_ |= PENDING_BATTERY_0;
-    if (!(this->pending_requests_ & PENDING_BATTERY_1) && !(this->active_requests_ & PENDING_BATTERY_1))
-      this->pending_requests_ |= PENDING_BATTERY_1;
-    if (!(this->pending_requests_ & PENDING_BATTERY_2) && !(this->active_requests_ & PENDING_BATTERY_2))
-      this->pending_requests_ |= PENDING_BATTERY_2;
+  if (now - this->last_battery_modules_update_ >= this->interval_battery_modules_) {
+    this->pending_requests_ |= PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
   }
 
-  // Debug: Log pending requests
-  if (this->pending_requests_ != 0) {
-    ESP_LOGD(TAG, "update(): pending=0x%08X, active=0x%08X", this->pending_requests_, this->active_requests_);
-  }
-
-  // Process only ONE range per update() call
+  // Process request if available and none active
   if (this->active_requests_ == 0 && this->pending_requests_ != 0) {
     this->process_next_request();
   }

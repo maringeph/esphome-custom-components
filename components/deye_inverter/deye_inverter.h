@@ -102,11 +102,9 @@ class DeyeInverter : public modbus_controller::ModbusController {
 
   // Setter methods for update intervals
   // set_update_interval is inherited from Component base class
-  void set_update_interval_time(uint32_t interval) { interval_time_ = interval; }
   void set_update_interval_live(uint32_t interval) { interval_live_ = interval; }
   void set_update_interval_statistics(uint32_t interval) { interval_statistics_ = interval; }
-  void set_update_interval_settings(uint32_t interval) { interval_settings_ = interval; }
-  void set_update_interval_settings_2(uint32_t interval) { interval_settings_2_ = interval; }
+  void set_update_interval_settings(uint32_t interval) { interval_settings_ = interval; interval_settings_2_ = interval; }
   void set_update_interval_battery_modules(uint32_t interval) { interval_battery_modules_ = interval; }
   void set_update_interval_device_info(uint32_t interval) { interval_device_info_ = interval; }
 

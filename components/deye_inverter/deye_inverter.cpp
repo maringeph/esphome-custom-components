@@ -51,6 +51,16 @@ namespace esphome
     // SETUP METHOD
     // =============================================================================
 
+    // Calculate GCD of two numbers
+    uint32_t DeyeInverter::gcd(uint32_t a, uint32_t b) {
+      while (b != 0) {
+        uint32_t temp = b;
+        b = a % b;
+        a = temp;
+      }
+      return a;
+    }
+
     void DeyeInverter::setup()
     {
       ESP_LOGCONFIG(TAG, "Setting up Deye Inverter...");
@@ -60,6 +70,20 @@ namespace esphome
       ESP_LOGCONFIG(TAG, "    Settings: %u ms", this->interval_settings_);
       ESP_LOGCONFIG(TAG, "    Battery: %u ms", this->interval_battery_modules_);
       ESP_LOGCONFIG(TAG, "    Device Info: %u ms", this->interval_device_info_);
+      
+      // Calculate GCD of all intervals and set update interval to GCD/5
+      // This ensures update() is called often enough to catch all intervals
+      uint32_t g = gcd(this->interval_live_, this->interval_statistics_);
+      g = gcd(g, this->interval_settings_);
+      g = gcd(g, this->interval_battery_modules_);
+      g = gcd(g, this->interval_device_info_);
+      
+      uint32_t update_interval = g / 5;
+      if (update_interval < 50) update_interval = 50;  // Minimum 50ms
+      if (update_interval > 1000) update_interval = 1000;  // Maximum 1s
+      
+      ESP_LOGCONFIG(TAG, "  Calculated update interval: %u ms (GCD/5)", update_interval);
+      this->set_update_interval(update_interval);
     }
 
     // =============================================================================

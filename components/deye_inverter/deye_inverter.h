@@ -96,6 +96,9 @@ class DeyeInverter : public modbus_controller::ModbusController {
   void setup() override;
   void update() override;
   void dump_config() override;
+  
+  // GCD helper for calculating optimal update interval
+  uint32_t gcd(uint32_t a, uint32_t b);
 
   // Setter methods for update intervals
   void set_update_interval(uint32_t interval) { interval_live_ = interval; }

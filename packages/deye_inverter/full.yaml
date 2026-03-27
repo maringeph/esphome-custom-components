@@ -83,42 +83,55 @@ sensor:
       voltage:
         name: "${device_name}: BM1 Spannung"
         id: ${device_id}_bm1_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM1 Strom"
         id: ${device_id}_bm1_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM1 SOC"
         id: ${device_id}_bm1_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM1 Temperatur"
         id: ${device_id}_bm1_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM1 Status"
         id: ${device_id}_bm1_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM1 Fehlercode"
         id: ${device_id}_bm1_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM1 Zyklen"
         id: ${device_id}_bm1_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM1 Kapazität Verbleibend"
         id: ${device_id}_bm1_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM1 Kapazität Gesamt"
         id: ${device_id}_bm1_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM1 Leistung"
         id: ${device_id}_bm1_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM1 Zell Max Spannung"
         id: ${device_id}_bm1_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM1 Zell Min Spannung"
         id: ${device_id}_bm1_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM1 Zell Max Temp"
         id: ${device_id}_bm1_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM1 Zell Min Temp"
         id: ${device_id}_bm1_cell_min_temp
@@ -130,42 +143,55 @@ sensor:
       voltage:
         name: "${device_name}: BM2 Spannung"
         id: ${device_id}_bm2_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM2 Strom"
         id: ${device_id}_bm2_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM2 SOC"
         id: ${device_id}_bm2_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM2 Temperatur"
         id: ${device_id}_bm2_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM2 Status"
         id: ${device_id}_bm2_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM2 Fehlercode"
         id: ${device_id}_bm2_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM2 Zyklen"
         id: ${device_id}_bm2_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM2 Kapazität Verbleibend"
         id: ${device_id}_bm2_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM2 Kapazität Gesamt"
         id: ${device_id}_bm2_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM2 Leistung"
         id: ${device_id}_bm2_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM2 Zell Max Spannung"
         id: ${device_id}_bm2_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM2 Zell Min Spannung"
         id: ${device_id}_bm2_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM2 Zell Max Temp"
         id: ${device_id}_bm2_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM2 Zell Min Temp"
         id: ${device_id}_bm2_cell_min_temp
@@ -173,42 +199,55 @@ sensor:
       voltage:
         name: "${device_name}: BM3 Spannung"
         id: ${device_id}_bm3_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM3 Strom"
         id: ${device_id}_bm3_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM3 SOC"
         id: ${device_id}_bm3_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM3 Temperatur"
         id: ${device_id}_bm3_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM3 Status"
         id: ${device_id}_bm3_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM3 Fehlercode"
         id: ${device_id}_bm3_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM3 Zyklen"
         id: ${device_id}_bm3_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM3 Kapazität Verbleibend"
         id: ${device_id}_bm3_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM3 Kapazität Gesamt"
         id: ${device_id}_bm3_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM3 Leistung"
         id: ${device_id}_bm3_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM3 Zell Max Spannung"
         id: ${device_id}_bm3_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM3 Zell Min Spannung"
         id: ${device_id}_bm3_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM3 Zell Max Temp"
         id: ${device_id}_bm3_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM3 Zell Min Temp"
         id: ${device_id}_bm3_cell_min_temp
@@ -216,42 +255,55 @@ sensor:
       voltage:
         name: "${device_name}: BM4 Spannung"
         id: ${device_id}_bm4_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM4 Strom"
         id: ${device_id}_bm4_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM4 SOC"
         id: ${device_id}_bm4_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM4 Temperatur"
         id: ${device_id}_bm4_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM4 Status"
         id: ${device_id}_bm4_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM4 Fehlercode"
         id: ${device_id}_bm4_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM4 Zyklen"
         id: ${device_id}_bm4_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM4 Kapazität Verbleibend"
         id: ${device_id}_bm4_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM4 Kapazität Gesamt"
         id: ${device_id}_bm4_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM4 Leistung"
         id: ${device_id}_bm4_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM4 Zell Max Spannung"
         id: ${device_id}_bm4_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM4 Zell Min Spannung"
         id: ${device_id}_bm4_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM4 Zell Max Temp"
         id: ${device_id}_bm4_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM4 Zell Min Temp"
         id: ${device_id}_bm4_cell_min_temp
@@ -259,42 +311,55 @@ sensor:
       voltage:
         name: "${device_name}: BM5 Spannung"
         id: ${device_id}_bm5_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM5 Strom"
         id: ${device_id}_bm5_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM5 SOC"
         id: ${device_id}_bm5_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM5 Temperatur"
         id: ${device_id}_bm5_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM5 Status"
         id: ${device_id}_bm5_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM5 Fehlercode"
         id: ${device_id}_bm5_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM5 Zyklen"
         id: ${device_id}_bm5_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM5 Kapazität Verbleibend"
         id: ${device_id}_bm5_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM5 Kapazität Gesamt"
         id: ${device_id}_bm5_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM5 Leistung"
         id: ${device_id}_bm5_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM5 Zell Max Spannung"
         id: ${device_id}_bm5_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM5 Zell Min Spannung"
         id: ${device_id}_bm5_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM5 Zell Max Temp"
         id: ${device_id}_bm5_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM5 Zell Min Temp"
         id: ${device_id}_bm5_cell_min_temp
@@ -302,42 +367,55 @@ sensor:
       voltage:
         name: "${device_name}: BM6 Spannung"
         id: ${device_id}_bm6_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM6 Strom"
         id: ${device_id}_bm6_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM6 SOC"
         id: ${device_id}_bm6_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM6 Temperatur"
         id: ${device_id}_bm6_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM6 Status"
         id: ${device_id}_bm6_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM6 Fehlercode"
         id: ${device_id}_bm6_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM6 Zyklen"
         id: ${device_id}_bm6_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM6 Kapazität Verbleibend"
         id: ${device_id}_bm6_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM6 Kapazität Gesamt"
         id: ${device_id}_bm6_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM6 Leistung"
         id: ${device_id}_bm6_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM6 Zell Max Spannung"
         id: ${device_id}_bm6_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM6 Zell Min Spannung"
         id: ${device_id}_bm6_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM6 Zell Max Temp"
         id: ${device_id}_bm6_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM6 Zell Min Temp"
         id: ${device_id}_bm6_cell_min_temp
@@ -345,42 +423,55 @@ sensor:
       voltage:
         name: "${device_name}: BM7 Spannung"
         id: ${device_id}_bm7_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM7 Strom"
         id: ${device_id}_bm7_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM7 SOC"
         id: ${device_id}_bm7_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM7 Temperatur"
         id: ${device_id}_bm7_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM7 Status"
         id: ${device_id}_bm7_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM7 Fehlercode"
         id: ${device_id}_bm7_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM7 Zyklen"
         id: ${device_id}_bm7_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM7 Kapazität Verbleibend"
         id: ${device_id}_bm7_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM7 Kapazität Gesamt"
         id: ${device_id}_bm7_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM7 Leistung"
         id: ${device_id}_bm7_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM7 Zell Max Spannung"
         id: ${device_id}_bm7_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM7 Zell Min Spannung"
         id: ${device_id}_bm7_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM7 Zell Max Temp"
         id: ${device_id}_bm7_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM7 Zell Min Temp"
         id: ${device_id}_bm7_cell_min_temp
@@ -388,42 +479,55 @@ sensor:
       voltage:
         name: "${device_name}: BM8 Spannung"
         id: ${device_id}_bm8_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM8 Strom"
         id: ${device_id}_bm8_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM8 SOC"
         id: ${device_id}_bm8_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM8 Temperatur"
         id: ${device_id}_bm8_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM8 Status"
         id: ${device_id}_bm8_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM8 Fehlercode"
         id: ${device_id}_bm8_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM8 Zyklen"
         id: ${device_id}_bm8_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM8 Kapazität Verbleibend"
         id: ${device_id}_bm8_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM8 Kapazität Gesamt"
         id: ${device_id}_bm8_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM8 Leistung"
         id: ${device_id}_bm8_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM8 Zell Max Spannung"
         id: ${device_id}_bm8_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM8 Zell Min Spannung"
         id: ${device_id}_bm8_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM8 Zell Max Temp"
         id: ${device_id}_bm8_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM8 Zell Min Temp"
         id: ${device_id}_bm8_cell_min_temp
@@ -431,42 +535,55 @@ sensor:
       voltage:
         name: "${device_name}: BM9 Spannung"
         id: ${device_id}_bm9_voltage
+        disabled_by_default: true
       current:
         name: "${device_name}: BM9 Strom"
         id: ${device_id}_bm9_current
+        disabled_by_default: true
       soc:
         name: "${device_name}: BM9 SOC"
         id: ${device_id}_bm9_soc
+        disabled_by_default: true
       temperature:
         name: "${device_name}: BM9 Temperatur"
         id: ${device_id}_bm9_temperature
+        disabled_by_default: true
       status:
         name: "${device_name}: BM9 Status"
         id: ${device_id}_bm9_status
+        disabled_by_default: true
       fault_code:
         name: "${device_name}: BM9 Fehlercode"
         id: ${device_id}_bm9_fault_code
+        disabled_by_default: true
       cycle_count:
         name: "${device_name}: BM9 Zyklen"
         id: ${device_id}_bm9_cycle_count
+        disabled_by_default: true
       capacity_remaining:
         name: "${device_name}: BM9 Kapazität Verbleibend"
         id: ${device_id}_bm9_capacity_remaining
+        disabled_by_default: true
       capacity_total:
         name: "${device_name}: BM9 Kapazität Gesamt"
         id: ${device_id}_bm9_capacity_total
+        disabled_by_default: true
       power:
         name: "${device_name}: BM9 Leistung"
         id: ${device_id}_bm9_power
+        disabled_by_default: true
       cell_max_voltage:
         name: "${device_name}: BM9 Zell Max Spannung"
         id: ${device_id}_bm9_cell_max_voltage
+        disabled_by_default: true
       cell_min_voltage:
         name: "${device_name}: BM9 Zell Min Spannung"
         id: ${device_id}_bm9_cell_min_voltage
+        disabled_by_default: true
       cell_max_temp:
         name: "${device_name}: BM9 Zell Max Temp"
         id: ${device_id}_bm9_cell_max_temp
+        disabled_by_default: true
       cell_min_temp:
         name: "${device_name}: BM9 Zell Min Temp"
         id: ${device_id}_bm9_cell_min_temp

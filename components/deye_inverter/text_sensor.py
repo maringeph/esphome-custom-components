@@ -22,29 +22,6 @@ CONF_HARDWARE_VERSION = "hardware_version"
 CONF_INVERTER_MODEL = "inverter_model"
 
 # =============================================================================
-# Register addresses for Deye inverter text sensors
-# =============================================================================
-
-# Device Type (Register 0)
-REGISTER_DEVICE_TYPE = 0
-
-# Running Status (Register 500)
-REGISTER_RUNNING_STATUS = 500
-
-# Serial Number (Registers 3-14 - 12 registers for ASCII string)
-REGISTER_SERIAL_NUMBER = 3
-
-# Firmware Version (Register 27)
-REGISTER_FIRMWARE_VERSION = 27
-
-# Hardware Version (Register 29)
-REGISTER_HARDWARE_VERSION = 29
-
-# Inverter Model (Register 15 - ASCII encoded)
-REGISTER_INVERTER_MODEL = 15
-
-
-# =============================================================================
 # LOCAL SCHEMA DEFINITIONS
 # =============================================================================
 
@@ -141,7 +118,7 @@ async def to_code(config):
             config,
             CONF_DEVICE_TYPE,
             var,
-            REGISTER_DEVICE_TYPE,
+            cg.RawExpression("esphome::deye_inverter::REG_DEVICE_TYPE"),
             is_status=False,
             is_device_type=True,
             device_obj=device_obj,
@@ -153,7 +130,7 @@ async def to_code(config):
             config,
             CONF_RUNNING_STATUS,
             var,
-            REGISTER_RUNNING_STATUS,
+            cg.RawExpression("esphome::deye_inverter::REG_RUNNING_STATUS"),
             is_status=True,
             is_device_type=False,
             device_obj=device_obj,
@@ -165,7 +142,7 @@ async def to_code(config):
             config,
             CONF_SERIAL_NUMBER,
             var,
-            REGISTER_SERIAL_NUMBER,
+            cg.RawExpression("esphome::deye_inverter::REG_SERIAL_NUMBER_01"),
             is_status=False,
             is_device_type=False,
             device_obj=device_obj,
@@ -177,7 +154,7 @@ async def to_code(config):
             config,
             CONF_FIRMWARE_VERSION,
             var,
-            REGISTER_FIRMWARE_VERSION,
+            cg.RawExpression("esphome::deye_inverter::REG_RESERVED_SN_05"),
             is_status=False,
             is_device_type=False,
             device_obj=device_obj,
@@ -189,7 +166,7 @@ async def to_code(config):
             config,
             CONF_HARDWARE_VERSION,
             var,
-            REGISTER_HARDWARE_VERSION,
+            cg.RawExpression("esphome::deye_inverter::REG_RESERVED_SN_09"),
             is_status=False,
             is_device_type=False,
             device_obj=device_obj,
@@ -201,7 +178,9 @@ async def to_code(config):
             config,
             CONF_INVERTER_MODEL,
             var,
-            REGISTER_INVERTER_MODEL,
+            cg.RawExpression(
+                "esphome::deye_inverter::REG_CONTROL_BOARD_FIRMWARE_VERSION"
+            ),
             is_status=False,
             is_device_type=False,
             device_obj=device_obj,

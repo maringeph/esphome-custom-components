@@ -103,6 +103,7 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr uint16_t REG_MODBUS_ADDRESS_SETTING = 74;       // Modbus-Adresse Einstellung
     constexpr uint16_t REG_BAUD_RATE = 75;                    // Baudrate
     constexpr uint16_t REG_RESERVED_76 = 76;                  // Reserviert 76
+    constexpr uint16_t REG_SYS_LANGUAGE = 60;                 // System Language (alias for REG_REMOTE_LOCK)
     constexpr uint16_t REG_ACTIVE_POWER_REGULATION = 77;      // Wirkleistungsregelung
     constexpr uint16_t REG_REACTIVE_POWER_REGULATION = 78;    // Blindleistungsregelung
     constexpr uint16_t REG_APPARENT_POWER_REGULATION = 79;    // Scheinleistungsregelung
@@ -214,7 +215,10 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr uint16_t REG_RESERVED_341 = 341;              // Reserviert 341
     constexpr uint16_t REG_RESERVED_342 = 342;              // Reserviert 342
     constexpr uint16_t REG_RESERVED_343 = 343;              // Reserviert 343
-    constexpr uint16_t REG_GRID_MONITORING_METHOD = 344;    // Netz-Überwachungsmethode
+    constexpr uint16_t REG_CA_RULE21_CATEGORY = 341;        // California Rule21 Category
+    constexpr uint16_t REG_CA_NORMAL_OP_CAT = 342;          // California Normal Operation Category
+    constexpr uint16_t REG_CA_ABNORMAL_OP_CAT = 343;        // California Abnormal Operation Category
+    constexpr uint16_t REG_GRID_MONITORING_METHOD = 344;    // Netz-Überwachungsmethode (Grid Check Source)
     constexpr uint16_t REG_RESERVED_345 = 345;              // Reserviert 345
     constexpr uint16_t REG_RESERVED_346 = 346;              // Reserviert 346
     constexpr uint16_t REG_EXTERNAL_CT_RATIO = 347;         // Externer CT-Verhältnis
@@ -402,6 +406,60 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr uint16_t BITMASK_WEEKDAY_SATURDAY = 0x0040;  // Samstag (Bit 6)
     constexpr uint16_t BITMASK_WEEKDAY_SUNDAY = 0x0080;    // Sonntag (Bit 7)
 
+    // =============================================================================
+    // BITMASK CONSTANTS FOR SWITCHES
+    // =============================================================================
+
+    // Single bit masks
+    constexpr uint16_t BITMASK_BIT_0 = 0x0001;
+    constexpr uint16_t BITMASK_BIT_1 = 0x0002;
+    constexpr uint16_t BITMASK_BIT_2 = 0x0004;
+    constexpr uint16_t BITMASK_BIT_3 = 0x0008;
+    constexpr uint16_t BITMASK_BIT_4 = 0x0010;
+    constexpr uint16_t BITMASK_BIT_5 = 0x0020;
+    constexpr uint16_t BITMASK_BIT_6 = 0x0040;
+    constexpr uint16_t BITMASK_BIT_7 = 0x0080;
+    constexpr uint16_t BITMASK_BIT_8 = 0x0100;
+    constexpr uint16_t BITMASK_BIT_9 = 0x0200;
+    constexpr uint16_t BITMASK_BIT_10 = 0x0400;
+    constexpr uint16_t BITMASK_BIT_11 = 0x0800;
+    constexpr uint16_t BITMASK_BIT_12 = 0x1000;
+    constexpr uint16_t BITMASK_BIT_13 = 0x2000;
+    constexpr uint16_t BITMASK_BIT_14 = 0x4000;
+    constexpr uint16_t BITMASK_BIT_15 = 0x8000;
+
+    // 2-bit field masks and values
+    constexpr uint16_t BITMASK_2BIT_0_1 = 0x0003;   // Bits 0-1
+    constexpr uint16_t BITMASK_2BIT_2_3 = 0x000C;   // Bits 2-3
+    constexpr uint16_t BITMASK_2BIT_4_5 = 0x0030;   // Bits 4-5
+    constexpr uint16_t BITMASK_2BIT_6_7 = 0x00C0;   // Bits 6-7
+    constexpr uint16_t BITMASK_2BIT_8_9 = 0x0300;   // Bits 8-9
+    constexpr uint16_t BITMASK_2BIT_10_11 = 0x0C00; // Bits 10-11
+    constexpr uint16_t BITMASK_2BIT_12_13 = 0x3000; // Bits 12-13
+    constexpr uint16_t BITMASK_2BIT_14_15 = 0xC000; // Bits 14-15
+
+    // 2-bit field enable/disable values
+    constexpr uint16_t VALUE_2BIT_ENABLE = 0x0003;  // Binary: 11
+    constexpr uint16_t VALUE_2BIT_DISABLE = 0x0002; // Binary: 10
+
+    // Full register mask
+    constexpr uint16_t BITMASK_FULL_REGISTER = 0xFFFF;
+
+    // =============================================================================
+    // BIT SHIFT CONSTANTS FOR 2-BIT SWITCH FIELDS
+    // =============================================================================
+
+    constexpr uint8_t SHIFT_GRID_PEAK_SHAVING = 4;        // Bits 4-5 in Register 178
+    constexpr uint8_t SHIFT_GEN_PEAK_SHAVING = 2;         // Bits 2-3 in Register 178
+    constexpr uint8_t SHIFT_ON_GRID_ALWAYS_ON = 6;        // Bits 6-7 in Register 178
+    constexpr uint8_t SHIFT_CT_DIRECTION_CHECK = 0;       // Bits 0-1 in Register 179
+    constexpr uint8_t SHIFT_MICROINVERTER_EXPORT = 0;     // Bits 0-1 in Register 178
+    constexpr uint8_t SHIFT_EXTERNAL_RELAY = 8;           // Bits 8-9 in Register 178
+    constexpr uint8_t SHIFT_BATTERY_LOSS_FAULT = 10;      // Bits 10-11 in Register 178
+    constexpr uint8_t SHIFT_FORCED_OFF_GRID = 2;          // Bits 2-3 in Register 179
+    constexpr uint8_t SHIFT_GEN_PORT_COUPLE_FREQ = 12;    // Bits 12-13 in Register 178
+    constexpr uint8_t SHIFT_GEN_REQUIRED_POWER_START = 14; // Bits 14-15 in Register 178
+
     // Special Functions (178-184)
     // Register 178 - Special Function 1: 6 functions with 2-bit values
     // Bit 0-1: microinverter_export_to_grid (00/01=disabled, 10=disable, 11=enable)
@@ -455,6 +513,12 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr uint16_t REG_GRID_CHARGE_START_V = 228;    // Netz-Ladung Start-Spannung (V)
     constexpr uint16_t REG_GRID_CHARGE_START_SOC = 229;  // Netz-Ladung Start-SOC (%)
     constexpr uint16_t REG_GRID_CHARGE_CURRENT = 230;    // Netz-Ladestrom (A)
+
+    // Extended Device Settings (231-234)
+    constexpr uint16_t REG_EXT_BAUD_RATE = 231;       // Extended Baud Rate
+    constexpr uint16_t REG_EXT_PARITY = 232;          // Extended Parity
+    constexpr uint16_t REG_EXT_STOP_BITS = 233;       // Extended Stop Bits
+    constexpr uint16_t REG_EXT_PROTOCOL = 234;        // Extended Protocol
 
     // Solar Settings (340)
     constexpr uint16_t REG_MAX_SOLAR_POWER = 340; // Max Solar-Leistung (W)
@@ -847,6 +911,333 @@ constexpr uint16_t SETTINGS2_LEN = 110;
 
     // BMS PACK1 specific range (most commonly used)
     constexpr RegisterRange RANGE_BMS_PACK1 = {BMS_DATA_BASE_1, 14, "BMS PACK1"}; // 2600-2613
+
+    // =============================================================================
+    // DEFAULT UPDATE INTERVALS (in milliseconds)
+    // =============================================================================
+
+    constexpr uint32_t DEFAULT_INTERVAL_LIVE = 1000;           // Live data: 1 second
+    constexpr uint32_t DEFAULT_INTERVAL_STATISTICS = 5000;     // Statistics: 5 seconds
+    constexpr uint32_t DEFAULT_INTERVAL_SETTINGS = 60000;      // Settings: 60 seconds
+    constexpr uint32_t DEFAULT_INTERVAL_SETTINGS_2 = 120000;   // Settings 2: 120 seconds
+    constexpr uint32_t DEFAULT_INTERVAL_BATTERY_MODULES = 5000; // Battery modules: 5 seconds
+    constexpr uint32_t DEFAULT_INTERVAL_DEVICE_INFO = 300000;  // Device info: 5 minutes
+
+    // =============================================================================
+    // TIMEOUT AND LIMIT CONSTANTS
+    // =============================================================================
+
+    constexpr uint32_t REQUEST_TIMEOUT_MS = 500;               // Request timeout: 500ms
+    constexpr uint8_t MAX_CONSECUTIVE_TIMEOUTS = 3;            // Max consecutive timeouts
+    constexpr uint32_t MIN_UPDATE_INTERVAL_MS = 50;            // Minimum update interval: 50ms
+    constexpr uint32_t MAX_UPDATE_INTERVAL_MS = 1000;          // Maximum update interval: 1s
+    constexpr uint32_t UPDATE_INTERVAL_DIVISOR = 5;            // GCD divisor for update interval
+
+    // =============================================================================
+    // STATUS CODE CONSTANTS
+    // =============================================================================
+
+    // Running status values (Register 500)
+    constexpr uint16_t STATUS_STANDBY = 0;
+    constexpr uint16_t STATUS_SELF_CHECK = 1;
+    constexpr uint16_t STATUS_NORMAL = 2;
+    constexpr uint16_t STATUS_ALARM = 3;
+    constexpr uint16_t STATUS_FAULT = 4;
+
+    // Device type values
+    constexpr uint16_t DEVICE_TYPE_STRING_INVERTER = 0x0200;
+    constexpr uint16_t DEVICE_TYPE_SINGLE_PHASE_HYBRID = 0x0300;
+    constexpr uint16_t DEVICE_TYPE_MICRO_INVERTER = 0x0400;
+    constexpr uint16_t DEVICE_TYPE_THREE_PHASE_HYBRID = 0x0500;
+
+    // Special register values
+    constexpr uint16_t VALUE_REMOTE_LOCK_ON = 0x0000;   // Remote lock enabled
+    constexpr uint16_t VALUE_REMOTE_LOCK_OFF = 0x0002;  // Remote lock disabled
+    constexpr uint16_t VALUE_UNINITIALIZED = 0xFFFF;    // Uninitialized register value
+    constexpr uint16_t VALUE_ALL_FF = 0xFFFF;           // All bits set (uninitialized)
+
+    // =============================================================================
+    // VALUE RANGE CONSTANTS FOR NUMBER ENTITIES
+    // =============================================================================
+
+    // Battery Currents (Registers 108-109)
+    constexpr float MIN_BATTERY_MAX_CHARGE_CURRENT = 0.0f;
+    constexpr float MAX_BATTERY_MAX_CHARGE_CURRENT = 185.0f;
+    constexpr float STEP_BATTERY_MAX_CHARGE_CURRENT = 0.1f;
+    constexpr float SCALE_BATTERY_MAX_CHARGE_CURRENT = 10.0f;
+
+    constexpr float MIN_BATTERY_MAX_DISCHARGE_CURRENT = 0.0f;
+    constexpr float MAX_BATTERY_MAX_DISCHARGE_CURRENT = 185.0f;
+    constexpr float STEP_BATTERY_MAX_DISCHARGE_CURRENT = 0.1f;
+    constexpr float SCALE_BATTERY_MAX_DISCHARGE_CURRENT = 10.0f;
+
+    // Battery Voltages (Registers 99-103, 118-120)
+    constexpr float MIN_BATTERY_VOLTAGE = 38.0f;
+    constexpr float MAX_BATTERY_VOLTAGE = 61.0f;
+    constexpr float STEP_BATTERY_VOLTAGE = 0.01f;
+    constexpr float SCALE_BATTERY_VOLTAGE = 100.0f;
+
+    // Battery SOC (Registers 115-117)
+    constexpr float MIN_BATTERY_SOC = 0.0f;
+    constexpr float MAX_BATTERY_SOC = 100.0f;
+    constexpr float STEP_BATTERY_SOC = 1.0f;
+    constexpr float SCALE_BATTERY_SOC = 1.0f;
+
+    // Battery Additional (Registers 102-114)
+    constexpr float MIN_BATTERY_CAPACITY = 0.0f;
+    constexpr float MAX_BATTERY_CAPACITY = 2000.0f;
+    constexpr float STEP_BATTERY_CAPACITY = 1.0f;
+    constexpr float SCALE_BATTERY_CAPACITY = 1.0f;
+
+    constexpr float MIN_BATTERY_EQUALIZATION_DAY_CYCLE = 0.0f;
+    constexpr float MAX_BATTERY_EQUALIZATION_DAY_CYCLE = 90.0f;
+    constexpr float STEP_BATTERY_EQUALIZATION_DAY_CYCLE = 1.0f;
+    constexpr float SCALE_BATTERY_EQUALIZATION_DAY_CYCLE = 1.0f;
+
+    constexpr float MIN_BATTERY_EQUALIZATION_TIME = 0.0f;
+    constexpr float MAX_BATTERY_EQUALIZATION_TIME = 20.0f;
+    constexpr float STEP_BATTERY_EQUALIZATION_TIME = 0.5f;
+    constexpr float SCALE_BATTERY_EQUALIZATION_TIME = 1.0f;
+
+    constexpr float MIN_BATTERY_TEMPCO = 0.0f;
+    constexpr float MAX_BATTERY_TEMPCO = 50.0f;
+    constexpr float STEP_BATTERY_TEMPCO = 1.0f;
+    constexpr float SCALE_BATTERY_TEMPCO = 1.0f;
+
+    constexpr float MIN_BATTERY_WAKE_UP = 0.0f;
+    constexpr float MAX_BATTERY_WAKE_UP = 1.0f;
+    constexpr float STEP_BATTERY_WAKE_UP = 1.0f;
+    constexpr float SCALE_BATTERY_WAKE_UP = 1.0f;
+
+    constexpr float MIN_BATTERY_RESISTANCE = 0.0f;
+    constexpr float MAX_BATTERY_RESISTANCE = 6000.0f;
+    constexpr float STEP_BATTERY_RESISTANCE = 1.0f;
+    constexpr float SCALE_BATTERY_RESISTANCE = 1.0f;
+
+    constexpr float MIN_BATTERY_CHARGING_EFFICIENCY = 0.0f;
+    constexpr float MAX_BATTERY_CHARGING_EFFICIENCY = 100.0f;
+    constexpr float STEP_BATTERY_CHARGING_EFFICIENCY = 0.1f;
+    constexpr float SCALE_BATTERY_CHARGING_EFFICIENCY = 10.0f;
+
+    // Generator Settings (Registers 121-127)
+    constexpr float MIN_GEN_MAX_RUN_TIME = 0.0f;
+    constexpr float MAX_GEN_MAX_RUN_TIME = 120.0f;
+    constexpr float STEP_GEN_MAX_RUN_TIME = 0.1f;
+    constexpr float SCALE_GEN_MAX_RUN_TIME = 10.0f;
+
+    constexpr float MIN_GEN_COOLDOWN_TIME = 0.0f;
+    constexpr float MAX_GEN_COOLDOWN_TIME = 60.0f;
+    constexpr float STEP_GEN_COOLDOWN_TIME = 1.0f;
+    constexpr float SCALE_GEN_COOLDOWN_TIME = 1.0f;
+
+    constexpr float MIN_GEN_MIN_POWER = 0.0f;
+    constexpr float MAX_GEN_MIN_POWER = 6500.0f;
+    constexpr float STEP_GEN_MIN_POWER = 1.0f;
+    constexpr float SCALE_GEN_MIN_POWER = 1.0f;
+
+    constexpr float MIN_GEN_START_VOLTAGE = 38.0f;
+    constexpr float MAX_GEN_START_VOLTAGE = 61.0f;
+    constexpr float STEP_GEN_START_VOLTAGE = 0.01f;
+    constexpr float SCALE_GEN_START_VOLTAGE = 100.0f;
+
+    constexpr float MIN_GEN_START_SOC = 0.0f;
+    constexpr float MAX_GEN_START_SOC = 100.0f;
+    constexpr float STEP_GEN_START_SOC = 1.0f;
+    constexpr float SCALE_GEN_START_SOC = 1.0f;
+
+    constexpr float MIN_GEN_CHARGING_CURRENT = 0.0f;
+    constexpr float MAX_GEN_CHARGING_CURRENT = 185.0f;
+    constexpr float STEP_GEN_CHARGING_CURRENT = 1.0f;
+    constexpr float SCALE_GEN_CHARGING_CURRENT = 1.0f;
+
+    constexpr float MIN_GEN_ENABLE = 0.0f;
+    constexpr float MAX_GEN_ENABLE = 1.0f;
+    constexpr float STEP_GEN_ENABLE = 1.0f;
+    constexpr float SCALE_GEN_ENABLE = 1.0f;
+
+    // Generator 2 Settings (Registers 223-227)
+    constexpr float MIN_GEN_MAX_TIME = 0.0f;
+    constexpr float MAX_GEN_MAX_TIME = 24.0f;
+    constexpr float STEP_GEN_MAX_TIME = 0.1f;
+    constexpr float SCALE_GEN_MAX_TIME = 10.0f;
+
+    constexpr float MIN_GEN_COOLDOWN = 0.0f;
+    constexpr float MAX_GEN_COOLDOWN = 24.0f;
+    constexpr float STEP_GEN_COOLDOWN = 0.1f;
+    constexpr float SCALE_GEN_COOLDOWN = 10.0f;
+
+    constexpr float MIN_GEN_START_VOLTAGE_225 = 38.0f;
+    constexpr float MAX_GEN_START_VOLTAGE_225 = 63.0f;
+    constexpr float STEP_GEN_START_VOLTAGE_225 = 0.01f;
+    constexpr float SCALE_GEN_START_VOLTAGE_225 = 100.0f;
+
+    constexpr float MIN_GEN_START_SOC_226 = 0.0f;
+    constexpr float MAX_GEN_START_SOC_226 = 100.0f;
+    constexpr float STEP_GEN_START_SOC_226 = 1.0f;
+    constexpr float SCALE_GEN_START_SOC_226 = 1.0f;
+
+    constexpr float MIN_GEN_CHARGE_CURRENT_227 = 0.0f;
+    constexpr float MAX_GEN_CHARGE_CURRENT_227 = 185.0f;
+    constexpr float STEP_GEN_CHARGE_CURRENT_227 = 1.0f;
+    constexpr float SCALE_GEN_CHARGE_CURRENT_227 = 1.0f;
+
+    // Smart Load (Registers 134-137)
+    constexpr float MIN_SMART_LOAD_VOLTAGE = 38.0f;
+    constexpr float MAX_SMART_LOAD_VOLTAGE = 61.0f;
+    constexpr float STEP_SMART_LOAD_VOLTAGE = 0.01f;
+    constexpr float SCALE_SMART_LOAD_VOLTAGE = 100.0f;
+
+    constexpr float MIN_SMART_LOAD_SOC = 0.0f;
+    constexpr float MAX_SMART_LOAD_SOC = 100.0f;
+    constexpr float STEP_SMART_LOAD_SOC = 1.0f;
+    constexpr float SCALE_SMART_LOAD_SOC = 1.0f;
+
+    // Grid Charge (Registers 128, 228-230)
+    constexpr float MIN_MAX_BATTERY_GRID_CHARGE_CURRENT = 0.0f;
+    constexpr float MAX_MAX_BATTERY_GRID_CHARGE_CURRENT = 185.0f;
+    constexpr float STEP_MAX_BATTERY_GRID_CHARGE_CURRENT = 1.0f;
+    constexpr float SCALE_MAX_BATTERY_GRID_CHARGE_CURRENT = 1.0f;
+
+    constexpr float MIN_GRID_CHARGE_START_VOLTAGE = 38.0f;
+    constexpr float MAX_GRID_CHARGE_START_VOLTAGE = 63.0f;
+    constexpr float STEP_GRID_CHARGE_START_VOLTAGE = 0.01f;
+    constexpr float SCALE_GRID_CHARGE_START_VOLTAGE = 100.0f;
+
+    constexpr float MIN_GRID_CHARGE_START_SOC = 0.0f;
+    constexpr float MAX_GRID_CHARGE_START_SOC = 100.0f;
+    constexpr float STEP_GRID_CHARGE_START_SOC = 1.0f;
+    constexpr float SCALE_GRID_CHARGE_START_SOC = 1.0f;
+
+    constexpr float MIN_GRID_CHARGE_CURRENT = 0.0f;
+    constexpr float MAX_GRID_CHARGE_CURRENT = 185.0f;
+    constexpr float STEP_GRID_CHARGE_CURRENT = 1.0f;
+    constexpr float SCALE_GRID_CHARGE_CURRENT = 1.0f;
+
+    // Grid Numbers (Registers 104, 143, 180, 340)
+    constexpr float MIN_ZERO_EXPORT_POWER = 0.0f;
+    constexpr float MAX_ZERO_EXPORT_POWER = 90.0f;
+    constexpr float STEP_ZERO_EXPORT_POWER = 1.0f;
+    constexpr float SCALE_ZERO_EXPORT_POWER = 1.0f;
+
+    constexpr float MIN_MAX_SOLAR_SELL_POWER = 0.0f;
+    constexpr float MAX_MAX_SOLAR_SELL_POWER = 6500.0f;
+    constexpr float STEP_MAX_SOLAR_SELL_POWER = 1.0f;
+    constexpr float SCALE_MAX_SOLAR_SELL_POWER = 1.0f;
+
+    constexpr float MIN_GRID_MAX_POWER = 0.0f;
+    constexpr float MAX_GRID_MAX_POWER = 6500.0f;
+    constexpr float STEP_GRID_MAX_POWER = 1.0f;
+    constexpr float SCALE_GRID_MAX_POWER = 1.0f;
+
+    constexpr float MIN_RESTORE_CONNECTION_TIME = 0.0f;
+    constexpr float MAX_RESTORE_CONNECTION_TIME = 300.0f;
+    constexpr float STEP_RESTORE_CONNECTION_TIME = 1.0f;
+    constexpr float SCALE_RESTORE_CONNECTION_TIME = 1.0f;
+
+    // Generator Numbers (Registers 131, 139)
+    constexpr float MIN_GEN_PORT_COUPLE_FREQ_LIMIT = 0.0f;
+    constexpr float MAX_GEN_PORT_COUPLE_FREQ_LIMIT = 100.0f;
+    constexpr float STEP_GEN_PORT_COUPLE_FREQ_LIMIT = 0.01f;
+    constexpr float SCALE_GEN_PORT_COUPLE_FREQ_LIMIT = 100.0f;
+
+    constexpr float MIN_GENERATOR_REQUIRED_POWER_START = 0.0f;
+    constexpr float MAX_GENERATOR_REQUIRED_POWER_START = 6500.0f;
+    constexpr float STEP_GENERATOR_REQUIRED_POWER_START = 1.0f;
+    constexpr float SCALE_GENERATOR_REQUIRED_POWER_START = 1.0f;
+
+    // Time of Use Numbers (Registers 154-171)
+    constexpr float MIN_TIME_POINT_POWER = -6500.0f;
+    constexpr float MAX_TIME_POINT_POWER = 6500.0f;
+    constexpr float STEP_TIME_POINT_POWER = 1.0f;
+    constexpr float SCALE_TIME_POINT_POWER = 1.0f;
+
+    constexpr float MIN_TIME_POINT_MIN_VOLTAGE = 41.0f;
+    constexpr float MAX_TIME_POINT_MIN_VOLTAGE = 63.0f;
+    constexpr float STEP_TIME_POINT_MIN_VOLTAGE = 0.01f;
+    constexpr float SCALE_TIME_POINT_MIN_VOLTAGE = 100.0f;
+
+    constexpr float MIN_TIME_POINT_CAPACITY = 0.0f;
+    constexpr float MAX_TIME_POINT_CAPACITY = 100.0f;
+    constexpr float STEP_TIME_POINT_CAPACITY = 5.0f;
+    constexpr float SCALE_TIME_POINT_CAPACITY = 1.0f;
+
+    // System Numbers (Registers 61, 65)
+    constexpr float MIN_SYS_SELF_CHECK_TIME = 0.0f;
+    constexpr float MAX_SYS_SELF_CHECK_TIME = 1000.0f;
+    constexpr float STEP_SYS_SELF_CHECK_TIME = 1.0f;
+    constexpr float SCALE_SYS_SELF_CHECK_TIME = 1.0f;
+
+    constexpr float MIN_SYS_INSULATION_RESISTANCE = 100.0f;
+    constexpr float MAX_SYS_INSULATION_RESISTANCE = 20000.0f;
+    constexpr float STEP_SYS_INSULATION_RESISTANCE = 1.0f;
+    constexpr float SCALE_SYS_INSULATION_RESISTANCE = 1.0f;
+
+    // Grid Protection (Registers 185-193)
+    constexpr float MIN_GP_OVER_VOLTAGE_PROTECTION = 200.0f;
+    constexpr float MAX_GP_OVER_VOLTAGE_PROTECTION = 300.0f;
+    constexpr float STEP_GP_OVER_VOLTAGE_PROTECTION = 0.1f;
+    constexpr float SCALE_GP_OVER_VOLTAGE_PROTECTION = 10.0f;
+
+    constexpr float MIN_GP_UNDER_VOLTAGE_PROTECTION = 100.0f;
+    constexpr float MAX_GP_UNDER_VOLTAGE_PROTECTION = 200.0f;
+    constexpr float STEP_GP_UNDER_VOLTAGE_PROTECTION = 0.1f;
+    constexpr float SCALE_GP_UNDER_VOLTAGE_PROTECTION = 10.0f;
+
+    constexpr float MIN_GP_OVER_FREQUENCY_PROTECTION = 50.0f;
+    constexpr float MAX_GP_OVER_FREQUENCY_PROTECTION = 65.0f;
+    constexpr float STEP_GP_OVER_FREQUENCY_PROTECTION = 0.01f;
+    constexpr float SCALE_GP_OVER_FREQUENCY_PROTECTION = 100.0f;
+
+    constexpr float MIN_GP_UNDER_FREQUENCY_PROTECTION = 45.0f;
+    constexpr float MAX_GP_UNDER_FREQUENCY_PROTECTION = 55.0f;
+    constexpr float STEP_GP_UNDER_FREQUENCY_PROTECTION = 0.01f;
+    constexpr float SCALE_GP_UNDER_FREQUENCY_PROTECTION = 100.0f;
+
+    constexpr float MIN_GP_VOLTAGE_RECONNECT = 180.0f;
+    constexpr float MAX_GP_VOLTAGE_RECONNECT = 260.0f;
+    constexpr float STEP_GP_VOLTAGE_RECONNECT = 0.1f;
+    constexpr float SCALE_GP_VOLTAGE_RECONNECT = 10.0f;
+
+    constexpr float MIN_GP_FREQUENCY_RECONNECT = 47.0f;
+    constexpr float MAX_GP_FREQUENCY_RECONNECT = 53.0f;
+    constexpr float STEP_GP_FREQUENCY_RECONNECT = 0.01f;
+    constexpr float SCALE_GP_FREQUENCY_RECONNECT = 100.0f;
+
+    constexpr float MIN_GP_RECONNECT_TIME = 0.0f;
+    constexpr float MAX_GP_RECONNECT_TIME = 300.0f;
+    constexpr float STEP_GP_RECONNECT_TIME = 1.0f;
+    constexpr float SCALE_GP_RECONNECT_TIME = 1.0f;
+
+    constexpr float MIN_GP_RAMP_RATE = 1.0f;
+    constexpr float MAX_GP_RAMP_RATE = 100.0f;
+    constexpr float STEP_GP_RAMP_RATE = 1.0f;
+    constexpr float SCALE_GP_RAMP_RATE = 1.0f;
+
+    constexpr float MIN_GP_STARTUP_TIME = 0.0f;
+    constexpr float MAX_GP_STARTUP_TIME = 600.0f;
+    constexpr float STEP_GP_STARTUP_TIME = 1.0f;
+    constexpr float SCALE_GP_STARTUP_TIME = 1.0f;
+
+    // California Settings (Registers 341-354)
+    constexpr float MIN_CA_VOLTAGE_POINT = 0.0f;
+    constexpr float MAX_CA_VOLTAGE_POINT = 300.0f;
+    constexpr float STEP_CA_VOLTAGE_POINT = 0.1f;
+    constexpr float SCALE_CA_VOLTAGE_POINT = 10.0f;
+
+    constexpr float MIN_CA_POWER_POINT = 0.0f;
+    constexpr float MAX_CA_POWER_POINT = 100.0f;
+    constexpr float STEP_CA_POWER_POINT = 1.0f;
+    constexpr float SCALE_CA_POWER_POINT = 1.0f;
+
+    constexpr float MIN_CA_RAMP_RATE = 1.0f;
+    constexpr float MAX_CA_RAMP_RATE = 100.0f;
+    constexpr float STEP_CA_RAMP_RATE = 1.0f;
+    constexpr float SCALE_CA_RAMP_RATE = 1.0f;
+
+    constexpr float MIN_CA_RECONNECT_TIME = 0.0f;
+    constexpr float MAX_CA_RECONNECT_TIME = 300.0f;
+    constexpr float STEP_CA_RECONNECT_TIME = 1.0f;
+    constexpr float SCALE_CA_RECONNECT_TIME = 1.0f;
 
   } // namespace deye_inverter
 } // namespace esphome

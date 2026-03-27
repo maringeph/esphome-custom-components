@@ -44,45 +44,6 @@ DeyeSelect = cg.esphome_ns.namespace("deye_inverter").class_(
 )
 
 # =============================================================================
-# Register addresses for Deye inverter select entities
-# =============================================================================
-
-# Settings Grid group
-REGISTER_GRID_TYPE = 184
-REGISTER_GRID_MODE = 182
-REGISTER_GRID_NOMINAL_VOLTAGE = 138
-REGISTER_GRID_NOMINAL_FREQUENCY = 183
-REGISTER_GRID_PHASE_SEQUENCE = 147
-
-# Settings Battery group
-REGISTER_BATTERY_TYPE = 98
-REGISTER_BATTERY_CONTROL_MODE = 111
-
-# Generator Port Control Mode
-REGISTER_GEN_PORT_CONTROL_MODE = 133
-
-# Settings Working Mode
-REGISTER_ENERGY_PRIORITY = 141
-REGISTER_LIMIT_CONTROL_MODE = 142
-REGISTER_WORKING_MODE = 142
-
-# System Settings
-REGISTER_SYS_LANGUAGE = 60
-
-# Grid Check Source (Register 344 - Ex-Zähler/CT Auswahl)
-REGISTER_GRID_CHECK_SOURCE = 344
-
-# Device Settings (Extended)
-REGISTER_EXT_BAUD_RATE = 231
-REGISTER_EXT_PARITY = 232
-REGISTER_EXT_STOP_BITS = 233
-REGISTER_EXT_PROTOCOL = 234
-
-# California Settings
-REGISTER_CA_RULE21_CATEGORY = 341
-REGISTER_CA_NORMAL_OP_CAT = 342
-REGISTER_CA_ABNORMAL_OP_CAT = 343
-
 # Options maps for select entities
 # Grid Type options (Register 184)
 GRID_TYPE_OPTIONS = {
@@ -387,7 +348,7 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_TYPE,
                 var,
-                REGISTER_GRID_TYPE,
+                cg.RawExpression("esphome::deye_inverter::REG_GRID_TYPE"),
                 GRID_TYPE_OPTIONS,
                 device_obj,
             )
@@ -398,7 +359,7 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_MODE,
                 var,
-                REGISTER_GRID_MODE,
+                cg.RawExpression("esphome::deye_inverter::REG_GRID_MODE"),
                 GRID_MODE_OPTIONS,
                 device_obj,
             )
@@ -409,7 +370,7 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_NOMINAL_VOLTAGE,
                 var,
-                REGISTER_GRID_NOMINAL_VOLTAGE,
+                cg.RawExpression("esphome::deye_inverter::REG_GRID_NOMINAL_VOLTAGE"),
                 GRID_NOMINAL_VOLTAGE_OPTIONS,
                 device_obj,
             )
@@ -420,7 +381,7 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_NOMINAL_FREQUENCY,
                 var,
-                REGISTER_GRID_NOMINAL_FREQUENCY,
+                cg.RawExpression("esphome::deye_inverter::REG_GRID_NOMINAL_FREQUENCY"),
                 GRID_NOMINAL_FREQUENCY_OPTIONS,
                 device_obj,
             )
@@ -431,7 +392,7 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_PHASE_SEQUENCE,
                 var,
-                REGISTER_GRID_PHASE_SEQUENCE,
+                cg.RawExpression("esphome::deye_inverter::REG_GRID_PHASE_SEQUENCE"),
                 GRID_PHASE_SEQUENCE_OPTIONS,
                 device_obj,
             )
@@ -442,7 +403,7 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_CHECK_SOURCE,
                 var,
-                REGISTER_GRID_CHECK_SOURCE,
+                cg.RawExpression("esphome::deye_inverter::REG_GRID_MONITORING_METHOD"),
                 GRID_CHECK_SOURCE_OPTIONS,
                 device_obj,
             )
@@ -456,7 +417,7 @@ async def to_code(config):
                 device_config,
                 CONF_EXT_BAUD_RATE,
                 var,
-                REGISTER_EXT_BAUD_RATE,
+                cg.RawExpression("esphome::deye_inverter::REG_EXT_BAUD_RATE"),
                 EXT_BAUD_RATE_OPTIONS,
                 device_obj,
             )
@@ -466,7 +427,7 @@ async def to_code(config):
                 device_config,
                 CONF_EXT_PARITY,
                 var,
-                REGISTER_EXT_PARITY,
+                cg.RawExpression("esphome::deye_inverter::REG_EXT_PARITY"),
                 EXT_PARITY_OPTIONS,
                 device_obj,
             )
@@ -476,7 +437,7 @@ async def to_code(config):
                 device_config,
                 CONF_EXT_STOP_BITS,
                 var,
-                REGISTER_EXT_STOP_BITS,
+                cg.RawExpression("esphome::deye_inverter::REG_EXT_STOP_BITS"),
                 EXT_STOP_BITS_OPTIONS,
                 device_obj,
             )
@@ -486,7 +447,7 @@ async def to_code(config):
                 device_config,
                 CONF_EXT_PROTOCOL,
                 var,
-                REGISTER_EXT_PROTOCOL,
+                cg.RawExpression("esphome::deye_inverter::REG_EXT_PROTOCOL"),
                 EXT_PROTOCOL_OPTIONS,
                 device_obj,
             )
@@ -501,7 +462,7 @@ async def to_code(config):
                 battery_config,
                 CONF_BATTERY_TYPE,
                 var,
-                REGISTER_BATTERY_TYPE,
+                cg.RawExpression("esphome::deye_inverter::REG_BATTERY_TYPE"),
                 BATTERY_TYPE_OPTIONS,
                 device_obj,
             )
@@ -512,7 +473,7 @@ async def to_code(config):
                 battery_config,
                 CONF_BATTERY_CONTROL_MODE,
                 var,
-                REGISTER_BATTERY_CONTROL_MODE,
+                cg.RawExpression("esphome::deye_inverter::REG_BATTERY_CONTROL_MODE"),
                 BATTERY_CONTROL_MODE_OPTIONS,
                 device_obj,
             )
@@ -525,7 +486,7 @@ async def to_code(config):
                 gen_port_config,
                 CONF_GEN_PORT_CONTROL_MODE,
                 var,
-                REGISTER_GEN_PORT_CONTROL_MODE,
+                cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_CONTROL_MODE"),
                 GEN_PORT_CONTROL_MODE_OPTIONS,
                 device_obj,
             )
@@ -540,7 +501,7 @@ async def to_code(config):
                 working_mode_config,
                 CONF_WORKING_MODE,
                 var,
-                REGISTER_WORKING_MODE,
+                cg.RawExpression("esphome::deye_inverter::REG_LIMIT_CONTROL_MODE"),
                 WORKING_MODE_OPTIONS,
                 device_obj,
             )
@@ -551,7 +512,7 @@ async def to_code(config):
                 working_mode_config,
                 CONF_ENERGY_PRIORITY,
                 var,
-                REGISTER_ENERGY_PRIORITY,
+                cg.RawExpression("esphome::deye_inverter::REG_ENERGY_PRIORITY"),
                 ENERGY_PRIORITY_OPTIONS,
                 device_obj,
             )
@@ -562,7 +523,7 @@ async def to_code(config):
                 working_mode_config,
                 CONF_LIMIT_CONTROL_MODE,
                 var,
-                REGISTER_LIMIT_CONTROL_MODE,
+                cg.RawExpression("esphome::deye_inverter::REG_LIMIT_CONTROL_MODE"),
                 LIMIT_CONTROL_MODE_OPTIONS,
                 device_obj,
             )
@@ -575,7 +536,7 @@ async def to_code(config):
                 system_config,
                 CONF_SYS_LANGUAGE,
                 var,
-                REGISTER_SYS_LANGUAGE,
+                cg.RawExpression("esphome::deye_inverter::REG_SYS_LANGUAGE"),
                 SYS_LANGUAGE_OPTIONS,
                 device_obj,
             )
@@ -589,7 +550,7 @@ async def to_code(config):
                 ca_config,
                 CONF_CA_RULE21_CATEGORY,
                 var,
-                REGISTER_CA_RULE21_CATEGORY,
+                cg.RawExpression("esphome::deye_inverter::REG_CA_RULE21_CATEGORY"),
                 CA_RULE21_CATEGORY_OPTIONS,
                 device_obj,
             )
@@ -599,7 +560,7 @@ async def to_code(config):
                 ca_config,
                 CONF_CA_NORMAL_OP_CAT,
                 var,
-                REGISTER_CA_NORMAL_OP_CAT,
+                cg.RawExpression("esphome::deye_inverter::REG_CA_NORMAL_OP_CAT"),
                 CA_NORMAL_OP_CAT_OPTIONS,
                 device_obj,
             )
@@ -609,7 +570,7 @@ async def to_code(config):
                 ca_config,
                 CONF_CA_ABNORMAL_OP_CAT,
                 var,
-                REGISTER_CA_ABNORMAL_OP_CAT,
+                cg.RawExpression("esphome::deye_inverter::REG_CA_ABNORMAL_OP_CAT"),
                 CA_ABNORMAL_OP_CAT_OPTIONS,
                 device_obj,
             )

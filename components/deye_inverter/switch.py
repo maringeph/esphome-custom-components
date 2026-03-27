@@ -101,122 +101,6 @@ CONF_SYS_DST_ENABLE = "sys_dst_enable"
 CONF_SYS_REMOTE_LOCK = "sys_remote_lock"
 
 # =============================================================================
-# Register addresses and bitmasks for Deye inverter switches
-# =============================================================================
-
-# Settings Grid group (Register 130, 145, 178)
-REGISTER_GRID_CHARGE = 130
-BITMASK_GRID_CHARGE = 0x0001
-
-REGISTER_SOLAR_SELL = 145
-BITMASK_SOLAR_SELL = 0x0001
-
-# Gen Port Force On (Register 132, Bit 0)
-REGISTER_GEN_PORT_FORCE_ON = 132
-BITMASK_GEN_PORT_FORCE_ON = 0x0001
-
-# Register 178 - Grid/Gen Peak Shaving and On-Grid Always On
-REGISTER_GRID_PEAK_SHAVING = 178
-BITMASK_GRID_PEAK_SHAVING = 0x0030  # Bits 4-5
-VALUE_ENABLE_GRID_PEAK_SHAVING = 0x0030
-VALUE_DISABLE_GRID_PEAK_SHAVING = 0x0020
-SHIFT_GRID_PEAK_SHAVING = 4
-
-REGISTER_GEN_PEAK_SHAVING = 178
-BITMASK_GEN_PEAK_SHAVING = 0x000C  # Bits 2-3
-VALUE_ENABLE_GEN_PEAK_SHAVING = 0x000C
-VALUE_DISABLE_GEN_PEAK_SHAVING = 0x0008
-SHIFT_GEN_PEAK_SHAVING = 2
-
-REGISTER_ON_GRID_ALWAYS_ON = 178
-BITMASK_ON_GRID_ALWAYS_ON = 0x00C0  # Bits 6-7
-VALUE_ENABLE_ON_GRID_ALWAYS_ON = 0x00C0
-VALUE_DISABLE_ON_GRID_ALWAYS_ON = 0x0080
-SHIFT_ON_GRID_ALWAYS_ON = 6
-
-# Settings Device group - External CT Direction Check (Register 179)
-REGISTER_EXTERNAL_CT_DIRECTION_CHECK = 179
-BITMASK_EXTERNAL_CT_DIRECTION_CHECK = 0x0003  # Bits 0-1
-VALUE_ENABLE_CT_DIRECTION_CHECK = 0x0003
-VALUE_DISABLE_CT_DIRECTION_CHECK = 0x0002
-SHIFT_CT_DIRECTION_CHECK = 0
-
-# Settings Time of Use group (Register 146)
-REGISTER_TIME_OF_USE = 146
-BITMASK_TIME_OF_USE = 0x0001
-
-# Time Point Charge Enable registers (172-177) - Same registers, different bits
-REGISTER_TIME_POINT_1_CHARGE = 172
-REGISTER_TIME_POINT_2_CHARGE = 173
-REGISTER_TIME_POINT_3_CHARGE = 174
-REGISTER_TIME_POINT_4_CHARGE = 175
-REGISTER_TIME_POINT_5_CHARGE = 176
-REGISTER_TIME_POINT_6_CHARGE = 177
-
-# Bitmasks for different charge sources
-BITMASK_CHARGE_ENABLE_SOLAR = 0x0001  # Bit 0: Solar/General Charge Enable
-BITMASK_CHARGE_ENABLE_GRID = 0x0002  # Bit 1: Grid Charge Enable
-BITMASK_CHARGE_ENABLE_GEN = 0x0004  # Bit 2: Generator Charge Enable
-
-# Weekday Enables (Register 146 - Time of Use register, Bits 1-7)
-REGISTER_TIME_OF_USE_WEEKDAYS = 146
-BITMASK_WEEKDAY_MONDAY = 0x0002  # Bit 1
-BITMASK_WEEKDAY_TUESDAY = 0x0004  # Bit 2
-BITMASK_WEEKDAY_WEDNESDAY = 0x0008  # Bit 3
-BITMASK_WEEKDAY_THURSDAY = 0x0010  # Bit 4
-BITMASK_WEEKDAY_FRIDAY = 0x0020  # Bit 5
-BITMASK_WEEKDAY_SATURDAY = 0x0040  # Bit 6
-BITMASK_WEEKDAY_SUNDAY = 0x0080  # Bit 7
-
-# System Settings (NEW - registers 60-97)
-REGISTER_SYS_BEEPER = 64
-BITMASK_SYS_BEEPER = 0x0001
-
-REGISTER_SYS_REMOTE_LOCK = 60
-BITMASK_SYS_REMOTE_LOCK = 0x0002  # 0x0002=off, 0x0000=on
-
-REGISTER_SYS_LCD_BACKLIGHT = 65
-BITMASK_SYS_LCD_BACKLIGHT = 0x0001
-
-REGISTER_SYS_DST_ENABLE = 66
-BITMASK_SYS_DST_ENABLE = 0x0001
-
-# Special Functions - Register 178 (remaining functions)
-REGISTER_MICROINVERTER_EXPORT_TO_GRID = 178
-BITMASK_MICROINVERTER_EXPORT_TO_GRID = 0x0003  # Bits 0-1
-VALUE_ENABLE_MICROINVERTER_EXPORT = 0x0003
-VALUE_DISABLE_MICROINVERTER_EXPORT = 0x0002
-SHIFT_MICROINVERTER_EXPORT = 0
-
-REGISTER_EXTERNAL_RELAY = 178
-BITMASK_EXTERNAL_RELAY = 0x0300  # Bits 8-9
-VALUE_ENABLE_EXTERNAL_RELAY = 0x0300
-VALUE_DISABLE_EXTERNAL_RELAY = 0x0200
-SHIFT_EXTERNAL_RELAY = 8
-
-REGISTER_BATTERY_LOSS_REPORT_FAULT = 178
-BITMASK_BATTERY_LOSS_REPORT_FAULT = 0x0C00  # Bits 10-11
-VALUE_ENABLE_BATTERY_LOSS_FAULT = 0x0C00
-VALUE_DISABLE_BATTERY_LOSS_FAULT = 0x0800
-SHIFT_BATTERY_LOSS_FAULT = 10
-
-# Special Functions - Register 179 (remaining functions)
-REGISTER_FORCED_OFF_GRID_WORK = 179
-BITMASK_FORCED_OFF_GRID_WORK = 0x000C  # Bits 2-3
-VALUE_ENABLE_FORCED_OFF_GRID = 0x000C
-VALUE_DISABLE_FORCED_OFF_GRID = 0x0008
-SHIFT_FORCED_OFF_GRID = 2
-
-# Register 181 - Solar Arc Fault Mode (1-bit)
-REGISTER_SOLAR_ARC_FAULT_MODE = 181
-BITMASK_SOLAR_ARC_FAULT_MODE = 0x0001
-
-# Generator Charging Enabled (Register 129)
-REGISTER_GENERATOR_CHARGING_ENABLED = 129
-BITMASK_GENERATOR_CHARGING_ENABLED = 0x0001
-
-
-# =============================================================================
 # SCHEMA DEFINITIONS
 # =============================================================================
 
@@ -524,8 +408,8 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_CHARGE,
                 var,
-                REGISTER_GRID_CHARGE,
-                BITMASK_GRID_CHARGE,
+                cg.RawExpression("esphome::deye_inverter::REG_GRID_CHARGE"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
@@ -535,8 +419,8 @@ async def to_code(config):
                 grid_config,
                 CONF_SOLAR_SELL,
                 var,
-                REGISTER_SOLAR_SELL,
-                BITMASK_SOLAR_SELL,
+                cg.RawExpression("esphome::deye_inverter::REG_SOLAR_SELL"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
@@ -546,11 +430,11 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_PEAK_SHAVING,
                 var,
-                REGISTER_GRID_PEAK_SHAVING,
-                BITMASK_GRID_PEAK_SHAVING,
-                VALUE_ENABLE_GRID_PEAK_SHAVING,
-                VALUE_DISABLE_GRID_PEAK_SHAVING,
-                SHIFT_GRID_PEAK_SHAVING,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_4_5"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 4"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 4"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_GRID_PEAK_SHAVING"),
                 device_obj,
             )
 
@@ -560,11 +444,11 @@ async def to_code(config):
                 grid_config,
                 CONF_GEN_PEAK_SHAVING,
                 var,
-                REGISTER_GEN_PEAK_SHAVING,
-                BITMASK_GEN_PEAK_SHAVING,
-                VALUE_ENABLE_GEN_PEAK_SHAVING,
-                VALUE_DISABLE_GEN_PEAK_SHAVING,
-                SHIFT_GEN_PEAK_SHAVING,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_2_3"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 2"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 2"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_GEN_PEAK_SHAVING"),
                 device_obj,
             )
 
@@ -574,11 +458,11 @@ async def to_code(config):
                 grid_config,
                 CONF_ON_GRID_ALWAYS_ON,
                 var,
-                REGISTER_ON_GRID_ALWAYS_ON,
-                BITMASK_ON_GRID_ALWAYS_ON,
-                VALUE_ENABLE_ON_GRID_ALWAYS_ON,
-                VALUE_DISABLE_ON_GRID_ALWAYS_ON,
-                SHIFT_ON_GRID_ALWAYS_ON,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_6_7"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 6"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 6"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_ON_GRID_ALWAYS_ON"),
                 device_obj,
             )
 
@@ -588,11 +472,11 @@ async def to_code(config):
                 grid_config,
                 CONF_MICROINVERTER_EXPORT_TO_GRID,
                 var,
-                REGISTER_MICROINVERTER_EXPORT_TO_GRID,
-                BITMASK_MICROINVERTER_EXPORT_TO_GRID,
-                VALUE_ENABLE_MICROINVERTER_EXPORT,
-                VALUE_DISABLE_MICROINVERTER_EXPORT,
-                SHIFT_MICROINVERTER_EXPORT,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_0_1"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_MICROINVERTER_EXPORT"),
                 device_obj,
             )
 
@@ -602,8 +486,8 @@ async def to_code(config):
                 grid_config,
                 CONF_ZERO_EXPORT_POWER,
                 var,
-                145,
-                0x0002,
+                cg.RawExpression("esphome::deye_inverter::REG_SOLAR_SELL"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_1"),
                 device_obj,
             )
 
@@ -613,8 +497,8 @@ async def to_code(config):
                 grid_config,
                 CONF_MAX_SOLAR_SELL_POWER,
                 var,
-                145,
-                0x0004,
+                cg.RawExpression("esphome::deye_inverter::REG_SOLAR_SELL"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_2"),
                 device_obj,
             )
 
@@ -624,8 +508,8 @@ async def to_code(config):
                 grid_config,
                 CONF_GRID_MAX_POWER,
                 var,
-                146,
-                0x0002,
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_OF_USE"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_1"),
                 device_obj,
             )
 
@@ -635,8 +519,8 @@ async def to_code(config):
                 grid_config,
                 CONF_RESTORE_CONNECTION_TIME,
                 var,
-                146,
-                0x0004,
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_OF_USE"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_2"),
                 device_obj,
             )
 
@@ -650,11 +534,11 @@ async def to_code(config):
                 device_config,
                 CONF_EXTERNAL_CT_DIRECTION_CHECK,
                 var,
-                REGISTER_EXTERNAL_CT_DIRECTION_CHECK,
-                BITMASK_EXTERNAL_CT_DIRECTION_CHECK,
-                VALUE_ENABLE_CT_DIRECTION_CHECK,
-                VALUE_DISABLE_CT_DIRECTION_CHECK,
-                SHIFT_CT_DIRECTION_CHECK,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_2"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_0_1"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_CT_DIRECTION_CHECK"),
                 device_obj,
             )
 
@@ -664,8 +548,8 @@ async def to_code(config):
                 device_config,
                 CONF_SOLAR_ARC_FAULT_MODE,
                 var,
-                REGISTER_SOLAR_ARC_FAULT_MODE,
-                BITMASK_SOLAR_ARC_FAULT_MODE,
+                cg.RawExpression("esphome::deye_inverter::REG_SOLAR_ARC_FAULT_MODE"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
@@ -679,8 +563,8 @@ async def to_code(config):
                 system_config,
                 CONF_SYS_BEEPER,
                 var,
-                REGISTER_SYS_BEEPER,
-                BITMASK_SYS_BEEPER,
+                cg.RawExpression("esphome::deye_inverter::REG_SYSTEM_TIME_BYTE5"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
@@ -690,8 +574,10 @@ async def to_code(config):
                 system_config,
                 CONF_SYS_LCD_BACKLIGHT,
                 var,
-                REGISTER_SYS_LCD_BACKLIGHT,
-                BITMASK_SYS_LCD_BACKLIGHT,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_INSULATION_RESISTANCE_LIMIT"
+                ),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
@@ -701,8 +587,8 @@ async def to_code(config):
                 system_config,
                 CONF_SYS_DST_ENABLE,
                 var,
-                REGISTER_SYS_DST_ENABLE,
-                BITMASK_SYS_DST_ENABLE,
+                cg.RawExpression("esphome::deye_inverter::REG_RESERVED_66"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
@@ -713,10 +599,10 @@ async def to_code(config):
                 system_config,
                 CONF_SYS_REMOTE_LOCK,
                 var,
-                REGISTER_SYS_REMOTE_LOCK,
-                0xFFFF,  # Full register bitmask
-                0x0000,  # value_enable (locked/on)
-                0x0002,  # value_disable (unlocked/off)
+                cg.RawExpression("esphome::deye_inverter::REG_REMOTE_LOCK"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_FULL_REGISTER"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_REMOTE_LOCK_ON"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_REMOTE_LOCK_OFF"),
                 0,  # shift
                 device_obj,
             )
@@ -731,19 +617,49 @@ async def to_code(config):
                 tou_config,
                 CONF_TIME_OF_USE,
                 var,
-                REGISTER_TIME_OF_USE,
-                BITMASK_TIME_OF_USE,
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_OF_USE"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
         # Time Point Solar/General Charge Enable switches (Registers 172-177, Bit 0)
         solar_charge_switches = [
-            (CONF_TIME_POINT_1_CHARGE_ENABLE, REGISTER_TIME_POINT_1_CHARGE),
-            (CONF_TIME_POINT_2_CHARGE_ENABLE, REGISTER_TIME_POINT_2_CHARGE),
-            (CONF_TIME_POINT_3_CHARGE_ENABLE, REGISTER_TIME_POINT_3_CHARGE),
-            (CONF_TIME_POINT_4_CHARGE_ENABLE, REGISTER_TIME_POINT_4_CHARGE),
-            (CONF_TIME_POINT_5_CHARGE_ENABLE, REGISTER_TIME_POINT_5_CHARGE),
-            (CONF_TIME_POINT_6_CHARGE_ENABLE, REGISTER_TIME_POINT_6_CHARGE),
+            (
+                CONF_TIME_POINT_1_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_1_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_2_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_2_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_3_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_3_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_4_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_4_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_5_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_5_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_6_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_6_CHARGE_ENABLE"
+                ),
+            ),
         ]
         for conf_key, register_addr in solar_charge_switches:
             if conf_key in tou_config:
@@ -752,18 +668,48 @@ async def to_code(config):
                     conf_key,
                     var,
                     register_addr,
-                    BITMASK_CHARGE_ENABLE_SOLAR,
+                    cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                     device_obj,
                 )
 
         # Time Point Grid Charge Enable switches (Registers 172-177, Bit 1)
         grid_charge_switches = [
-            (CONF_TIME_POINT_1_GRID_CHARGE_ENABLE, REGISTER_TIME_POINT_1_CHARGE),
-            (CONF_TIME_POINT_2_GRID_CHARGE_ENABLE, REGISTER_TIME_POINT_2_CHARGE),
-            (CONF_TIME_POINT_3_GRID_CHARGE_ENABLE, REGISTER_TIME_POINT_3_CHARGE),
-            (CONF_TIME_POINT_4_GRID_CHARGE_ENABLE, REGISTER_TIME_POINT_4_CHARGE),
-            (CONF_TIME_POINT_5_GRID_CHARGE_ENABLE, REGISTER_TIME_POINT_5_CHARGE),
-            (CONF_TIME_POINT_6_GRID_CHARGE_ENABLE, REGISTER_TIME_POINT_6_CHARGE),
+            (
+                CONF_TIME_POINT_1_GRID_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_1_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_2_GRID_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_2_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_3_GRID_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_3_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_4_GRID_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_4_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_5_GRID_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_5_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_6_GRID_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_6_CHARGE_ENABLE"
+                ),
+            ),
         ]
         for conf_key, register_addr in grid_charge_switches:
             if conf_key in tou_config:
@@ -772,18 +718,48 @@ async def to_code(config):
                     conf_key,
                     var,
                     register_addr,
-                    BITMASK_CHARGE_ENABLE_GRID,
+                    cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_1"),
                     device_obj,
                 )
 
         # Time Point Generator Charge Enable switches (Registers 172-177, Bit 2)
         gen_charge_switches = [
-            (CONF_TIME_POINT_1_GEN_CHARGE_ENABLE, REGISTER_TIME_POINT_1_CHARGE),
-            (CONF_TIME_POINT_2_GEN_CHARGE_ENABLE, REGISTER_TIME_POINT_2_CHARGE),
-            (CONF_TIME_POINT_3_GEN_CHARGE_ENABLE, REGISTER_TIME_POINT_3_CHARGE),
-            (CONF_TIME_POINT_4_GEN_CHARGE_ENABLE, REGISTER_TIME_POINT_4_CHARGE),
-            (CONF_TIME_POINT_5_GEN_CHARGE_ENABLE, REGISTER_TIME_POINT_5_CHARGE),
-            (CONF_TIME_POINT_6_GEN_CHARGE_ENABLE, REGISTER_TIME_POINT_6_CHARGE),
+            (
+                CONF_TIME_POINT_1_GEN_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_1_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_2_GEN_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_2_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_3_GEN_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_3_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_4_GEN_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_4_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_5_GEN_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_5_CHARGE_ENABLE"
+                ),
+            ),
+            (
+                CONF_TIME_POINT_6_GEN_CHARGE_ENABLE,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_TIME_POINT_6_CHARGE_ENABLE"
+                ),
+            ),
         ]
         for conf_key, register_addr in gen_charge_switches:
             if conf_key in tou_config:
@@ -792,19 +768,40 @@ async def to_code(config):
                     conf_key,
                     var,
                     register_addr,
-                    BITMASK_CHARGE_ENABLE_GEN,
+                    cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_2"),
                     device_obj,
                 )
 
         # Weekday Enable switches (Register 146, Bits 1-7)
         weekday_switches = [
-            (CONF_WEEKDAY_MONDAY, BITMASK_WEEKDAY_MONDAY),
-            (CONF_WEEKDAY_TUESDAY, BITMASK_WEEKDAY_TUESDAY),
-            (CONF_WEEKDAY_WEDNESDAY, BITMASK_WEEKDAY_WEDNESDAY),
-            (CONF_WEEKDAY_THURSDAY, BITMASK_WEEKDAY_THURSDAY),
-            (CONF_WEEKDAY_FRIDAY, BITMASK_WEEKDAY_FRIDAY),
-            (CONF_WEEKDAY_SATURDAY, BITMASK_WEEKDAY_SATURDAY),
-            (CONF_WEEKDAY_SUNDAY, BITMASK_WEEKDAY_SUNDAY),
+            (
+                CONF_WEEKDAY_MONDAY,
+                cg.RawExpression("esphome::deye_inverter::BITMASK_WEEKDAY_MONDAY"),
+            ),
+            (
+                CONF_WEEKDAY_TUESDAY,
+                cg.RawExpression("esphome::deye_inverter::BITMASK_WEEKDAY_TUESDAY"),
+            ),
+            (
+                CONF_WEEKDAY_WEDNESDAY,
+                cg.RawExpression("esphome::deye_inverter::BITMASK_WEEKDAY_WEDNESDAY"),
+            ),
+            (
+                CONF_WEEKDAY_THURSDAY,
+                cg.RawExpression("esphome::deye_inverter::BITMASK_WEEKDAY_THURSDAY"),
+            ),
+            (
+                CONF_WEEKDAY_FRIDAY,
+                cg.RawExpression("esphome::deye_inverter::BITMASK_WEEKDAY_FRIDAY"),
+            ),
+            (
+                CONF_WEEKDAY_SATURDAY,
+                cg.RawExpression("esphome::deye_inverter::BITMASK_WEEKDAY_SATURDAY"),
+            ),
+            (
+                CONF_WEEKDAY_SUNDAY,
+                cg.RawExpression("esphome::deye_inverter::BITMASK_WEEKDAY_SUNDAY"),
+            ),
         ]
         for conf_key, bitmask in weekday_switches:
             if conf_key in tou_config:
@@ -812,7 +809,7 @@ async def to_code(config):
                     tou_config,
                     conf_key,
                     var,
-                    REGISTER_TIME_OF_USE_WEEKDAYS,
+                    cg.RawExpression("esphome::deye_inverter::REG_TIME_OF_USE"),
                     bitmask,
                     device_obj,
                 )
@@ -825,11 +822,11 @@ async def to_code(config):
                 working_mode_config,
                 CONF_FORCED_OFF_GRID_WORK,
                 var,
-                REGISTER_FORCED_OFF_GRID_WORK,
-                BITMASK_FORCED_OFF_GRID_WORK,
-                VALUE_ENABLE_FORCED_OFF_GRID,
-                VALUE_DISABLE_FORCED_OFF_GRID,
-                SHIFT_FORCED_OFF_GRID,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_2"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_2_3"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 2"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 2"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_FORCED_OFF_GRID"),
                 device_obj,
             )
 
@@ -841,11 +838,11 @@ async def to_code(config):
                 battery_config,
                 CONF_BATTERY_LOSS_REPORT_FAULT,
                 var,
-                REGISTER_BATTERY_LOSS_REPORT_FAULT,
-                BITMASK_BATTERY_LOSS_REPORT_FAULT,
-                VALUE_ENABLE_BATTERY_LOSS_FAULT,
-                VALUE_DISABLE_BATTERY_LOSS_FAULT,
-                SHIFT_BATTERY_LOSS_FAULT,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_10_11"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 10"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 10"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_BATTERY_LOSS_FAULT"),
                 device_obj,
             )
 
@@ -859,11 +856,11 @@ async def to_code(config):
                 generator_config,
                 CONF_EXTERNAL_RELAY,
                 var,
-                REGISTER_EXTERNAL_RELAY,
-                BITMASK_EXTERNAL_RELAY,
-                VALUE_ENABLE_EXTERNAL_RELAY,
-                VALUE_DISABLE_EXTERNAL_RELAY,
-                SHIFT_EXTERNAL_RELAY,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_8_9"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 8"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 8"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_EXTERNAL_RELAY"),
                 device_obj,
             )
 
@@ -873,8 +870,8 @@ async def to_code(config):
                 generator_config,
                 CONF_GEN_PORT_FORCE_ON,
                 var,
-                REGISTER_GEN_PORT_FORCE_ON,
-                BITMASK_GEN_PORT_FORCE_ON,
+                cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_FORCE_ON"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_0"),
                 device_obj,
             )
 
@@ -884,11 +881,11 @@ async def to_code(config):
                 generator_config,
                 CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT,
                 var,
-                178,
-                0x3000,
-                0x3000,
-                0x2000,
-                12,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_12_13"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 12"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 12"),
+                cg.RawExpression("esphome::deye_inverter::SHIFT_GEN_PORT_COUPLE_FREQ"),
                 device_obj,
             )
 
@@ -898,10 +895,12 @@ async def to_code(config):
                 generator_config,
                 CONF_GENERATOR_REQUIRED_POWER_START,
                 var,
-                178,
-                0xC000,
-                0xC000,
-                0x8000,
-                14,
+                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
+                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_14_15"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 14"),
+                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 14"),
+                cg.RawExpression(
+                    "esphome::deye_inverter::SHIFT_GEN_REQUIRED_POWER_START"
+                ),
                 device_obj,
             )

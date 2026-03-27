@@ -1644,7 +1644,7 @@ async def register_sensors(parent, config, device_obj=None):
             battery_conf,
             CONF_BATTERY_VOLTAGE,
             parent,
-            587,
+            cg.RawExpression("esphome::deye_inverter::REG_BATTERY_VOLTAGE"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -1652,7 +1652,7 @@ async def register_sensors(parent, config, device_obj=None):
             battery_conf,
             CONF_BATTERY_CURRENT,
             parent,
-            591,
+            cg.RawExpression("esphome::deye_inverter::REG_BATTERY_CURRENT"),
             scale=0.01,
             signed=True,
             device_obj=device_obj,
@@ -1661,7 +1661,7 @@ async def register_sensors(parent, config, device_obj=None):
             battery_conf,
             CONF_BATTERY_POWER,
             parent,
-            590,
+            cg.RawExpression("esphome::deye_inverter::REG_BATTERY_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -1670,7 +1670,7 @@ async def register_sensors(parent, config, device_obj=None):
             battery_conf,
             CONF_BATTERY_SOC,
             parent,
-            588,
+            cg.RawExpression("esphome::deye_inverter::REG_BATTERY_CAPACITY_LIVE"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1678,7 +1678,7 @@ async def register_sensors(parent, config, device_obj=None):
             battery_conf,
             CONF_BATTERY_TEMPERATURE,
             parent,
-            586,
+            cg.RawExpression("esphome::deye_inverter::REG_BATTERY_TEMPERATURE"),
             scale=0.1,
             offset=-100.0,
             device_obj=device_obj,
@@ -1687,7 +1687,7 @@ async def register_sensors(parent, config, device_obj=None):
             battery_conf,
             CONF_BATTERY_CAPACITY,
             parent,
-            592,
+            cg.RawExpression("esphome::deye_inverter::REG_BATTERY_CORRECTED_AH"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1695,21 +1695,20 @@ async def register_sensors(parent, config, device_obj=None):
     # =============================================================================
     # PROCESS PV STRING SENSORS
     # =============================================================================
-    for pv_group, base_addr in [
-        (CONF_PV1, 672),
-        (CONF_PV2, 673),
-        (CONF_PV3, 674),
-        (CONF_PV4, 675),
-    ]:
+    pv_groups = [
+        (CONF_PV1, "REG_PV1_POWER", "REG_PV1_VOLTAGE", "REG_PV1_CURRENT"),
+        (CONF_PV2, "REG_PV2_POWER", "REG_PV2_VOLTAGE", "REG_PV2_CURRENT"),
+        (CONF_PV3, "REG_PV3_POWER", "REG_PV3_VOLTAGE", "REG_PV3_CURRENT"),
+        (CONF_PV4, "REG_PV4_POWER", "REG_PV4_VOLTAGE", "REG_PV4_CURRENT"),
+    ]
+    for pv_group, power_reg, voltage_reg, current_reg in pv_groups:
         if pv_group in config:
             pv_conf = config[pv_group]
-            voltage_addr = 676 + (base_addr - 672) * 2
-            current_addr = 677 + (base_addr - 672) * 2
             await register_single_sensor(
                 pv_conf,
                 CONF_PV_VOLTAGE,
                 parent,
-                voltage_addr,
+                cg.RawExpression(f"esphome::deye_inverter::{voltage_reg}"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -1717,7 +1716,7 @@ async def register_sensors(parent, config, device_obj=None):
                 pv_conf,
                 CONF_PV_CURRENT,
                 parent,
-                current_addr,
+                cg.RawExpression(f"esphome::deye_inverter::{current_reg}"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -1725,7 +1724,7 @@ async def register_sensors(parent, config, device_obj=None):
                 pv_conf,
                 CONF_PV_POWER,
                 parent,
-                base_addr,
+                cg.RawExpression(f"esphome::deye_inverter::{power_reg}"),
                 scale=1.0,
                 device_obj=device_obj,
             )
@@ -1739,7 +1738,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_VOLTAGE_L1,
             parent,
-            598,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_VOLTAGE_L1"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -1747,7 +1746,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_VOLTAGE_L2,
             parent,
-            599,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_VOLTAGE_L2"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -1755,7 +1754,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_VOLTAGE_L3,
             parent,
-            600,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_VOLTAGE_L3"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -1763,7 +1762,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_CURRENT_L1,
             parent,
-            610,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_SIDE_INNER_CURRENT_A"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -1771,7 +1770,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_CURRENT_L2,
             parent,
-            611,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_SIDE_INNER_CURRENT_B"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -1779,7 +1778,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_CURRENT_L3,
             parent,
-            612,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_SIDE_INNER_CURRENT_C"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -1787,7 +1786,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_POWER_L1,
             parent,
-            604,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_CT_L1_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -1796,7 +1795,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_POWER_L2,
             parent,
-            605,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_CT_L2_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -1805,7 +1804,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_POWER_L3,
             parent,
-            606,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_CT_L3_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -1814,7 +1813,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_POWER_TOTAL,
             parent,
-            607,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_TOTAL_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -1823,7 +1822,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_FREQUENCY,
             parent,
-            609,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_FREQUENCY"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -1831,7 +1830,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_SIDE_A_PHASE_POWER,
             parent,
-            622,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_SIDE_A_PHASE_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1839,7 +1838,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_SIDE_B_PHASE_POWER,
             parent,
-            623,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_SIDE_B_PHASE_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1847,7 +1846,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_SIDE_C_PHASE_POWER,
             parent,
-            624,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_SIDE_C_PHASE_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1855,7 +1854,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_TOTAL_GRID_POWER,
             parent,
-            625,
+            cg.RawExpression("esphome::deye_inverter::REG_TOTAL_GRID_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -1864,7 +1863,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_SIDE_TOTAL_POWER,
             parent,
-            626,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_SIDE_TOTAL_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1874,7 +1873,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_INTERNAL_CT_L1_POWER,
             parent,
-            607,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_CT_L1_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1882,7 +1881,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_INTERNAL_CT_L2_POWER,
             parent,
-            608,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_CT_L2_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1890,7 +1889,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_INTERNAL_CT_L3_POWER,
             parent,
-            609,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_CT_L3_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1898,7 +1897,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_INTERNAL_TOTAL_POWER,
             parent,
-            610,
+            cg.RawExpression("esphome::deye_inverter::REG_INTERNAL_TOTAL_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1906,7 +1905,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_EXTERNAL_CT_L1_POWER,
             parent,
-            611,
+            cg.RawExpression("esphome::deye_inverter::REG_EXTERNAL_CT_L1_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1914,7 +1913,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_EXTERNAL_CT_L2_POWER,
             parent,
-            612,
+            cg.RawExpression("esphome::deye_inverter::REG_EXTERNAL_CT_L2_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1922,7 +1921,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_EXTERNAL_CT_L3_POWER,
             parent,
-            613,
+            cg.RawExpression("esphome::deye_inverter::REG_EXTERNAL_CT_L3_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1930,7 +1929,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_OUT_OF_GRID_TOTAL_POWER,
             parent,
-            614,
+            cg.RawExpression("esphome::deye_inverter::REG_OUT_OF_GRID_TOTAL_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1938,7 +1937,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_METER_APPARENT_POWER,
             parent,
-            615,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_METER_APPARENT_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1946,7 +1945,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_METER_POWER_FACTOR,
             parent,
-            616,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_METER_POWER_FACTOR"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -1954,7 +1953,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_METER_CURRENT_L1,
             parent,
-            617,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_METER_CURRENT_L1"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -1962,7 +1961,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_METER_CURRENT_L2,
             parent,
-            618,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_METER_CURRENT_L2"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -1970,7 +1969,7 @@ async def register_sensors(parent, config, device_obj=None):
             grid_conf,
             CONF_GRID_METER_CURRENT_L3,
             parent,
-            619,
+            cg.RawExpression("esphome::deye_inverter::REG_GRID_METER_CURRENT_L3"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -1984,7 +1983,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_grid_conf,
             CONF_LOAD_GRID_VOLTAGE_L1,
             parent,
-            644,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_VOLTAGE_L1"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -1992,7 +1991,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_grid_conf,
             CONF_LOAD_GRID_VOLTAGE_L2,
             parent,
-            645,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_VOLTAGE_L2"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2000,7 +1999,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_grid_conf,
             CONF_LOAD_GRID_VOLTAGE_L3,
             parent,
-            646,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_VOLTAGE_L3"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2008,7 +2007,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_grid_conf,
             CONF_LOAD_GRID_POWER_L1,
             parent,
-            650,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_POWER_L1"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2016,7 +2015,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_grid_conf,
             CONF_LOAD_GRID_POWER_L2,
             parent,
-            651,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_POWER_L2"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2024,7 +2023,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_grid_conf,
             CONF_LOAD_GRID_POWER_L3,
             parent,
-            652,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_POWER_L3"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2032,7 +2031,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_grid_conf,
             CONF_LOAD_GRID_POWER_TOTAL,
             parent,
-            653,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_REAL_POWER"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2046,7 +2045,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_VOLTAGE_L1,
             parent,
-            644,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_VOLTAGE_L1"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2054,7 +2053,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_VOLTAGE_L2,
             parent,
-            645,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_VOLTAGE_L2"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2062,7 +2061,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_VOLTAGE_L3,
             parent,
-            646,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_VOLTAGE_L3"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2070,7 +2069,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_CURRENT_L1,
             parent,
-            647,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_CURRENT_L1"),
             scale=0.01,
             signed=True,
             device_obj=device_obj,
@@ -2079,7 +2078,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_CURRENT_L2,
             parent,
-            648,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_CURRENT_L2"),
             scale=0.01,
             signed=True,
             device_obj=device_obj,
@@ -2088,7 +2087,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_CURRENT_L3,
             parent,
-            649,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_CURRENT_L3"),
             scale=0.01,
             signed=True,
             device_obj=device_obj,
@@ -2097,7 +2096,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_POWER_L1,
             parent,
-            650,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_POWER_L1"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2106,7 +2105,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_POWER_L2,
             parent,
-            651,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_POWER_L2"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2115,7 +2114,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_PORT_POWER_L3,
             parent,
-            652,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_PORT_POWER_L3"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2124,7 +2123,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_REAL_POWER,
             parent,
-            653,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_REAL_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2133,7 +2132,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_APPARENT_POWER,
             parent,
-            654,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_APPARENT_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2142,7 +2141,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_port_conf,
             CONF_LOAD_FREQUENCY,
             parent,
-            655,
+            cg.RawExpression("esphome::deye_inverter::REG_LOAD_FREQUENCY"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2156,7 +2155,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_VOLTAGE_L1,
             parent,
-            627,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_VOLTAGE_L1"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2164,7 +2163,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_VOLTAGE_L2,
             parent,
-            628,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_VOLTAGE_L2"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2172,7 +2171,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_VOLTAGE_L3,
             parent,
-            629,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_VOLTAGE_L3"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2180,7 +2179,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_POWER_L1,
             parent,
-            640,
+            cg.RawExpression("esphome::deye_inverter::REG_UPS_LOAD_POWER_L1"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2188,7 +2187,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_POWER_L2,
             parent,
-            641,
+            cg.RawExpression("esphome::deye_inverter::REG_UPS_LOAD_POWER_L2"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2196,7 +2195,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_POWER_L3,
             parent,
-            642,
+            cg.RawExpression("esphome::deye_inverter::REG_UPS_LOAD_POWER_L3"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2204,7 +2203,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_POWER_TOTAL,
             parent,
-            643,
+            cg.RawExpression("esphome::deye_inverter::REG_UPS_LOAD_POWER_TOTAL"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2212,7 +2211,7 @@ async def register_sensors(parent, config, device_obj=None):
             load_ups_conf,
             CONF_LOAD_UPS_FREQUENCY,
             parent,
-            638,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_FREQUENCY"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2226,7 +2225,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_VOLTAGE_L1,
             parent,
-            661,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_VOLTAGE_L1"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2234,7 +2233,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_VOLTAGE_L2,
             parent,
-            662,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_VOLTAGE_L2"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2242,7 +2241,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_VOLTAGE_L3,
             parent,
-            663,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_VOLTAGE_L3"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2250,7 +2249,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_CURRENT_L1,
             parent,
-            668,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_CURRENT_L1"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2258,7 +2257,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_CURRENT_L2,
             parent,
-            669,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_CURRENT_L2"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2266,7 +2265,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_CURRENT_L3,
             parent,
-            670,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_CURRENT_L3"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2274,7 +2273,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_POWER_L1,
             parent,
-            664,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_L1"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2282,7 +2281,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_POWER_L2,
             parent,
-            665,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_L2"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2290,7 +2289,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_POWER_L3,
             parent,
-            666,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_L3"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2298,7 +2297,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_POWER_TOTAL,
             parent,
-            667,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_TOTAL"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2306,7 +2305,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_conf,
             CONF_GENERATOR_FREQUENCY,
             parent,
-            671,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_FREQUENCY"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2320,7 +2319,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_VOLTAGE_L1,
             parent,
-            661,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_VOLTAGE_L1"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2328,7 +2327,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_VOLTAGE_L2,
             parent,
-            662,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_VOLTAGE_L2"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2336,7 +2335,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_VOLTAGE_L3,
             parent,
-            663,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_VOLTAGE_L3"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2344,7 +2343,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_CURRENT_L1,
             parent,
-            668,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_CURRENT_L1"),
             scale=0.01,
             signed=True,
             device_obj=device_obj,
@@ -2353,7 +2352,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_CURRENT_L2,
             parent,
-            669,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_CURRENT_L2"),
             scale=0.01,
             signed=True,
             device_obj=device_obj,
@@ -2362,7 +2361,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_CURRENT_L3,
             parent,
-            670,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_CURRENT_L3"),
             scale=0.01,
             signed=True,
             device_obj=device_obj,
@@ -2371,7 +2370,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_POWER_L1,
             parent,
-            664,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_L1"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2380,7 +2379,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_POWER_L2,
             parent,
-            665,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_L2"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2389,7 +2388,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_POWER_L3,
             parent,
-            666,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_L3"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2398,7 +2397,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_POWER_TOTAL,
             parent,
-            667,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_POWER_TOTAL"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2407,7 +2406,7 @@ async def register_sensors(parent, config, device_obj=None):
             gen_port_conf,
             CONF_GEN_PORT_FREQUENCY,
             parent,
-            671,
+            cg.RawExpression("esphome::deye_inverter::REG_GEN_PORT_FREQUENCY"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2421,7 +2420,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_VOLTAGE_L1,
             parent,
-            627,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_VOLTAGE_L1"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2429,7 +2428,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_VOLTAGE_L2,
             parent,
-            628,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_VOLTAGE_L2"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2437,7 +2436,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_VOLTAGE_L3,
             parent,
-            629,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_VOLTAGE_L3"),
             scale=0.1,
             device_obj=device_obj,
         )
@@ -2445,7 +2444,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_REAL_POWER_L1,
             parent,
-            633,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_REAL_POWER_L1"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2454,7 +2453,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_REAL_POWER_L2,
             parent,
-            634,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_REAL_POWER_L2"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2463,7 +2462,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_REAL_POWER_L3,
             parent,
-            635,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_REAL_POWER_L3"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2472,7 +2471,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_REAL_POWER,
             parent,
-            636,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_REAL_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2481,7 +2480,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_APPARENT_POWER,
             parent,
-            637,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_APPARENT_POWER"),
             scale=1.0,
             signed=True,
             device_obj=device_obj,
@@ -2490,7 +2489,7 @@ async def register_sensors(parent, config, device_obj=None):
             inverter_conf,
             CONF_INVERTER_FREQUENCY,
             parent,
-            638,
+            cg.RawExpression("esphome::deye_inverter::REG_INVERTER_FREQUENCY"),
             scale=0.01,
             device_obj=device_obj,
         )
@@ -2501,25 +2500,60 @@ async def register_sensors(parent, config, device_obj=None):
     if CONF_DC in config:
         dc_conf = config[CONF_DC]
         await register_single_sensor(
-            dc_conf, CONF_DC5_CURRENT, parent, 212, scale=0.1, device_obj=device_obj
+            dc_conf,
+            CONF_DC5_CURRENT,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_DC5_CURRENT"),
+            scale=0.1,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            dc_conf, CONF_DC6_VOLTAGE, parent, 213, scale=0.1, device_obj=device_obj
+            dc_conf,
+            CONF_DC6_VOLTAGE,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_DC6_VOLTAGE"),
+            scale=0.1,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            dc_conf, CONF_DC6_CURRENT, parent, 214, scale=0.1, device_obj=device_obj
+            dc_conf,
+            CONF_DC6_CURRENT,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_DC6_CURRENT"),
+            scale=0.1,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            dc_conf, CONF_DC7_VOLTAGE, parent, 215, scale=0.1, device_obj=device_obj
+            dc_conf,
+            CONF_DC7_VOLTAGE,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_DC7_VOLTAGE"),
+            scale=0.1,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            dc_conf, CONF_DC7_CURRENT, parent, 216, scale=0.1, device_obj=device_obj
+            dc_conf,
+            CONF_DC7_CURRENT,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_DC7_CURRENT"),
+            scale=0.1,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            dc_conf, CONF_DC8_VOLTAGE, parent, 217, scale=0.1, device_obj=device_obj
+            dc_conf,
+            CONF_DC8_VOLTAGE,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_DC8_VOLTAGE"),
+            scale=0.1,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            dc_conf, CONF_DC8_CURRENT, parent, 218, scale=0.1, device_obj=device_obj
+            dc_conf,
+            CONF_DC8_CURRENT,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_DC8_CURRENT"),
+            scale=0.1,
+            device_obj=device_obj,
         )
 
     # =============================================================================
@@ -2531,7 +2565,7 @@ async def register_sensors(parent, config, device_obj=None):
             temp_conf,
             CONF_TEMP_DC_TRANSFORMER,
             parent,
-            540,
+            cg.RawExpression("esphome::deye_inverter::REG_DC_TRANSFORMER_TEMPERATURE"),
             scale=0.1,
             offset=-100.0,
             device_obj=device_obj,
@@ -2540,7 +2574,7 @@ async def register_sensors(parent, config, device_obj=None):
             temp_conf,
             CONF_TEMP_HEATSINK,
             parent,
-            541,
+            cg.RawExpression("esphome::deye_inverter::REG_HEATSINK_TEMPERATURE"),
             scale=0.1,
             offset=-100.0,
             device_obj=device_obj,
@@ -2613,7 +2647,9 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_PRODUCTION,
                 parent,
-                501,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_DAILY_ACTIVE_POWER_GENERATION"
+                ),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2621,7 +2657,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_BATTERY_CHARGE,
                 parent,
-                514,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_BATTERY_CHARGE"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2629,7 +2665,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_BATTERY_DISCHARGE,
                 parent,
-                515,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_BATTERY_DISCHARGE"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2637,7 +2673,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_GRID_IMPORT,
                 parent,
-                520,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_ENERGY_BOUGHT"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2645,7 +2681,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_GRID_EXPORT,
                 parent,
-                521,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_ENERGY_SOLD"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2653,7 +2689,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_CONSUMPTION,
                 parent,
-                526,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_POWER_CONSUMPTION"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2661,7 +2697,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_PV_PRODUCTION,
                 parent,
-                529,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_PRODUCTION"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2669,7 +2705,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_DAILY_PV1_PRODUCTION,
                 parent,
-                530,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_PV1_PRODUCTION"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2677,7 +2713,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_DAILY_PV2_PRODUCTION,
                 parent,
-                531,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_PV2_PRODUCTION"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2685,7 +2721,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_DAILY_PV3_PRODUCTION,
                 parent,
-                532,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_PV3_PRODUCTION"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2693,7 +2729,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_DAILY_PV4_PRODUCTION,
                 parent,
-                533,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_PV4_PRODUCTION"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2701,7 +2737,7 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_DAILY_GENERATOR_ON_TIME,
                 parent,
-                539,
+                cg.RawExpression("esphome::deye_inverter::REG_DAILY_GENERATOR_ON_TIME"),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2709,7 +2745,9 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_DAILY_ACTIVE_POWER_GENERATION,
                 parent,
-                501,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_DAILY_ACTIVE_POWER_GENERATION"
+                ),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2717,7 +2755,9 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_ACTIVE_POWER_GENERATION_TODAY,
                 parent,
-                502,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_ACTIVE_POWER_GENERATION_TODAY"
+                ),
                 scale=0.1,
                 device_obj=device_obj,
             )
@@ -2725,7 +2765,9 @@ async def register_sensors(parent, config, device_obj=None):
                 daily_conf,
                 CONF_DAILY_GRID_CONNECTION_TIME,
                 parent,
-                503,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_DAILY_GRID_CONNECTION_TIME"
+                ),
                 scale=1.0,
                 device_obj=device_obj,
             )
@@ -2737,7 +2779,9 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_PRODUCTION,
                 parent,
-                504,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_ACTIVE_POWER_GEN_TOTAL_LOW"
+                ),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2746,7 +2790,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_BATTERY_CHARGE,
                 parent,
-                516,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_BATTERY_CHARGE"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2755,7 +2799,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_BATTERY_DISCHARGE,
                 parent,
-                518,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_BATTERY_DISCHARGE"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2764,7 +2808,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_GRID_IMPORT,
                 parent,
-                522,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_ENERGY_BOUGHT"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2773,7 +2817,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_GRID_EXPORT,
                 parent,
-                524,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_ENERGY_SOLD_524"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2782,7 +2826,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_CONSUMPTION,
                 parent,
-                527,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_CONSUMPTION"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2791,7 +2835,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_PV_PRODUCTION,
                 parent,
-                534,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_PV_PRODUCTION"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2800,7 +2844,9 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_TOTAL_ACTIVE_POWER_GENERATION,
                 parent,
-                504,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_ACTIVE_POWER_GEN_TOTAL_LOW"
+                ),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2809,7 +2855,9 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_TOTAL_REACTIVE_POWER_GENERATION,
                 parent,
-                506,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_REACTIVE_POWER_GEN_TOTAL_LOW"
+                ),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2818,7 +2866,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_TOTAL_BATTERY_CHARGE_32,
                 parent,
-                516,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_BATTERY_CHARGE"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2827,7 +2875,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_TOTAL_BATTERY_DISCHARGE_32,
                 parent,
-                518,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_BATTERY_DISCHARGE"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2836,7 +2884,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_TOTAL_GRID_IMPORT_32,
                 parent,
-                522,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_GRID_IMPORT"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2845,7 +2893,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_TOTAL_GRID_EXPORT_32,
                 parent,
-                524,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_GRID_EXPORT"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2854,7 +2902,7 @@ async def register_sensors(parent, config, device_obj=None):
                 total_conf,
                 CONF_TOTAL_CONSUMPTION_32,
                 parent,
-                527,
+                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_CONSUMPTION"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,
@@ -2869,7 +2917,7 @@ async def register_sensors(parent, config, device_obj=None):
             status_conf,
             CONF_WARNING_1_RAW,
             parent,
-            230,
+            cg.RawExpression("esphome::deye_inverter::REG_WARNING_1_RAW"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2877,27 +2925,49 @@ async def register_sensors(parent, config, device_obj=None):
             status_conf,
             CONF_WARNING_2_RAW,
             parent,
-            231,
+            cg.RawExpression("esphome::deye_inverter::REG_WARNING_2_RAW"),
             scale=1.0,
             device_obj=device_obj,
         )
         await register_single_sensor(
-            status_conf, CONF_ERROR_1_RAW, parent, 232, scale=1.0, device_obj=device_obj
+            status_conf,
+            CONF_ERROR_1_RAW,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_ERROR_1_RAW"),
+            scale=1.0,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            status_conf, CONF_ERROR_2_RAW, parent, 233, scale=1.0, device_obj=device_obj
+            status_conf,
+            CONF_ERROR_2_RAW,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_ERROR_2_RAW"),
+            scale=1.0,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            status_conf, CONF_ERROR_3_RAW, parent, 234, scale=1.0, device_obj=device_obj
+            status_conf,
+            CONF_ERROR_3_RAW,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_ERROR_3_RAW"),
+            scale=1.0,
+            device_obj=device_obj,
         )
         await register_single_sensor(
-            status_conf, CONF_ERROR_4_RAW, parent, 235, scale=1.0, device_obj=device_obj
+            status_conf,
+            CONF_ERROR_4_RAW,
+            parent,
+            cg.RawExpression("esphome::deye_inverter::REG_ERROR_4_RAW"),
+            scale=1.0,
+            device_obj=device_obj,
         )
         await register_single_sensor(
             status_conf,
             CONF_COMMUNICATION_BOARD_FAILURE,
             parent,
-            545,
+            cg.RawExpression(
+                "esphome::deye_inverter::REG_COMMUNICATION_BOARD_FAILURE_STATUS"
+            ),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2907,7 +2977,7 @@ async def register_sensors(parent, config, device_obj=None):
             status_conf,
             CONF_RUNNING_STATUS,
             parent,
-            500,
+            cg.RawExpression("esphome::deye_inverter::REG_RUNNING_STATUS"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2915,7 +2985,7 @@ async def register_sensors(parent, config, device_obj=None):
             status_conf,
             CONF_TURN_OFF_ON_STATUS,
             parent,
-            551,
+            cg.RawExpression("esphome::deye_inverter::REG_TURN_OFF_ON_STATUS"),
             scale=1.0,
             device_obj=device_obj,
         )
@@ -2923,7 +2993,7 @@ async def register_sensors(parent, config, device_obj=None):
             status_conf,
             CONF_AC_INV_RELAY,
             parent,
-            552,
+            cg.RawExpression("esphome::deye_inverter::REG_AC_INV_RELAY"),
             scale=1.0,
             device_obj=device_obj,
         )

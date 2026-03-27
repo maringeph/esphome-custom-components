@@ -86,12 +86,36 @@ async def to_code(config):
 
         # Time point addresses (registers 148-153)
         time_points = [
-            (CONF_TIME_POINT_1_START, "time_point_1_start", 148),
-            (CONF_TIME_POINT_2_START, "time_point_2_start", 149),
-            (CONF_TIME_POINT_3_START, "time_point_3_start", 150),
-            (CONF_TIME_POINT_4_START, "time_point_4_start", 151),
-            (CONF_TIME_POINT_5_START, "time_point_5_start", 152),
-            (CONF_TIME_POINT_6_START, "time_point_6_start", 153),
+            (
+                CONF_TIME_POINT_1_START,
+                "time_point_1_start",
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_POINT_1_START"),
+            ),
+            (
+                CONF_TIME_POINT_2_START,
+                "time_point_2_start",
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_POINT_2_START"),
+            ),
+            (
+                CONF_TIME_POINT_3_START,
+                "time_point_3_start",
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_POINT_3_START"),
+            ),
+            (
+                CONF_TIME_POINT_4_START,
+                "time_point_4_start",
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_POINT_4_START"),
+            ),
+            (
+                CONF_TIME_POINT_5_START,
+                "time_point_5_start",
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_POINT_5_START"),
+            ),
+            (
+                CONF_TIME_POINT_6_START,
+                "time_point_6_start",
+                cg.RawExpression("esphome::deye_inverter::REG_TIME_POINT_6_START"),
+            ),
         ]
 
         for conf_key, entity_key, address in time_points:

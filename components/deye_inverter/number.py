@@ -659,11 +659,21 @@ async def to_code(config):
                 battery_config,
                 CONF_MAX_CHARGE_CURRENT,
                 var,
-                108,
-                0,
-                185,
-                0.1,
-                10.0,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_BATTERY_MAX_CHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::MIN_BATTERY_MAX_CHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::MAX_BATTERY_MAX_CHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::STEP_BATTERY_MAX_CHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::SCALE_BATTERY_MAX_CHARGE_CURRENT"
+                ),
                 device_obj,
             )
 
@@ -673,11 +683,21 @@ async def to_code(config):
                 battery_config,
                 CONF_MAX_DISCHARGE_CURRENT,
                 var,
-                109,
-                0,
-                185,
-                0.1,
-                10.0,
+                cg.RawExpression(
+                    "esphome::deye_inverter::REG_BATTERY_MAX_DISCHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::MIN_BATTERY_MAX_DISCHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::MAX_BATTERY_MAX_DISCHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::STEP_BATTERY_MAX_DISCHARGE_CURRENT"
+                ),
+                cg.RawExpression(
+                    "esphome::deye_inverter::SCALE_BATTERY_MAX_DISCHARGE_CURRENT"
+                ),
                 device_obj,
             )
 
@@ -685,25 +705,26 @@ async def to_code(config):
     if CONF_SETTINGS_BATTERY_VOLTAGE in config:
         voltage_config = config[CONF_SETTINGS_BATTERY_VOLTAGE]
 
-        for key, address in [
-            (CONF_EQUALIZATION_VOLTAGE, 99),
-            (CONF_ABSORPTION_VOLTAGE, 100),
-            (CONF_FLOAT_VOLTAGE, 101),
-            (CONF_EMPTY_VOLTAGE, 103),
-            (CONF_SHUTDOWN_VOLTAGE, 118),
-            (CONF_RESTART_VOLTAGE, 119),
-            (CONF_LOW_VOLTAGE_WARNING, 120),
-        ]:
+        voltage_registers = [
+            (CONF_EQUALIZATION_VOLTAGE, "REG_BATTERY_EQUALIZATION_VOLTAGE"),
+            (CONF_ABSORPTION_VOLTAGE, "REG_BATTERY_ABSORPTION_VOLTAGE"),
+            (CONF_FLOAT_VOLTAGE, "REG_BATTERY_FLOAT_VOLTAGE"),
+            (CONF_EMPTY_VOLTAGE, "REG_BATTERY_EMPTY_VOLTAGE"),
+            (CONF_SHUTDOWN_VOLTAGE, "REG_BATTERY_SHUTDOWN_VOLTAGE"),
+            (CONF_RESTART_VOLTAGE, "REG_BATTERY_RESTART_VOLTAGE"),
+            (CONF_LOW_VOLTAGE_WARNING, "REG_BATTERY_LOW_VOLTAGE_WARNING"),
+        ]
+        for key, reg_name in voltage_registers:
             if key in voltage_config:
                 await register_number_entity(
                     voltage_config,
                     key,
                     var,
-                    address,
-                    38.0,
-                    61.0,
-                    0.01,
-                    100.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_BATTERY_VOLTAGE"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_BATTERY_VOLTAGE"),
+                    cg.RawExpression("esphome::deye_inverter::STEP_BATTERY_VOLTAGE"),
+                    cg.RawExpression("esphome::deye_inverter::SCALE_BATTERY_VOLTAGE"),
                     device_obj,
                 )
 
@@ -711,21 +732,22 @@ async def to_code(config):
     if CONF_SETTINGS_BATTERY_SOC in config:
         soc_config = config[CONF_SETTINGS_BATTERY_SOC]
 
-        for key, address in [
-            (CONF_SHUTDOWN_SOC, 115),
-            (CONF_RESTART_SOC, 116),
-            (CONF_LOW_SOC_WARNING, 117),
-        ]:
+        soc_registers = [
+            (CONF_SHUTDOWN_SOC, "REG_BATTERY_SHUTDOWN_SOC"),
+            (CONF_RESTART_SOC, "REG_BATTERY_RESTART_SOC"),
+            (CONF_LOW_SOC_WARNING, "REG_BATTERY_LOW_SOC_WARNING"),
+        ]
+        for key, reg_name in soc_registers:
             if key in soc_config:
                 await register_number_entity(
                     soc_config,
                     key,
                     var,
-                    address,
-                    0,
-                    100,
-                    1,
-                    1.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_BATTERY_SOC"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_BATTERY_SOC"),
+                    cg.RawExpression("esphome::deye_inverter::STEP_BATTERY_SOC"),
+                    cg.RawExpression("esphome::deye_inverter::SCALE_BATTERY_SOC"),
                     device_obj,
                 )
 
@@ -733,26 +755,82 @@ async def to_code(config):
     if CONF_SETTINGS_BATTERY_ADDITIONAL in config:
         additional_config = config[CONF_SETTINGS_BATTERY_ADDITIONAL]
 
-        for key, address, min_val, max_val, step in [
-            (CONF_BATTERY_CAPACITY_AH, 102, 0, 2000, 1),
-            (CONF_EQUALIZATION_DAY_CYCLE, 105, 0, 90, 1),
-            (CONF_EQUALIZATION_TIME, 106, 0, 20, 0.5),
-            (CONF_TEMPCO, 107, 0, 50, 1),
-            (CONF_BATTERY_WAKE_UP, 112, 0, 1, 1),
-            (CONF_BATTERY_RESISTANCE, 113, 0, 6000, 1),
-            (CONF_BATTERY_CHARGING_EFFICIENCY, 114, 0, 100, 0.1),
-        ]:
+        additional_registers = [
+            (
+                CONF_BATTERY_CAPACITY_AH,
+                "REG_BATTERY_CAPACITY",
+                "MIN_BATTERY_CAPACITY",
+                "MAX_BATTERY_CAPACITY",
+                "STEP_BATTERY_CAPACITY",
+                "SCALE_BATTERY_CAPACITY",
+            ),
+            (
+                CONF_EQUALIZATION_DAY_CYCLE,
+                "REG_BATTERY_EQUALIZATION_DAY_CYCLE",
+                "MIN_BATTERY_EQUALIZATION_DAY_CYCLE",
+                "MAX_BATTERY_EQUALIZATION_DAY_CYCLE",
+                "STEP_BATTERY_EQUALIZATION_DAY_CYCLE",
+                "SCALE_BATTERY_EQUALIZATION_DAY_CYCLE",
+            ),
+            (
+                CONF_EQUALIZATION_TIME,
+                "REG_BATTERY_EQUALIZATION_TIME",
+                "MIN_BATTERY_EQUALIZATION_TIME",
+                "MAX_BATTERY_EQUALIZATION_TIME",
+                "STEP_BATTERY_EQUALIZATION_TIME",
+                "SCALE_BATTERY_EQUALIZATION_TIME",
+            ),
+            (
+                CONF_TEMPCO,
+                "REG_BATTERY_TEMPCO",
+                "MIN_BATTERY_TEMPCO",
+                "MAX_BATTERY_TEMPCO",
+                "STEP_BATTERY_TEMPCO",
+                "SCALE_BATTERY_TEMPCO",
+            ),
+            (
+                CONF_BATTERY_WAKE_UP,
+                "REG_BATTERY_WAKE_UP",
+                "MIN_BATTERY_WAKE_UP",
+                "MAX_BATTERY_WAKE_UP",
+                "STEP_BATTERY_WAKE_UP",
+                "SCALE_BATTERY_WAKE_UP",
+            ),
+            (
+                CONF_BATTERY_RESISTANCE,
+                "REG_BATTERY_RESISTANCE",
+                "MIN_BATTERY_RESISTANCE",
+                "MAX_BATTERY_RESISTANCE",
+                "STEP_BATTERY_RESISTANCE",
+                "SCALE_BATTERY_RESISTANCE",
+            ),
+            (
+                CONF_BATTERY_CHARGING_EFFICIENCY,
+                "REG_BATTERY_CHARGING_EFFICIENCY",
+                "MIN_BATTERY_CHARGING_EFFICIENCY",
+                "MAX_BATTERY_CHARGING_EFFICIENCY",
+                "STEP_BATTERY_CHARGING_EFFICIENCY",
+                "SCALE_BATTERY_CHARGING_EFFICIENCY",
+            ),
+        ]
+        for (
+            key,
+            reg_name,
+            min_name,
+            max_name,
+            step_name,
+            scale_name,
+        ) in additional_registers:
             if key in additional_config:
-                scale = 1.0 if step == 1 else (10.0 if step == 0.1 else 100.0)
                 await register_number_entity(
                     additional_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -760,26 +838,75 @@ async def to_code(config):
     if CONF_SETTINGS_GENERATOR in config:
         gen_config = config[CONF_SETTINGS_GENERATOR]
 
-        for key, address, min_val, max_val, step in [
-            (CONF_GEN_MAX_RUN_TIME, 121, 0, 120, 0.1),
-            (CONF_GEN_COOLDOWN_TIME, 122, 0, 60, 1),
-            (CONF_GEN_MIN_POWER, 123, 0, 6500, 1),
-            (CONF_GEN_START_VOLTAGE, 124, 38.0, 61.0, 0.01),
-            (CONF_GEN_START_SOC, 125, 0, 100, 1),
-            (CONF_GEN_CHARGING_CURRENT, 126, 0, 185, 1),
-            (CONF_GEN_ENABLE, 127, 0, 1, 1),
-        ]:
+        gen_registers = [
+            (
+                CONF_GEN_MAX_RUN_TIME,
+                "REG_GENERATOR_MAX_RUN_TIME",
+                "MIN_GEN_MAX_RUN_TIME",
+                "MAX_GEN_MAX_RUN_TIME",
+                "STEP_GEN_MAX_RUN_TIME",
+                "SCALE_GEN_MAX_RUN_TIME",
+            ),
+            (
+                CONF_GEN_COOLDOWN_TIME,
+                "REG_GENERATOR_COOLDOWN_TIME",
+                "MIN_GEN_COOLDOWN_TIME",
+                "MAX_GEN_COOLDOWN_TIME",
+                "STEP_GEN_COOLDOWN_TIME",
+                "SCALE_GEN_COOLDOWN_TIME",
+            ),
+            (
+                CONF_GEN_MIN_POWER,
+                "REG_GENERATOR_MIN_POWER",
+                "MIN_GEN_MIN_POWER",
+                "MAX_GEN_MIN_POWER",
+                "STEP_GEN_MIN_POWER",
+                "SCALE_GEN_MIN_POWER",
+            ),
+            (
+                CONF_GEN_START_VOLTAGE,
+                "REG_GENERATOR_START_VOLTAGE",
+                "MIN_GEN_START_VOLTAGE",
+                "MAX_GEN_START_VOLTAGE",
+                "STEP_GEN_START_VOLTAGE",
+                "SCALE_GEN_START_VOLTAGE",
+            ),
+            (
+                CONF_GEN_START_SOC,
+                "REG_GENERATOR_START_SOC",
+                "MIN_GEN_START_SOC",
+                "MAX_GEN_START_SOC",
+                "STEP_GEN_START_SOC",
+                "SCALE_GEN_START_SOC",
+            ),
+            (
+                CONF_GEN_CHARGING_CURRENT,
+                "REG_GENERATOR_CHARGE_CURRENT",
+                "MIN_GEN_CHARGING_CURRENT",
+                "MAX_GEN_CHARGING_CURRENT",
+                "STEP_GEN_CHARGING_CURRENT",
+                "SCALE_GEN_CHARGING_CURRENT",
+            ),
+            (
+                CONF_GEN_ENABLE,
+                "REG_GENERATOR_ENABLE",
+                "MIN_GEN_ENABLE",
+                "MAX_GEN_ENABLE",
+                "STEP_GEN_ENABLE",
+                "SCALE_GEN_ENABLE",
+            ),
+        ]
+        for key, reg_name, min_name, max_name, step_name, scale_name in gen_registers:
             if key in gen_config:
-                scale = 1.0 if step == 1 else (10.0 if step == 0.1 else 100.0)
                 await register_number_entity(
                     gen_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -787,24 +914,59 @@ async def to_code(config):
     if CONF_SETTINGS_GENERATOR_2 in config:
         gen2_config = config[CONF_SETTINGS_GENERATOR_2]
 
-        for key, address, min_val, max_val, step in [
-            (CONF_GEN_MAX_TIME, 223, 0, 24, 0.1),
-            (CONF_GEN_COOLDOWN, 224, 0, 24, 0.1),
-            (CONF_GEN_START_VOLTAGE_225, 225, 38.0, 63.0, 0.01),
-            (CONF_GEN_START_SOC_226, 226, 0, 100, 1),
-            (CONF_GEN_CHARGE_CURRENT_227, 227, 0, 185, 1),
-        ]:
+        gen2_registers = [
+            (
+                CONF_GEN_MAX_TIME,
+                "REG_GEN_MAX_TIME",
+                "MIN_GEN_MAX_TIME",
+                "MAX_GEN_MAX_TIME",
+                "STEP_GEN_MAX_TIME",
+                "SCALE_GEN_MAX_TIME",
+            ),
+            (
+                CONF_GEN_COOLDOWN,
+                "REG_GEN_COOLDOWN",
+                "MIN_GEN_COOLDOWN",
+                "MAX_GEN_COOLDOWN",
+                "STEP_GEN_COOLDOWN",
+                "SCALE_GEN_COOLDOWN",
+            ),
+            (
+                CONF_GEN_START_VOLTAGE_225,
+                "REG_GEN_START_VOLTAGE_225",
+                "MIN_GEN_START_VOLTAGE_225",
+                "MAX_GEN_START_VOLTAGE_225",
+                "STEP_GEN_START_VOLTAGE_225",
+                "SCALE_GEN_START_VOLTAGE_225",
+            ),
+            (
+                CONF_GEN_START_SOC_226,
+                "REG_GEN_START_SOC_226",
+                "MIN_GEN_START_SOC_226",
+                "MAX_GEN_START_SOC_226",
+                "STEP_GEN_START_SOC_226",
+                "SCALE_GEN_START_SOC_226",
+            ),
+            (
+                CONF_GEN_CHARGE_CURRENT_227,
+                "REG_GEN_CHARGE_CURRENT_227",
+                "MIN_GEN_CHARGE_CURRENT_227",
+                "MAX_GEN_CHARGE_CURRENT_227",
+                "STEP_GEN_CHARGE_CURRENT_227",
+                "SCALE_GEN_CHARGE_CURRENT_227",
+            ),
+        ]
+        for key, reg_name, min_name, max_name, step_name, scale_name in gen2_registers:
             if key in gen2_config:
-                scale = 1.0 if step == 1 else (10.0 if step == 0.1 else 100.0)
                 await register_number_entity(
                     gen2_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -812,37 +974,41 @@ async def to_code(config):
     if CONF_SETTINGS_SMART_LOAD in config:
         smart_load_config = config[CONF_SETTINGS_SMART_LOAD]
 
-        for key, address in [
-            (CONF_SMART_LOAD_OFF_VOLTAGE, 134),
-            (CONF_SMART_LOAD_ON_VOLTAGE, 136),
-        ]:
+        smart_load_voltage_registers = [
+            (CONF_SMART_LOAD_OFF_VOLTAGE, "REG_SMART_LOAD_OFF_VOLTAGE"),
+            (CONF_SMART_LOAD_ON_VOLTAGE, "REG_SMART_LOAD_ON_VOLTAGE"),
+        ]
+        for key, reg_name in smart_load_voltage_registers:
             if key in smart_load_config:
                 await register_number_entity(
                     smart_load_config,
                     key,
                     var,
-                    address,
-                    38.0,
-                    61.0,
-                    0.01,
-                    100.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_SMART_LOAD_VOLTAGE"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_SMART_LOAD_VOLTAGE"),
+                    cg.RawExpression("esphome::deye_inverter::STEP_SMART_LOAD_VOLTAGE"),
+                    cg.RawExpression(
+                        "esphome::deye_inverter::SCALE_SMART_LOAD_VOLTAGE"
+                    ),
                     device_obj,
                 )
 
-        for key, address in [
-            (CONF_SMART_LOAD_OFF_SOC, 135),
-            (CONF_SMART_LOAD_ON_SOC, 137),
-        ]:
+        smart_load_soc_registers = [
+            (CONF_SMART_LOAD_OFF_SOC, "REG_SMART_LOAD_OFF_CAPACITY_SOC"),
+            (CONF_SMART_LOAD_ON_SOC, "REG_SMART_LOAD_ON_CAPACITY_SOC"),
+        ]
+        for key, reg_name in smart_load_soc_registers:
             if key in smart_load_config:
                 await register_number_entity(
                     smart_load_config,
                     key,
                     var,
-                    address,
-                    0,
-                    100,
-                    1,
-                    1.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_SMART_LOAD_SOC"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_SMART_LOAD_SOC"),
+                    cg.RawExpression("esphome::deye_inverter::STEP_SMART_LOAD_SOC"),
+                    cg.RawExpression("esphome::deye_inverter::SCALE_SMART_LOAD_SOC"),
                     device_obj,
                 )
 
@@ -850,23 +1016,58 @@ async def to_code(config):
     if CONF_SETTINGS_GRID_CHARGE in config:
         grid_charge_config = config[CONF_SETTINGS_GRID_CHARGE]
 
-        for key, address, min_val, max_val, step in [
-            (CONF_MAXIMUM_BATTERY_GRID_CHARGE_CURRENT, 128, 0, 185, 1),
-            (CONF_GRID_CHARGE_START_VOLTAGE, 228, 38.0, 63.0, 0.01),
-            (CONF_GRID_CHARGE_START_SOC, 229, 0, 100, 1),
-            (CONF_GRID_CHARGE_CURRENT, 230, 0, 185, 1),
-        ]:
+        grid_charge_registers = [
+            (
+                CONF_MAXIMUM_BATTERY_GRID_CHARGE_CURRENT,
+                "REG_MAX_BATTERY_GRID_CHARGE_CURRENT",
+                "MIN_MAX_BATTERY_GRID_CHARGE_CURRENT",
+                "MAX_MAX_BATTERY_GRID_CHARGE_CURRENT",
+                "STEP_MAX_BATTERY_GRID_CHARGE_CURRENT",
+                "SCALE_MAX_BATTERY_GRID_CHARGE_CURRENT",
+            ),
+            (
+                CONF_GRID_CHARGE_START_VOLTAGE,
+                "REG_GRID_CHARGE_START_V",
+                "MIN_GRID_CHARGE_START_VOLTAGE",
+                "MAX_GRID_CHARGE_START_VOLTAGE",
+                "STEP_GRID_CHARGE_START_VOLTAGE",
+                "SCALE_GRID_CHARGE_START_VOLTAGE",
+            ),
+            (
+                CONF_GRID_CHARGE_START_SOC,
+                "REG_GRID_CHARGE_START_SOC",
+                "MIN_GRID_CHARGE_START_SOC",
+                "MAX_GRID_CHARGE_START_SOC",
+                "STEP_GRID_CHARGE_START_SOC",
+                "SCALE_GRID_CHARGE_START_SOC",
+            ),
+            (
+                CONF_GRID_CHARGE_CURRENT,
+                "REG_GRID_CHARGE_CURRENT",
+                "MIN_GRID_CHARGE_CURRENT",
+                "MAX_GRID_CHARGE_CURRENT",
+                "STEP_GRID_CHARGE_CURRENT",
+                "SCALE_GRID_CHARGE_CURRENT",
+            ),
+        ]
+        for (
+            key,
+            reg_name,
+            min_name,
+            max_name,
+            step_name,
+            scale_name,
+        ) in grid_charge_registers:
             if key in grid_charge_config:
-                scale = 100.0 if step == 0.01 else 1.0
                 await register_number_entity(
                     grid_charge_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -874,23 +1075,58 @@ async def to_code(config):
     if CONF_SETTINGS_GRID in config:
         grid_numbers_config = config[CONF_SETTINGS_GRID]
 
-        for key, address, min_val, max_val, step in [
-            (CONF_ZERO_EXPORT_POWER, 104, 0, 90, 1),
-            (CONF_MAX_SOLAR_SELL_POWER, 340, 0, 6500, 1),
-            (CONF_GRID_MAX_POWER, 143, 0, 6500, 1),
-            (CONF_RESTORE_CONNECTION_TIME, 180, 0, 300, 1),
-        ]:
+        grid_numbers_registers = [
+            (
+                CONF_ZERO_EXPORT_POWER,
+                "REG_ZERO_EXPORT_POWER",
+                "MIN_ZERO_EXPORT_POWER",
+                "MAX_ZERO_EXPORT_POWER",
+                "STEP_ZERO_EXPORT_POWER",
+                "SCALE_ZERO_EXPORT_POWER",
+            ),
+            (
+                CONF_MAX_SOLAR_SELL_POWER,
+                "REG_MAX_SOLAR_SELL_POWER",
+                "MIN_MAX_SOLAR_SELL_POWER",
+                "MAX_MAX_SOLAR_SELL_POWER",
+                "STEP_MAX_SOLAR_SELL_POWER",
+                "SCALE_MAX_SOLAR_SELL_POWER",
+            ),
+            (
+                CONF_GRID_MAX_POWER,
+                "REG_MAX_SOLAR_POWER",
+                "MIN_GRID_MAX_POWER",
+                "MAX_GRID_MAX_POWER",
+                "STEP_GRID_MAX_POWER",
+                "SCALE_GRID_MAX_POWER",
+            ),
+            (
+                CONF_RESTORE_CONNECTION_TIME,
+                "REG_RESTORE_CONNECTION_TIME",
+                "MIN_RESTORE_CONNECTION_TIME",
+                "MAX_RESTORE_CONNECTION_TIME",
+                "STEP_RESTORE_CONNECTION_TIME",
+                "SCALE_RESTORE_CONNECTION_TIME",
+            ),
+        ]
+        for (
+            key,
+            reg_name,
+            min_name,
+            max_name,
+            step_name,
+            scale_name,
+        ) in grid_numbers_registers:
             if key in grid_numbers_config:
-                scale = 1.0 if step == 1 else (100.0 if step == 0.01 else 10.0)
                 await register_number_entity(
                     grid_numbers_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -898,21 +1134,42 @@ async def to_code(config):
     if CONF_SETTINGS_GENERATOR in config:
         gen_numbers_config = config[CONF_SETTINGS_GENERATOR]
 
-        for key, address, min_val, max_val, step in [
-            (CONF_GEN_PORT_COUPLE_FREQ_LIMIT, 131, 0, 100, 0.01),
-            (CONF_GENERATOR_REQUIRED_POWER_START, 139, 0, 6500, 1),
-        ]:
+        gen_numbers_registers = [
+            (
+                CONF_GEN_PORT_COUPLE_FREQ_LIMIT,
+                "REG_GEN_PORT_COUPLE_FREQUENCY",
+                "MIN_GEN_PORT_COUPLE_FREQ_LIMIT",
+                "MAX_GEN_PORT_COUPLE_FREQ_LIMIT",
+                "STEP_GEN_PORT_COUPLE_FREQ_LIMIT",
+                "SCALE_GEN_PORT_COUPLE_FREQ_LIMIT",
+            ),
+            (
+                CONF_GENERATOR_REQUIRED_POWER_START,
+                "REG_GENERATOR_REQUIRED_POWER_START",
+                "MIN_GENERATOR_REQUIRED_POWER_START",
+                "MAX_GENERATOR_REQUIRED_POWER_START",
+                "STEP_GENERATOR_REQUIRED_POWER_START",
+                "SCALE_GENERATOR_REQUIRED_POWER_START",
+            ),
+        ]
+        for (
+            key,
+            reg_name,
+            min_name,
+            max_name,
+            step_name,
+            scale_name,
+        ) in gen_numbers_registers:
             if key in gen_numbers_config:
-                scale = 1.0 if step == 1 else (100.0 if step == 0.01 else 10.0)
                 await register_number_entity(
                     gen_numbers_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -921,68 +1178,83 @@ async def to_code(config):
         tou_config = config[CONF_SETTINGS_TIME_OF_USE_NUMBERS]
 
         # Time Point Power values (addresses 154-159)
-        for key, address in [
-            (CONF_TIME_POINT_1_POWER, 154),
-            (CONF_TIME_POINT_2_POWER, 155),
-            (CONF_TIME_POINT_3_POWER, 156),
-            (CONF_TIME_POINT_4_POWER, 157),
-            (CONF_TIME_POINT_5_POWER, 158),
-            (CONF_TIME_POINT_6_POWER, 159),
-        ]:
+        tou_power_registers = [
+            (CONF_TIME_POINT_1_POWER, "REG_TIME_POINT_1_POWER"),
+            (CONF_TIME_POINT_2_POWER, "REG_TIME_POINT_2_POWER"),
+            (CONF_TIME_POINT_3_POWER, "REG_TIME_POINT_3_POWER"),
+            (CONF_TIME_POINT_4_POWER, "REG_TIME_POINT_4_POWER"),
+            (CONF_TIME_POINT_5_POWER, "REG_TIME_POINT_5_POWER"),
+            (CONF_TIME_POINT_6_POWER, "REG_TIME_POINT_6_POWER"),
+        ]
+        for key, reg_name in tou_power_registers:
             if key in tou_config:
                 await register_number_entity(
                     tou_config,
                     key,
                     var,
-                    address,
-                    -6500,
-                    6500,
-                    1,
-                    1.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_TIME_POINT_POWER"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_TIME_POINT_POWER"),
+                    cg.RawExpression("esphome::deye_inverter::STEP_TIME_POINT_POWER"),
+                    cg.RawExpression("esphome::deye_inverter::SCALE_TIME_POINT_POWER"),
                     device_obj,
                 )
 
         # Time Point Min Battery Voltage (addresses 160-165)
-        for key, address in [
-            (CONF_TIME_POINT_1_MIN_BATTERY_VOLTAGE, 160),
-            (CONF_TIME_POINT_2_MIN_BATTERY_VOLTAGE, 161),
-            (CONF_TIME_POINT_3_MIN_BATTERY_VOLTAGE, 162),
-            (CONF_TIME_POINT_4_MIN_BATTERY_VOLTAGE, 163),
-            (CONF_TIME_POINT_5_MIN_BATTERY_VOLTAGE, 164),
-            (CONF_TIME_POINT_6_MIN_BATTERY_VOLTAGE, 165),
-        ]:
+        tou_voltage_registers = [
+            (CONF_TIME_POINT_1_MIN_BATTERY_VOLTAGE, "REG_TIME_POINT_1_MIN_VOLTAGE"),
+            (CONF_TIME_POINT_2_MIN_BATTERY_VOLTAGE, "REG_TIME_POINT_2_MIN_VOLTAGE"),
+            (CONF_TIME_POINT_3_MIN_BATTERY_VOLTAGE, "REG_TIME_POINT_3_MIN_VOLTAGE"),
+            (CONF_TIME_POINT_4_MIN_BATTERY_VOLTAGE, "REG_TIME_POINT_4_MIN_VOLTAGE"),
+            (CONF_TIME_POINT_5_MIN_BATTERY_VOLTAGE, "REG_TIME_POINT_5_MIN_VOLTAGE"),
+            (CONF_TIME_POINT_6_MIN_BATTERY_VOLTAGE, "REG_TIME_POINT_6_MIN_VOLTAGE"),
+        ]
+        for key, reg_name in tou_voltage_registers:
             if key in tou_config:
                 await register_number_entity(
                     tou_config,
                     key,
                     var,
-                    address,
-                    41.0,
-                    63.0,
-                    0.01,
-                    100.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(
+                        "esphome::deye_inverter::MIN_TIME_POINT_MIN_VOLTAGE"
+                    ),
+                    cg.RawExpression(
+                        "esphome::deye_inverter::MAX_TIME_POINT_MIN_VOLTAGE"
+                    ),
+                    cg.RawExpression(
+                        "esphome::deye_inverter::STEP_TIME_POINT_MIN_VOLTAGE"
+                    ),
+                    cg.RawExpression(
+                        "esphome::deye_inverter::SCALE_TIME_POINT_MIN_VOLTAGE"
+                    ),
                     device_obj,
                 )
 
         # Time Point Capacity (addresses 166-171)
-        for key, address in [
-            (CONF_TIME_POINT_1_CAPACITY, 166),
-            (CONF_TIME_POINT_2_CAPACITY, 167),
-            (CONF_TIME_POINT_3_CAPACITY, 168),
-            (CONF_TIME_POINT_4_CAPACITY, 169),
-            (CONF_TIME_POINT_5_CAPACITY, 170),
-            (CONF_TIME_POINT_6_CAPACITY, 171),
-        ]:
+        tou_capacity_registers = [
+            (CONF_TIME_POINT_1_CAPACITY, "REG_TIME_POINT_1_CAPACITY"),
+            (CONF_TIME_POINT_2_CAPACITY, "REG_TIME_POINT_2_CAPACITY"),
+            (CONF_TIME_POINT_3_CAPACITY, "REG_TIME_POINT_3_CAPACITY"),
+            (CONF_TIME_POINT_4_CAPACITY, "REG_TIME_POINT_4_CAPACITY"),
+            (CONF_TIME_POINT_5_CAPACITY, "REG_TIME_POINT_5_CAPACITY"),
+            (CONF_TIME_POINT_6_CAPACITY, "REG_TIME_POINT_6_CAPACITY"),
+        ]
+        for key, reg_name in tou_capacity_registers:
             if key in tou_config:
                 await register_number_entity(
                     tou_config,
                     key,
                     var,
-                    address,
-                    0,
-                    100,
-                    5,
-                    1.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_TIME_POINT_CAPACITY"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_TIME_POINT_CAPACITY"),
+                    cg.RawExpression(
+                        "esphome::deye_inverter::STEP_TIME_POINT_CAPACITY"
+                    ),
+                    cg.RawExpression(
+                        "esphome::deye_inverter::SCALE_TIME_POINT_CAPACITY"
+                    ),
                     device_obj,
                 )
 
@@ -990,36 +1262,42 @@ async def to_code(config):
     if CONF_SETTINGS_SYSTEM_NUMBERS in config:
         system_config = config[CONF_SETTINGS_SYSTEM_NUMBERS]
 
-        for key, address, min_val, max_val, step in [
-            # Register 60 is Remote Lock (Switch), not a Number
+        system_registers = [
             (
                 CONF_SYS_SELF_CHECK_TIME,
-                61,
-                0,
-                1000,
-                1,
-            ),  # Self-check time [0,1000] seconds
-            # Register 62-64 is System Time (handled by Time entity)
+                "REG_SELF_CHECK_TIME",
+                "MIN_SYS_SELF_CHECK_TIME",
+                "MAX_SYS_SELF_CHECK_TIME",
+                "STEP_SYS_SELF_CHECK_TIME",
+                "SCALE_SYS_SELF_CHECK_TIME",
+            ),
             (
                 CONF_SYS_INSULATION_RESISTANCE,
-                65,
-                100,
-                20000,
-                1,
-            ),  # Insulation resistance [100,20000] (0.1KΩ)
-            # TODO: Register 62 (Data Log Interval) needs correct register address
-        ]:
+                "REG_INSULATION_RESISTANCE_LIMIT",
+                "MIN_SYS_INSULATION_RESISTANCE",
+                "MAX_SYS_INSULATION_RESISTANCE",
+                "STEP_SYS_INSULATION_RESISTANCE",
+                "SCALE_SYS_INSULATION_RESISTANCE",
+            ),
+        ]
+        for (
+            key,
+            reg_name,
+            min_name,
+            max_name,
+            step_name,
+            scale_name,
+        ) in system_registers:
             if key in system_config:
-                scale = 10.0 if step == 0.5 else 1.0
                 await register_number_entity(
                     system_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -1027,28 +1305,91 @@ async def to_code(config):
     if CONF_SETTINGS_GRID_PROTECTION in config:
         gp_config = config[CONF_SETTINGS_GRID_PROTECTION]
 
-        for key, address, min_val, max_val, step in [
-            (CONF_GP_OVER_VOLTAGE_PROTECTION, 185, 200, 300, 0.1),
-            (CONF_GP_UNDER_VOLTAGE_PROTECTION, 186, 100, 200, 0.1),
-            (CONF_GP_OVER_FREQUENCY_PROTECTION, 187, 50, 65, 0.01),
-            (CONF_GP_UNDER_FREQUENCY_PROTECTION, 188, 45, 55, 0.01),
-            (CONF_GP_VOLTAGE_RECONNECT, 189, 180, 260, 0.1),
-            (CONF_GP_FREQUENCY_RECONNECT, 190, 47, 53, 0.01),
-            (CONF_GP_RECONNECT_TIME, 191, 0, 300, 1),
-            (CONF_GP_RAMP_RATE, 192, 1, 100, 1),
-            (CONF_GP_STARTUP_TIME, 193, 0, 600, 1),
-        ]:
+        gp_registers = [
+            (
+                CONF_GP_OVER_VOLTAGE_PROTECTION,
+                "REG_GRID_OVERVOLTAGE_PROTECTION",
+                "MIN_GP_OVER_VOLTAGE_PROTECTION",
+                "MAX_GP_OVER_VOLTAGE_PROTECTION",
+                "STEP_GP_OVER_VOLTAGE_PROTECTION",
+                "SCALE_GP_OVER_VOLTAGE_PROTECTION",
+            ),
+            (
+                CONF_GP_UNDER_VOLTAGE_PROTECTION,
+                "REG_GRID_UNDERVOLTAGE_PROTECTION",
+                "MIN_GP_UNDER_VOLTAGE_PROTECTION",
+                "MAX_GP_UNDER_VOLTAGE_PROTECTION",
+                "STEP_GP_UNDER_VOLTAGE_PROTECTION",
+                "SCALE_GP_UNDER_VOLTAGE_PROTECTION",
+            ),
+            (
+                CONF_GP_OVER_FREQUENCY_PROTECTION,
+                "REG_GRID_OVERFREQ_PROTECTION",
+                "MIN_GP_OVER_FREQUENCY_PROTECTION",
+                "MAX_GP_OVER_FREQUENCY_PROTECTION",
+                "STEP_GP_OVER_FREQUENCY_PROTECTION",
+                "SCALE_GP_OVER_FREQUENCY_PROTECTION",
+            ),
+            (
+                CONF_GP_UNDER_FREQUENCY_PROTECTION,
+                "REG_GRID_UNDERFREQ_PROTECTION",
+                "MIN_GP_UNDER_FREQUENCY_PROTECTION",
+                "MAX_GP_UNDER_FREQUENCY_PROTECTION",
+                "STEP_GP_UNDER_FREQUENCY_PROTECTION",
+                "SCALE_GP_UNDER_FREQUENCY_PROTECTION",
+            ),
+            (
+                CONF_GP_VOLTAGE_RECONNECT,
+                "REG_GEN_CONNECT_TO_GRID_INPUT",
+                "MIN_GP_VOLTAGE_RECONNECT",
+                "MAX_GP_VOLTAGE_RECONNECT",
+                "STEP_GP_VOLTAGE_RECONNECT",
+                "SCALE_GP_VOLTAGE_RECONNECT",
+            ),
+            (
+                CONF_GP_FREQUENCY_RECONNECT,
+                "REG_GEN_PEAK_SHAVING_POWER",
+                "MIN_GP_FREQUENCY_RECONNECT",
+                "MAX_GP_FREQUENCY_RECONNECT",
+                "STEP_GP_FREQUENCY_RECONNECT",
+                "SCALE_GP_FREQUENCY_RECONNECT",
+            ),
+            (
+                CONF_GP_RECONNECT_TIME,
+                "REG_GRID_PEAK_SHAVING_POWER",
+                "MIN_GP_RECONNECT_TIME",
+                "MAX_GP_RECONNECT_TIME",
+                "STEP_GP_RECONNECT_TIME",
+                "SCALE_GP_RECONNECT_TIME",
+            ),
+            (
+                CONF_GP_RAMP_RATE,
+                "REG_SMART_LOAD_OPEN_DELAY",
+                "MIN_GP_RAMP_RATE",
+                "MAX_GP_RAMP_RATE",
+                "STEP_GP_RAMP_RATE",
+                "SCALE_GP_RAMP_RATE",
+            ),
+            (
+                CONF_GP_STARTUP_TIME,
+                "REG_OUTPUT_PF_SETTING",
+                "MIN_GP_STARTUP_TIME",
+                "MAX_GP_STARTUP_TIME",
+                "STEP_GP_STARTUP_TIME",
+                "SCALE_GP_STARTUP_TIME",
+            ),
+        ]
+        for key, reg_name, min_name, max_name, step_name, scale_name in gp_registers:
             if key in gp_config:
-                scale = 100.0 if step == 0.01 else (10.0 if step == 0.1 else 1.0)
                 await register_number_entity(
                     gp_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    scale,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )
 
@@ -1057,63 +1398,87 @@ async def to_code(config):
         ca_config = config[CONF_SETTINGS_CALIFORNIA]
 
         # Voltage Points (addresses 341-346)
-        for key, address in [
-            (CONF_CA_VOLTAGE_POINT_1, 341),
-            (CONF_CA_VOLTAGE_POINT_2, 342),
-            (CONF_CA_VOLTAGE_POINT_3, 343),
-            (CONF_CA_VOLTAGE_POINT_4, 344),
-            (CONF_CA_VOLTAGE_POINT_5, 345),
-            (CONF_CA_VOLTAGE_POINT_6, 346),
-        ]:
+        ca_voltage_registers = [
+            (CONF_CA_VOLTAGE_POINT_1, "REG_RESERVED_341"),
+            (CONF_CA_VOLTAGE_POINT_2, "REG_RESERVED_342"),
+            (CONF_CA_VOLTAGE_POINT_3, "REG_RESERVED_343"),
+            (CONF_CA_VOLTAGE_POINT_4, "REG_GRID_MONITORING_METHOD"),
+            (CONF_CA_VOLTAGE_POINT_5, "REG_RESERVED_345"),
+            (CONF_CA_VOLTAGE_POINT_6, "REG_RESERVED_346"),
+        ]
+        for key, reg_name in ca_voltage_registers:
             if key in ca_config:
                 await register_number_entity(
                     ca_config,
                     key,
                     var,
-                    address,
-                    0,
-                    300,
-                    0.1,
-                    10.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_CA_VOLTAGE_POINT"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_CA_VOLTAGE_POINT"),
+                    cg.RawExpression("esphome::deye_inverter::STEP_CA_VOLTAGE_POINT"),
+                    cg.RawExpression("esphome::deye_inverter::SCALE_CA_VOLTAGE_POINT"),
                     device_obj,
                 )
 
         # Power Points (addresses 347-352)
-        for key, address in [
-            (CONF_CA_POWER_POINT_1, 347),
-            (CONF_CA_POWER_POINT_2, 348),
-            (CONF_CA_POWER_POINT_3, 349),
-            (CONF_CA_POWER_POINT_4, 350),
-            (CONF_CA_POWER_POINT_5, 351),
-            (CONF_CA_POWER_POINT_6, 352),
-        ]:
+        ca_power_registers = [
+            (CONF_CA_POWER_POINT_1, "REG_EXTERNAL_CT_RATIO"),
+            (CONF_CA_POWER_POINT_2, "REG_METER_CT_RATIO"),
+            (CONF_CA_POWER_POINT_3, "REG_RESERVED_349"),
+            (CONF_CA_POWER_POINT_4, "REG_CHARGE_RAMP_CONTROL_1"),
+            (CONF_CA_POWER_POINT_5, "REG_CHARGE_RAMP_CONTROL_2"),
+            (CONF_CA_POWER_POINT_6, "REG_RESERVED_352"),
+        ]
+        for key, reg_name in ca_power_registers:
             if key in ca_config:
                 await register_number_entity(
                     ca_config,
                     key,
                     var,
-                    address,
-                    0,
-                    100,
-                    1,
-                    1.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression("esphome::deye_inverter::MIN_CA_POWER_POINT"),
+                    cg.RawExpression("esphome::deye_inverter::MAX_CA_POWER_POINT"),
+                    cg.RawExpression("esphome::deye_inverter::STEP_CA_POWER_POINT"),
+                    cg.RawExpression("esphome::deye_inverter::SCALE_CA_POWER_POINT"),
                     device_obj,
                 )
 
         # Additional California settings
-        for key, address, min_val, max_val, step in [
-            (CONF_CA_RAMP_RATE, 353, 1, 100, 1),
-            (CONF_CA_RECONNECT_TIME, 354, 0, 300, 1),
-        ]:
+        ca_additional_registers = [
+            (
+                CONF_CA_RAMP_RATE,
+                "REG_RESERVED_353",
+                "MIN_CA_RAMP_RATE",
+                "MAX_CA_RAMP_RATE",
+                "STEP_CA_RAMP_RATE",
+                "SCALE_CA_RAMP_RATE",
+            ),
+            (
+                CONF_CA_RECONNECT_TIME,
+                "REG_RESERVED_354",
+                "MIN_CA_RECONNECT_TIME",
+                "MAX_CA_RECONNECT_TIME",
+                "STEP_CA_RECONNECT_TIME",
+                "SCALE_CA_RECONNECT_TIME",
+            ),
+        ]
+        for (
+            key,
+            reg_name,
+            min_name,
+            max_name,
+            step_name,
+            scale_name,
+        ) in ca_additional_registers:
             if key in ca_config:
                 await register_number_entity(
                     ca_config,
                     key,
                     var,
-                    address,
-                    min_val,
-                    max_val,
-                    step,
-                    1.0,
+                    cg.RawExpression(f"esphome::deye_inverter::{reg_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{min_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{max_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{step_name}"),
+                    cg.RawExpression(f"esphome::deye_inverter::{scale_name}"),
                     device_obj,
                 )

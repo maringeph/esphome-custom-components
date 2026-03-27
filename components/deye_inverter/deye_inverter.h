@@ -84,13 +84,13 @@ enum class DataType {
 // =============================================================================
 class DeyeInverter : public modbus_controller::ModbusController {
  public:
-  // Update intervals (in ms)
-  uint32_t interval_live_{1000};
-  uint32_t interval_statistics_{5000};
-  uint32_t interval_settings_{60000};
-  uint32_t interval_settings_2_{120000};   // Settings 2 (310-419)
-  uint32_t interval_battery_modules_{5000};
-  uint32_t interval_device_info_{300000};
+  // Update intervals (in ms) - using constexpr defaults from registers.h
+  uint32_t interval_live_{DEFAULT_INTERVAL_LIVE};
+  uint32_t interval_statistics_{DEFAULT_INTERVAL_STATISTICS};
+  uint32_t interval_settings_{DEFAULT_INTERVAL_SETTINGS};
+  uint32_t interval_settings_2_{DEFAULT_INTERVAL_SETTINGS_2};   // Settings 2 (310-419)
+  uint32_t interval_battery_modules_{DEFAULT_INTERVAL_BATTERY_MODULES};
+  uint32_t interval_device_info_{DEFAULT_INTERVAL_DEVICE_INFO};
 
   void setup() override;
   void update() override;
@@ -244,7 +244,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static constexpr uint32_t PENDING_BATTERY_2 = 0x00002000;
   static constexpr uint32_t PENDING_BATTERY_MODULES = PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
 
-  static constexpr uint32_t REQUEST_TIMEOUT = 500;  // 500ms timeout
+  static constexpr uint32_t REQUEST_TIMEOUT = REQUEST_TIMEOUT_MS;  // 500ms timeout
 
   // Request state
   uint32_t pending_requests_{0};       // Bitmask of pending requests
@@ -267,7 +267,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
 
   // Consecutive timeout tracking
   uint8_t consecutive_timeouts_{0};
-  static constexpr uint8_t MAX_CONSECUTIVE_TIMEOUTS = 3;
+  static constexpr uint8_t MAX_CONSECUTIVE_TIMEOUTS_COUNT = MAX_CONSECUTIVE_TIMEOUTS;
 
   // Entity update methods
 #ifdef USE_SENSOR

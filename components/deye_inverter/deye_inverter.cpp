@@ -97,9 +97,9 @@ namespace esphome
       g = gcd(g, this->interval_battery_modules_);
       g = gcd(g, this->interval_device_info_);
 
-      uint32_t update_interval = g / 5;
-      if (update_interval < 50) update_interval = 50;  // Minimum 50ms
-      if (update_interval > 1000) update_interval = 1000;  // Maximum 1s
+      uint32_t update_interval = g / UPDATE_INTERVAL_DIVISOR;
+      if (update_interval < MIN_UPDATE_INTERVAL_MS) update_interval = MIN_UPDATE_INTERVAL_MS;
+      if (update_interval > MAX_UPDATE_INTERVAL_MS) update_interval = MAX_UPDATE_INTERVAL_MS;
 
       ESP_LOGCONFIG(TAG, "  Calculated update interval: %u ms (GCD/5)", update_interval);
       this->set_update_interval(update_interval);
@@ -705,19 +705,19 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
 void DeyeTextSensor::update_value(uint16_t raw_value) {
   if (this->is_status_) {
     switch (raw_value) {
-      case 0: this->publish_state("Standby"); break;
-      case 1: this->publish_state("Self-Check"); break;
-      case 2: this->publish_state("Normal"); break;
-      case 3: this->publish_state("Alarm"); break;
-      case 4: this->publish_state("Fault"); break;
+      case STATUS_STANDBY: this->publish_state("Standby"); break;
+      case STATUS_SELF_CHECK: this->publish_state("Self-Check"); break;
+      case STATUS_NORMAL: this->publish_state("Normal"); break;
+      case STATUS_ALARM: this->publish_state("Alarm"); break;
+      case STATUS_FAULT: this->publish_state("Fault"); break;
       default: this->publish_state("Unknown"); break;
     }
   } else if (this->is_device_type_) {
     switch (raw_value) {
-      case 0x0200: this->publish_state("String Inverter"); break;
-      case 0x0300: this->publish_state("Single Phase Hybrid"); break;
-      case 0x0400: this->publish_state("Micro Inverter"); break;
-      case 0x0500: this->publish_state("Three Phase Hybrid"); break;
+      case DEVICE_TYPE_STRING_INVERTER: this->publish_state("String Inverter"); break;
+      case DEVICE_TYPE_SINGLE_PHASE_HYBRID: this->publish_state("Single Phase Hybrid"); break;
+      case DEVICE_TYPE_MICRO_INVERTER: this->publish_state("Micro Inverter"); break;
+      case DEVICE_TYPE_THREE_PHASE_HYBRID: this->publish_state("Three Phase Hybrid"); break;
       default: this->publish_state("Unknown (" + std::to_string(raw_value) + ")"); break;
     }
   } else if (this->is_firmware_version_ || this->is_hardware_version_) {

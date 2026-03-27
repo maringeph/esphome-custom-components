@@ -61,6 +61,24 @@ namespace esphome
       return a;
     }
 
+    // Format version number (e.g., 0x1234 -> "18.52")
+    std::string DeyeInverter::format_version(uint16_t value) {
+      uint8_t major = (value >> 8) & 0xFF;
+      uint8_t minor = value & 0xFF;
+      char buffer[16];
+      snprintf(buffer, sizeof(buffer), "%u.%02u", major, minor);
+      return std::string(buffer);
+    }
+
+    // Format time point (e.g., 1430 -> "14:30")
+    std::string DeyeInverter::format_time_point(uint16_t value) {
+      uint8_t hours = value / 100;
+      uint8_t minutes = value % 100;
+      char buffer[16];
+      snprintf(buffer, sizeof(buffer), "%02u:%02u", hours, minutes);
+      return std::string(buffer);
+    }
+
     void DeyeInverter::setup()
     {
       ESP_LOGCONFIG(TAG, "Setting up Deye Inverter...");
@@ -70,18 +88,19 @@ namespace esphome
       ESP_LOGCONFIG(TAG, "    Settings: %u ms", this->interval_settings_);
       ESP_LOGCONFIG(TAG, "    Battery: %u ms", this->interval_battery_modules_);
       ESP_LOGCONFIG(TAG, "    Device Info: %u ms", this->interval_device_info_);
-      
+
       // Calculate GCD of all intervals and set update interval to GCD/5
       // This ensures update() is called often enough to catch all intervals
       uint32_t g = gcd(this->interval_live_, this->interval_statistics_);
+      g = gcd(g, this->interval_statistics_);
       g = gcd(g, this->interval_settings_);
       g = gcd(g, this->interval_battery_modules_);
       g = gcd(g, this->interval_device_info_);
-      
+
       uint32_t update_interval = g / 5;
       if (update_interval < 50) update_interval = 50;  // Minimum 50ms
       if (update_interval > 1000) update_interval = 1000;  // Maximum 1s
-      
+
       ESP_LOGCONFIG(TAG, "  Calculated update interval: %u ms (GCD/5)", update_interval);
       this->set_update_interval(update_interval);
     }
@@ -312,9 +331,8 @@ void DeyeInverter::handle_time_response(const std::vector<uint8_t> &data, uint16
   
   this->request_in_progress_ = false;
   
-  // Clear pending flag and update timestamp on successful response
+  // Clear pending flag on successful response (TIME is read on-demand, not periodically)
   this->pending_requests_ &= ~PENDING_TIME;
-  this->last_time_update_ = millis();
   
   // Process time data (registers 62-64)
   if (data.size() >= 6) {

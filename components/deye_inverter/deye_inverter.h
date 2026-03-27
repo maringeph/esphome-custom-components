@@ -85,7 +85,6 @@ enum class DataType {
 class DeyeInverter : public modbus_controller::ModbusController {
  public:
   // Update intervals (in ms)
-  uint32_t interval_time_{60000};          // Time sync interval
   uint32_t interval_live_{1000};
   uint32_t interval_statistics_{5000};
   uint32_t interval_settings_{60000};
@@ -240,6 +239,8 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static constexpr uint32_t PENDING_BATTERY_0 = 0x00000800;
   static constexpr uint32_t PENDING_BATTERY_1 = 0x00001000;
   static constexpr uint32_t PENDING_BATTERY_2 = 0x00002000;
+  static constexpr uint32_t PENDING_BATTERY_MODULES = PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
+
   static constexpr uint32_t REQUEST_TIMEOUT = 500;  // 500ms timeout
 
   // Request state
@@ -254,8 +255,12 @@ class DeyeInverter : public modbus_controller::ModbusController {
   uint32_t next_stats_request_{0};
   uint32_t next_battery_request_{0};
 
+  // Last update timestamps (for handlers)
+  uint32_t last_battery_modules_update_{0};
+
   // State tracking
   bool device_info_initialized_{false};
+  uint8_t current_battery_module_range_{0};  // Current index for phased BMS requests
 
   // Consecutive timeout tracking
   uint8_t consecutive_timeouts_{0};

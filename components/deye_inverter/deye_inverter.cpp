@@ -1297,12 +1297,20 @@ void DeyeInverter::update_all_entities(uint16_t start_address, const std::vector
       if (offset + len > data.size())
         return "";
       std::string result;
-      for (size_t i = 0; i < len; i += 2)
-      {
-        if (data[offset + i] != 0)
-          result += static_cast<char>(data[offset + i]);
-        if (data[offset + i + 1] != 0)
-          result += static_cast<char>(data[offset + i + 1]);
+      bool all_ff = true;
+      for (size_t i = 0; i < len; i++) {
+        uint8_t byte = data[offset + i];
+        if (byte != 0xFF) {
+          all_ff = false;
+        }
+        // Only accept printable ASCII (0x20-0x7E) and common control chars
+        if (byte >= 0x20 && byte < 0x7F) {
+          result += static_cast<char>(byte);
+        }
+      }
+      // If all bytes are 0xFF (uninitialized), return "Unknown"
+      if (all_ff || result.empty()) {
+        return "Unknown";
       }
       return result;
     }

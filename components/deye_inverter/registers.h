@@ -86,8 +86,8 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     // SYSTEM SETTINGS REGISTERS (32 registers: 60-97)
     // =============================================================================
 
-    constexpr uint16_t REG_REMOTE_CONTROL_ENABLE = 60;        // Fernsteuerung Aktivierung
-    constexpr uint16_t REG_BOOT_SELF_CHECK_TIME = 61;         // Boot Selbsttest-Zeit
+    constexpr uint16_t REG_REMOTE_LOCK = 60;                  // Remote Lock (程控定使能) 0x0002=off, 0x0000=on
+    constexpr uint16_t REG_SELF_CHECK_TIME = 61;              // Self-check time (开机自检时间) [0,1000] seconds
     constexpr uint16_t REG_SYSTEM_TIME_BYTE1 = 62;            // Systemzeit Byte 1
     constexpr uint16_t REG_SYSTEM_TIME_BYTE3 = 63;            // Systemzeit Byte 3
     constexpr uint16_t REG_SYSTEM_TIME_BYTE5 = 64;            // Systemzeit Byte 5
@@ -108,7 +108,7 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr uint16_t REG_APPARENT_POWER_REGULATION = 79;    // Scheinleistungsregelung
     constexpr uint16_t REG_RESERVED_80 = 80;                  // Reserviert 80
     constexpr uint16_t REG_FACTORY_RESET_ENABLE = 81;         // Werksreset Aktivierung
-    constexpr uint16_t REG_SELF_CHECK_TIME = 82;              // Selbsttest-Zeit
+    constexpr uint16_t REG_SELF_CHECK_TIME_82 = 82;           // Selbsttest-Zeit (Register 82)
     constexpr uint16_t REG_ISLAND_PROTECTION_ENABLE = 83;     // Insel-Schutz Aktivierung
     constexpr uint16_t REG_MPPT_NUMBER = 84;                  // MPPT Anzahl
     constexpr uint16_t REG_GFDI_ENABLE = 85;                  // GFDI Aktivierung
@@ -830,7 +830,7 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr RegisterRange RANGE_DEVICE_INFO_EXTENDED = {REG_COMM_PROTOCOL_VERSION, 28, "Device Info Extended"}; // 2-29
 
     // New Settings Ranges
-    constexpr RegisterRange RANGE_SYSTEM_SETTINGS = {REG_REMOTE_CONTROL_ENABLE, 38, "System Settings"};       // 60-97
+    constexpr RegisterRange RANGE_SYSTEM_SETTINGS = {REG_REMOTE_LOCK, 38, "System Settings"};       // 60-97
     constexpr RegisterRange RANGE_GRID_PROTECTION = {REG_GRID_OVERVOLTAGE_PROTECTION, 16, "Grid Protection"}; // 185-200
     constexpr RegisterRange RANGE_EXTENDED_MONITORING = {REG_FACTORY_TEST_PROGRAM, 1, "Factory Test"};        // 240
     constexpr RegisterRange RANGE_MONITORING_SETTINGS = {REG_GRID1_CURRENT, 21, "Monitoring Settings"};       // 269-289

@@ -14,8 +14,6 @@ from . import (
     CONF_SETTINGS_WORKING_MODE,
     CONF_SETTINGS_SYSTEM,
     CONF_SETTINGS_CALIFORNIA,
-    CONF_SETTINGS_SYSTEM_TIME,
-    CONF_SYSTEM_TIME,
     CONF_GRID_TYPE,
     CONF_GRID_MODE,
     CONF_GRID_CHECK_SOURCE,
@@ -70,9 +68,6 @@ REGISTER_WORKING_MODE = 142
 
 # System Settings
 REGISTER_SYS_LANGUAGE = 60
-
-# System Time Settings (Register - Platzhalter, muss verifiziert werden)
-REGISTER_SYSTEM_TIME = 65
 
 # Grid Check Source (Register 344 - Ex-Zähler/CT Auswahl)
 REGISTER_GRID_CHECK_SOURCE = 344
@@ -180,12 +175,6 @@ SYS_LANGUAGE_OPTIONS = {
     3: "Français",
     4: "Italiano",
     5: "Português",
-}
-
-# System Time options (Register 65 - Platzhalter, muss verifiziert werden)
-SYSTEM_TIME_OPTIONS = {
-    0: "Systemzeit",
-    1: "Manuell",
 }
 
 # Extended Baud Rate options (Register 231)
@@ -302,13 +291,6 @@ SETTINGS_SYSTEM_SELECT_SCHEMA = cv.Schema(
     }
 )
 
-# Settings System Time Select Schema
-SETTINGS_SYSTEM_TIME_SELECT_SCHEMA = cv.Schema(
-    {
-        cv.Optional(CONF_SYSTEM_TIME): deye_select_schema(),
-    }
-)
-
 # Settings California Select Schema
 SETTINGS_CALIFORNIA_SELECT_SCHEMA = cv.Schema(
     {
@@ -333,7 +315,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_SETTINGS_GEN_PORT): SETTINGS_GEN_PORT_SELECT_SCHEMA,
         cv.Optional(CONF_SETTINGS_WORKING_MODE): SETTINGS_WORKING_MODE_SELECT_SCHEMA,
         cv.Optional(CONF_SETTINGS_SYSTEM): SETTINGS_SYSTEM_SELECT_SCHEMA,
-        cv.Optional(CONF_SETTINGS_SYSTEM_TIME): SETTINGS_SYSTEM_TIME_SELECT_SCHEMA,
         cv.Optional(CONF_SETTINGS_CALIFORNIA): SETTINGS_CALIFORNIA_SELECT_SCHEMA,
     }
 )
@@ -596,19 +577,6 @@ async def to_code(config):
                 var,
                 REGISTER_SYS_LANGUAGE,
                 SYS_LANGUAGE_OPTIONS,
-                device_obj,
-            )
-
-    # Settings System Time
-    if CONF_SETTINGS_SYSTEM_TIME in config:
-        system_time_config = config[CONF_SETTINGS_SYSTEM_TIME]
-        if CONF_SYSTEM_TIME in system_time_config:
-            await register_select_entity(
-                system_time_config,
-                CONF_SYSTEM_TIME,
-                var,
-                REGISTER_SYSTEM_TIME,
-                SYSTEM_TIME_OPTIONS,
                 device_obj,
             )
 

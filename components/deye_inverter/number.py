@@ -121,9 +121,10 @@ CONF_TIME_POINT_5_CAPACITY = "time_point_5_capacity"
 CONF_TIME_POINT_6_CAPACITY = "time_point_6_capacity"
 
 # Settings System Numbers (NEW - registers 60-97)
-CONF_SYS_LCD_CONTRAST = "sys_lcd_contrast"
-CONF_SYS_TIME_ZONE = "sys_time_zone"
-CONF_SYS_DATA_LOG_INTERVAL = "sys_data_log_interval"
+CONF_SYS_SELF_CHECK_TIME = "sys_self_check_time"  # Register 61: [0,1000] seconds
+CONF_SYS_INSULATION_RESISTANCE = (
+    "sys_insulation_resistance"  # Register 65: [100,20000] (0.1KΩ)
+)
 
 # Settings Grid Protection Numbers (NEW - registers 185-200)
 CONF_GP_OVER_VOLTAGE_PROTECTION = "gp_over_voltage_protection"
@@ -472,12 +473,11 @@ SETTINGS_TIME_OF_USE_NUMBERS_SCHEMA = cv.Schema(
 # Settings System Numbers
 SETTINGS_SYSTEM_NUMBERS_SCHEMA = cv.Schema(
     {
-        cv.Optional(CONF_SYS_LCD_CONTRAST): deye_number_schema(),
-        cv.Optional(CONF_SYS_TIME_ZONE): deye_number_schema(
-            unit_of_measurement="h",
+        cv.Optional(CONF_SYS_SELF_CHECK_TIME): deye_number_schema(
+            unit_of_measurement=UNIT_SECOND,
         ),
-        cv.Optional(CONF_SYS_DATA_LOG_INTERVAL): deye_number_schema(
-            unit_of_measurement=UNIT_MINUTE,
+        cv.Optional(CONF_SYS_INSULATION_RESISTANCE): deye_number_schema(
+            unit_of_measurement="0.1kΩ",
         ),
     }
 )
@@ -991,9 +991,23 @@ async def to_code(config):
         system_config = config[CONF_SETTINGS_SYSTEM_NUMBERS]
 
         for key, address, min_val, max_val, step in [
-            (CONF_SYS_LCD_CONTRAST, 60, 0, 100, 1),
-            (CONF_SYS_TIME_ZONE, 61, -12, 12, 0.5),
-            (CONF_SYS_DATA_LOG_INTERVAL, 62, 1, 60, 1),
+            # Register 60 is Remote Lock (Switch), not a Number
+            (
+                CONF_SYS_SELF_CHECK_TIME,
+                61,
+                0,
+                1000,
+                1,
+            ),  # Self-check time [0,1000] seconds
+            # Register 62-64 is System Time (handled by Time entity)
+            (
+                CONF_SYS_INSULATION_RESISTANCE,
+                65,
+                100,
+                20000,
+                1,
+            ),  # Insulation resistance [100,20000] (0.1KΩ)
+            # TODO: Register 62 (Data Log Interval) needs correct register address
         ]:
             if key in system_config:
                 scale = 10.0 if step == 0.5 else 1.0

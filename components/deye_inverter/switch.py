@@ -172,14 +172,14 @@ BITMASK_WEEKDAY_SUNDAY = 0x0080  # Bit 7
 REGISTER_SYS_BEEPER = 64
 BITMASK_SYS_BEEPER = 0x0001
 
+REGISTER_SYS_REMOTE_LOCK = 60
+BITMASK_SYS_REMOTE_LOCK = 0x0002  # 0x0002=off, 0x0000=on
+
 REGISTER_SYS_LCD_BACKLIGHT = 65
 BITMASK_SYS_LCD_BACKLIGHT = 0x0001
 
 REGISTER_SYS_DST_ENABLE = 66
 BITMASK_SYS_DST_ENABLE = 0x0001
-
-REGISTER_SYS_REMOTE_LOCK = 67
-BITMASK_SYS_REMOTE_LOCK = 0x0001
 
 # Special Functions - Register 178 (remaining functions)
 REGISTER_MICROINVERTER_EXPORT_TO_GRID = 178
@@ -706,14 +706,18 @@ async def to_code(config):
                 device_obj,
             )
 
-        # System Remote Lock (Register 67, Bit 0)
+        # System Remote Lock (Register 60)
+        # Special values: 0x0000 = on (locked), 0x0002 = off (unlocked)
         if CONF_SYS_REMOTE_LOCK in system_config:
-            await register_switch_entity(
+            await register_switch_entity_2bit(
                 system_config,
                 CONF_SYS_REMOTE_LOCK,
                 var,
                 REGISTER_SYS_REMOTE_LOCK,
-                BITMASK_SYS_REMOTE_LOCK,
+                0xFFFF,  # Full register bitmask
+                0x0000,  # value_enable (locked/on)
+                0x0002,  # value_disable (unlocked/off)
+                0,  # shift
                 device_obj,
             )
 

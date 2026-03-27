@@ -2574,7 +2574,7 @@ async def register_sensors(parent, config, device_obj=None):
             temp_conf,
             CONF_TEMP_HEATSINK,
             parent,
-            cg.RawExpression("esphome::deye_inverter::REG_HEATSINK_TEMPERATURE"),
+            cg.RawExpression("esphome::deye_inverter::REG_HEAT_SINK_TEMPERATURE"),
             scale=0.1,
             offset=-100.0,
             device_obj=device_obj,

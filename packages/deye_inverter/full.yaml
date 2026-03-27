@@ -1406,16 +1406,8 @@ select:
         name: "${device_name}: Gen Port Modus"
         id: ${device_id}_gen_port_control_mode
 
-    # -------------------------------------------------------------------------
-    # SETTINGS SYSTEM TIME (1 entity)
-    # -------------------------------------------------------------------------
-    settings_system_time:
-      system_time:
-        name: "${device_name}: Systemzeit"
-        id: ${device_id}_settings_system_time
-
 # =============================================================================
-# TIME - System Time Synchronization
+# TIME - System Time Synchronization (Register 62-64)
 # =============================================================================
 time:
   - platform: deye_inverter

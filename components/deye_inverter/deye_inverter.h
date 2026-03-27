@@ -290,29 +290,7 @@ class DeyeInverter : public modbus_controller::ModbusController {
 #endif
 
   // Unified entity update helper - ensures ALL entity types are updated consistently
-  void update_all_entities(uint16_t start_address, const std::vector<uint8_t>& data) {
-#ifdef USE_SENSOR
-    this->update_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_BINARY_SENSOR
-    this->update_binary_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_TEXT_SENSOR
-    this->update_text_sensors_from_data(start_address, data);
-#endif
-#ifdef USE_SWITCH
-    this->update_switches_from_data(start_address, data);
-#endif
-#ifdef USE_NUMBER
-    this->update_numbers_from_data(start_address, data);
-#endif
-#ifdef USE_SELECT
-    this->update_selects_from_data(start_address, data);
-#endif
-#ifdef USE_DATETIME
-    this->update_datetimes_from_data(start_address, data);
-#endif
-  }
+  void update_all_entities(uint16_t start_address, const std::vector<uint8_t>& data);
 
   // Battery module helper
   float parse_battery_module_value(const std::vector<uint8_t>& data, size_t offset, 

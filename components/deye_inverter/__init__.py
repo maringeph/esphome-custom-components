@@ -203,26 +203,18 @@ CONF_DC8_CURRENT = "dc8_current"
 
 # =============================================================================
 # CONF CONSTANTS - Battery Modules (NEW - 9 modules with 14 registers each)
+# BMS Data Base Addresses (from registers.h BMS_DATA_BASE_1-9)
 # =============================================================================
 CONF_BATTERY_MODULES = "battery_modules"
 
-# Battery Module 1 (registers 350-363)
 CONF_BATTERY_MODULE_1 = "battery_module_1"
-# Battery Module 2 (registers 364-377)
 CONF_BATTERY_MODULE_2 = "battery_module_2"
-# Battery Module 3 (registers 378-391)
 CONF_BATTERY_MODULE_3 = "battery_module_3"
-# Battery Module 4 (registers 392-405)
 CONF_BATTERY_MODULE_4 = "battery_module_4"
-# Battery Module 5 (registers 406-419)
 CONF_BATTERY_MODULE_5 = "battery_module_5"
-# Battery Module 6 (registers 420-433)
 CONF_BATTERY_MODULE_6 = "battery_module_6"
-# Battery Module 7 (registers 434-447)
 CONF_BATTERY_MODULE_7 = "battery_module_7"
-# Battery Module 8 (registers 448-461)
 CONF_BATTERY_MODULE_8 = "battery_module_8"
-# Battery Module 9 (registers 462-475)
 CONF_BATTERY_MODULE_9 = "battery_module_9"
 
 # Battery Module sensor fields

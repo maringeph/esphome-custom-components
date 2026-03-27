@@ -2549,19 +2549,20 @@ async def register_sensors(parent, config, device_obj=None):
     # =============================================================================
     # PROCESS BATTERY MODULE SENSORS
     # =============================================================================
+    # Battery module configuration - addresses come from registers.h via C++
     battery_modules = [
-        (CONF_BATTERY_MODULE_1, 2600),  # BMS_DATA_BASE_1: 2600-2613
-        (CONF_BATTERY_MODULE_2, 2614),  # BMS_DATA_BASE_2: 2614-2627
-        (CONF_BATTERY_MODULE_3, 2628),  # BMS_DATA_BASE_3: 2628-2641
-        (CONF_BATTERY_MODULE_4, 2642),  # BMS_DATA_BASE_4: 2642-2655
-        (CONF_BATTERY_MODULE_5, 2656),  # BMS_DATA_BASE_5: 2656-2669
-        (CONF_BATTERY_MODULE_6, 2670),  # BMS_DATA_BASE_6: 2670-2683
-        (CONF_BATTERY_MODULE_7, 2684),  # BMS_DATA_BASE_7: 2684-2697
-        (CONF_BATTERY_MODULE_8, 2698),  # BMS_DATA_BASE_8: 2698-2711
-        (CONF_BATTERY_MODULE_9, 2712),  # BMS_DATA_BASE_9: 2712-2725
+        (CONF_BATTERY_MODULE_1, 1),
+        (CONF_BATTERY_MODULE_2, 2),
+        (CONF_BATTERY_MODULE_3, 3),
+        (CONF_BATTERY_MODULE_4, 4),
+        (CONF_BATTERY_MODULE_5, 5),
+        (CONF_BATTERY_MODULE_6, 6),
+        (CONF_BATTERY_MODULE_7, 7),
+        (CONF_BATTERY_MODULE_8, 8),
+        (CONF_BATTERY_MODULE_9, 9),
     ]
 
-    for module_conf_name, base_address in battery_modules:
+    for module_conf_name, module_id in battery_modules:
         if module_conf_name in config:
             bm_conf = config[module_conf_name]
             # BMS offsets per registers.h:
@@ -2569,96 +2570,36 @@ async def register_sensors(parent, config, device_obj=None):
             # +3: SOC (0.1%), +4: Remain Cap (0.1AH), +5: Total Cap (0.1AH)
             # +6: Charge Volt (0.01V), +7: Charge Curr (0.1A), +8: Discharge Curr (0.1A)
             # +9: Max Cell V (0.01V), +10: Min Cell V (0.01V), +11: Cycle, +12: Warming, +13: Fault
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_VOLTAGE,
-                parent,
-                base_address + 0,  # BMS_OFFSET_VOLTAGE
-                scale=0.01,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_CURRENT,
-                parent,
-                base_address + 1,  # BMS_OFFSET_CURRENT
-                scale=0.1,
-                signed=True,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_TEMPERATURE,
-                parent,
-                base_address + 2,  # BMS_OFFSET_TEMP (1250 = 25.0°C)
-                scale=0.1,
-                offset=-100.0,  # (raw - 1000) * 0.1 = temp in °C
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_SOC,
-                parent,
-                base_address + 3,  # BMS_OFFSET_SOC
-                scale=0.1,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_CAPACITY_REMAINING,
-                parent,
-                base_address + 4,  # BMS_OFFSET_REMAIN_CAP
-                scale=0.1,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_CAPACITY_TOTAL,
-                parent,
-                base_address + 5,  # BMS_OFFSET_TOTAL_CAP
-                scale=0.1,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_CYCLE_COUNT,
-                parent,
-                base_address + 11,  # BMS_OFFSET_CYCLE
-                scale=1.0,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_CELL_MAX_VOLTAGE,
-                parent,
-                base_address + 9,  # BMS_OFFSET_MAX_CELL_V
-                scale=0.01,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_CELL_MIN_VOLTAGE,
-                parent,
-                base_address + 10,  # BMS_OFFSET_MIN_CELL_V
-                scale=0.01,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_STATUS,
-                parent,
-                base_address + 12,  # BMS_OFFSET_WARMING (Status/Warning)
-                scale=1.0,
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                bm_conf,
-                CONF_BM_FAULT_CODE,
-                parent,
-                base_address + 13,  # BMS_OFFSET_FAULT
-                scale=1.0,
-                device_obj=device_obj,
-            )
+            # Register addresses calculated at compile time from registers.h via C++
+            # Offsets: 0=Voltage, 1=Current, 2=Temp, 3=SOC, 4=RemainCap, 5=TotalCap
+            #          11=Cycles, 9=MaxCellV, 10=MinCellV, 12=Status, 13=Fault
+            for conf_key, offset, scale, signed, offset_val in [
+                (CONF_BM_VOLTAGE, 0, 0.01, False, 0.0),
+                (CONF_BM_CURRENT, 1, 0.1, True, 0.0),
+                (CONF_BM_TEMPERATURE, 2, 0.1, False, -100.0),
+                (CONF_BM_SOC, 3, 0.1, False, 0.0),
+                (CONF_BM_CAPACITY_REMAINING, 4, 0.1, False, 0.0),
+                (CONF_BM_CAPACITY_TOTAL, 5, 0.1, False, 0.0),
+                (CONF_BM_CYCLE_COUNT, 11, 1.0, False, 0.0),
+                (CONF_BM_CELL_MAX_VOLTAGE, 9, 0.01, False, 0.0),
+                (CONF_BM_CELL_MIN_VOLTAGE, 10, 0.01, False, 0.0),
+                (CONF_BM_STATUS, 12, 1.0, False, 0.0),
+                (CONF_BM_FAULT_CODE, 13, 1.0, False, 0.0),
+            ]:
+                if conf_key in bm_conf:
+                    addr_expr = cg.RawExpression(
+                        f"esphome::deye_inverter::DeyeInverter::get_bms_base_address({module_id}) + {offset}"
+                    )
+                    await register_single_sensor(
+                        bm_conf,
+                        conf_key,
+                        parent,
+                        addr_expr,
+                        scale=scale,
+                        offset=offset_val,
+                        signed=signed,
+                        device_obj=device_obj,
+                    )
 
     # =============================================================================
     # PROCESS STATISTICS SENSORS

@@ -109,6 +109,9 @@ class DeyeInverter : public modbus_controller::ModbusController {
 
   // Register entities with the component
   void register_sensor(sensor::Sensor *sensor);
+
+  // Get BMS module base address from registers.h (module_id: 1-9)
+  static uint16_t get_bms_base_address(uint8_t module_id);
 #ifdef USE_BINARY_SENSOR
   void register_binary_sensor(binary_sensor::BinarySensor *sensor);
 #endif

@@ -517,6 +517,19 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
       this->sensors_.push_back(sensor);
     }
 
+    uint16_t DeyeInverter::get_bms_base_address(uint8_t module_id)
+    {
+      // BMS module base addresses from registers.h
+      static const uint16_t BMS_DATA_BASES[] = {
+          BMS_DATA_BASE_1, BMS_DATA_BASE_2, BMS_DATA_BASE_3,
+          BMS_DATA_BASE_4, BMS_DATA_BASE_5, BMS_DATA_BASE_6,
+          BMS_DATA_BASE_7, BMS_DATA_BASE_8, BMS_DATA_BASE_9};
+      if (module_id >= 1 && module_id <= 9) {
+        return BMS_DATA_BASES[module_id - 1];
+      }
+      return 0; // Invalid module ID
+    }
+
 #ifdef USE_BINARY_SENSOR
     void DeyeInverter::register_binary_sensor(binary_sensor::BinarySensor *sensor)
     {

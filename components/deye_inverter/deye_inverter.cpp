@@ -82,31 +82,42 @@ namespace esphome
     void DeyeInverter::setup()
     {
       ESP_LOGCONFIG(TAG, "Setting up Deye Inverter...");
-      ESP_LOGCONFIG(TAG, "  Update intervals:");
+      ESP_LOGCONFIG(TAG, "  Update intervals (0=never):");
       ESP_LOGCONFIG(TAG, "    Live: %u ms", this->interval_live_);
       ESP_LOGCONFIG(TAG, "    Statistics: %u ms", this->interval_statistics_);
       ESP_LOGCONFIG(TAG, "    Settings: %u ms", this->interval_settings_);
       ESP_LOGCONFIG(TAG, "    Battery: %u ms", this->interval_battery_modules_);
       ESP_LOGCONFIG(TAG, "    Device Info: %u ms", this->interval_device_info_);
 
-      // Calculate GCD of all intervals and set update interval to GCD/5
+      // Calculate GCD of all non-zero intervals and set update interval to GCD/5
       // This ensures update() is called often enough to catch all intervals
-      uint32_t g = gcd(this->interval_live_, this->interval_statistics_);
-      g = gcd(g, this->interval_statistics_);
-      g = gcd(g, this->interval_settings_);
-      g = gcd(g, this->interval_battery_modules_);
-      g = gcd(g, this->interval_device_info_);
+      // Intervals set to 0 (never) are skipped
+      uint32_t g = 0;
+      if (this->interval_live_ > 0) g = (g == 0) ? this->interval_live_ : gcd(g, this->interval_live_);
+      if (this->interval_statistics_ > 0) g = (g == 0) ? this->interval_statistics_ : gcd(g, this->interval_statistics_);
+      if (this->interval_settings_ > 0) g = (g == 0) ? this->interval_settings_ : gcd(g, this->interval_settings_);
+      if (this->interval_battery_modules_ > 0) g = (g == 0) ? this->interval_battery_modules_ : gcd(g, this->interval_battery_modules_);
+      if (this->interval_device_info_ > 0) g = (g == 0) ? this->interval_device_info_ : gcd(g, this->interval_device_info_);
 
-      uint32_t update_interval = g / UPDATE_INTERVAL_DIVISOR;
-      if (update_interval < MIN_UPDATE_INTERVAL_MS) update_interval = MIN_UPDATE_INTERVAL_MS;
-      if (update_interval > MAX_UPDATE_INTERVAL_MS) update_interval = MAX_UPDATE_INTERVAL_MS;
-
-      ESP_LOGCONFIG(TAG, "  Calculated update interval: %u ms (GCD/5)", update_interval);
+      // Default interval if all are set to 0 (manual mode)
+      uint32_t update_interval;
+      if (g == 0) {
+        update_interval = 1000;  // Default 1s in manual mode
+        ESP_LOGCONFIG(TAG, "  All intervals disabled (manual mode), using default 1000 ms");
+      } else {
+        update_interval = g / UPDATE_INTERVAL_DIVISOR;
+        if (update_interval < MIN_UPDATE_INTERVAL_MS) update_interval = MIN_UPDATE_INTERVAL_MS;
+        if (update_interval > MAX_UPDATE_INTERVAL_MS) update_interval = MAX_UPDATE_INTERVAL_MS;
+        ESP_LOGCONFIG(TAG, "  Calculated update interval: %u ms (GCD/5)", update_interval);
+      }
+      
       this->set_update_interval(update_interval);
 
-      // Queue device info request immediately on boot
-      ESP_LOGCONFIG(TAG, "Queuing device info request on boot");
-      this->pending_requests_ |= PENDING_DEVICE_INFO;
+      // Queue device info request immediately on boot if interval is set
+      if (this->interval_device_info_ > 0) {
+        ESP_LOGCONFIG(TAG, "Queuing device info request on boot");
+        this->pending_requests_ |= PENDING_DEVICE_INFO;
+      }
     }
 
     // =============================================================================
@@ -122,7 +133,9 @@ namespace esphome
     void DeyeInverter::check_request_due()
     {
       uint32_t now = millis();
-      if (now >= this->next_device_info_request_)
+      
+      // Device Info (0 = never)
+      if (this->interval_device_info_ > 0 && now >= this->next_device_info_request_)
       {
         ESP_LOGD(TAG, "Device info interval elapsed (next: %u, now: %u), queuing request", 
                  this->next_device_info_request_, now);
@@ -130,22 +143,29 @@ namespace esphome
         this->next_device_info_request_ = now + this->interval_device_info_;
       }
 
-      if (now >= this->next_settings_request_)
+      // Settings (0 = never)
+      if (this->interval_settings_ > 0 && now >= this->next_settings_request_)
       {
         this->pending_requests_ |= PENDING_SETTINGS_0 | PENDING_SETTINGS_1 | PENDING_SETTINGS_2;
         this->next_settings_request_ = now + this->interval_settings_;
       }
-      if (now >= this->next_live_request_)
+      
+      // Live Data (0 = never)
+      if (this->interval_live_ > 0 && now >= this->next_live_request_)
       {
         this->pending_requests_ |= PENDING_LIVE_0 | PENDING_LIVE_1;
         this->next_live_request_ = now + this->interval_live_;
       }
-      if (now >= this->next_stats_request_)
+      
+      // Statistics (0 = never)
+      if (this->interval_statistics_ > 0 && now >= this->next_stats_request_)
       {
         this->pending_requests_ |= PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3;
         this->next_stats_request_ = now + this->interval_statistics_;
       }
-      if (now >= this->next_battery_request_)
+      
+      // Battery Modules (0 = never)
+      if (this->interval_battery_modules_ > 0 && now >= this->next_battery_request_)
       {
         this->pending_requests_ |= PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
         this->next_battery_request_ = now + this->interval_battery_modules_;

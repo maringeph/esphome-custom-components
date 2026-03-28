@@ -24,10 +24,18 @@ CONF_DEVICE_ID = "device_id"
 CONF_MODBUS_ID = "modbus_id"
 CONF_ADDRESS = "address"
 
-# Update intervals
+# Update intervals (0 = never)
 CONF_UPDATE_INTERVAL_LIVE = "update_interval_live"
 CONF_UPDATE_INTERVAL_STATISTICS = "update_interval_statistics"
+CONF_UPDATE_INTERVAL_SETTINGS = "update_interval_settings"
+CONF_UPDATE_INTERVAL_BATTERY_MODULES = "update_interval_battery_modules"
 CONF_UPDATE_INTERVAL_DEVICE_INFO = "update_interval_device_info"
+
+# Manual read actions
+CONF_ACTION_READ_DEVICE_INFO = "read_device_info"
+CONF_ACTION_READ_LIVE_DATA = "read_live_data"
+CONF_ACTION_READ_STATISTICS = "read_statistics"
+CONF_ACTION_READ_SETTINGS = "read_settings"
 
 # =============================================================================
 # CONF CONSTANTS - Device Info Group (Extended 0-59)
@@ -683,3 +691,77 @@ def set_entity_device(entity_var, device_var):
     """
     if device_var is not None:
         cg.add(entity_var.set_device(device_var))
+
+
+# =============================================================================
+# AUTOMATION ACTIONS - Manual Read Operations
+# =============================================================================
+from esphome import automation
+
+
+# Action: Read Device Info
+@automation.register_action(
+    "deye_inverter.read_device_info",
+    automation.Action,
+    cv.Schema(
+        {
+            cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        }
+    ),
+)
+async def deye_inverter_read_device_info_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    cg.add(var.set_parent(parent))
+    return var
+
+
+# Action: Read Live Data
+@automation.register_action(
+    "deye_inverter.read_live_data",
+    automation.Action,
+    cv.Schema(
+        {
+            cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        }
+    ),
+)
+async def deye_inverter_read_live_data_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    cg.add(var.set_parent(parent))
+    return var
+
+
+# Action: Read Statistics
+@automation.register_action(
+    "deye_inverter.read_statistics",
+    automation.Action,
+    cv.Schema(
+        {
+            cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        }
+    ),
+)
+async def deye_inverter_read_statistics_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    cg.add(var.set_parent(parent))
+    return var
+
+
+# Action: Read Settings
+@automation.register_action(
+    "deye_inverter.read_settings",
+    automation.Action,
+    cv.Schema(
+        {
+            cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
+        }
+    ),
+)
+async def deye_inverter_read_settings_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    parent = await cg.get_variable(config[CONF_DEYE_INVERTER_ID])
+    cg.add(var.set_parent(parent))
+    return var

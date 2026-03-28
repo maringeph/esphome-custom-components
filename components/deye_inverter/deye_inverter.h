@@ -3,6 +3,7 @@
 #include <atomic>
 
 #include "esphome/core/component.h"
+#include "esphome/core/automation.h"
 #include "esphome/components/modbus_controller/modbus_controller.h"
 
 #ifdef USE_SENSOR
@@ -137,6 +138,12 @@ class DeyeInverter : public modbus_controller::ModbusController {
   // Write methods using modbus_controller
   void write_register(uint16_t address, uint16_t value);
   void write_register_masked(uint16_t address, uint16_t value, uint16_t mask);
+
+  // Manual read actions (for automation)
+  void queue_device_info_read() { this->pending_requests_ |= PENDING_DEVICE_INFO; }
+  void queue_live_data_read() { this->pending_requests_ |= PENDING_LIVE_0 | PENDING_LIVE_1; }
+  void queue_statistics_read() { this->pending_requests_ |= PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3; }
+  void queue_settings_read() { this->pending_requests_ |= PENDING_SETTINGS_0 | PENDING_SETTINGS_1 | PENDING_SETTINGS_2; }
 
   // Static helper methods
   static DataType parse_data_type(const std::string& str);
@@ -581,6 +588,58 @@ class DeyeTime : public time::RealTimeClock {
   void write_time_to_inverter();
 };
 #endif
+
+// =============================================================================
+// AUTOMATION ACTIONS - Manual Read Operations
+// =============================================================================
+
+class DeyeReadDeviceInfoAction : public Action<> {
+ public:
+  void set_parent(DeyeInverter *parent) { parent_ = parent; }
+  void play() override {
+    if (parent_ != nullptr) {
+      parent_->queue_device_info_read();
+    }
+  }
+ protected:
+  DeyeInverter *parent_{nullptr};
+};
+
+class DeyeReadLiveDataAction : public Action<> {
+ public:
+  void set_parent(DeyeInverter *parent) { parent_ = parent; }
+  void play() override {
+    if (parent_ != nullptr) {
+      parent_->queue_live_data_read();
+    }
+  }
+ protected:
+  DeyeInverter *parent_{nullptr};
+};
+
+class DeyeReadStatisticsAction : public Action<> {
+ public:
+  void set_parent(DeyeInverter *parent) { parent_ = parent; }
+  void play() override {
+    if (parent_ != nullptr) {
+      parent_->queue_statistics_read();
+    }
+  }
+ protected:
+  DeyeInverter *parent_{nullptr};
+};
+
+class DeyeReadSettingsAction : public Action<> {
+ public:
+  void set_parent(DeyeInverter *parent) { parent_ = parent; }
+  void play() override {
+    if (parent_ != nullptr) {
+      parent_->queue_settings_read();
+    }
+  }
+ protected:
+  DeyeInverter *parent_{nullptr};
+};
 
 }  // namespace deye_inverter
 }  // namespace esphome

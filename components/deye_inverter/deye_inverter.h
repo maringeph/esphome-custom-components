@@ -593,10 +593,11 @@ class DeyeTime : public time::RealTimeClock {
 // AUTOMATION ACTIONS - Manual Read Operations
 // =============================================================================
 
-class DeyeReadDeviceInfoAction : public Action<> {
+template<typename... Ts>
+class DeyeReadDeviceInfoAction : public Action<Ts...> {
  public:
   void set_parent(DeyeInverter *parent) { parent_ = parent; }
-  void play() override {
+  void play(Ts... x) override {
     if (parent_ != nullptr) {
       parent_->queue_device_info_read();
     }
@@ -605,10 +606,11 @@ class DeyeReadDeviceInfoAction : public Action<> {
   DeyeInverter *parent_{nullptr};
 };
 
-class DeyeReadLiveDataAction : public Action<> {
+template<typename... Ts>
+class DeyeReadLiveDataAction : public Action<Ts...> {
  public:
   void set_parent(DeyeInverter *parent) { parent_ = parent; }
-  void play() override {
+  void play(Ts... x) override {
     if (parent_ != nullptr) {
       parent_->queue_live_data_read();
     }
@@ -617,10 +619,11 @@ class DeyeReadLiveDataAction : public Action<> {
   DeyeInverter *parent_{nullptr};
 };
 
-class DeyeReadStatisticsAction : public Action<> {
+template<typename... Ts>
+class DeyeReadStatisticsAction : public Action<Ts...> {
  public:
   void set_parent(DeyeInverter *parent) { parent_ = parent; }
-  void play() override {
+  void play(Ts... x) override {
     if (parent_ != nullptr) {
       parent_->queue_statistics_read();
     }
@@ -629,10 +632,11 @@ class DeyeReadStatisticsAction : public Action<> {
   DeyeInverter *parent_{nullptr};
 };
 
-class DeyeReadSettingsAction : public Action<> {
+template<typename... Ts>
+class DeyeReadSettingsAction : public Action<Ts...> {
  public:
   void set_parent(DeyeInverter *parent) { parent_ = parent; }
-  void play() override {
+  void play(Ts... x) override {
     if (parent_ != nullptr) {
       parent_->queue_settings_read();
     }

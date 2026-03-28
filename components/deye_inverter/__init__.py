@@ -698,11 +698,25 @@ def set_entity_device(entity_var, device_var):
 # =============================================================================
 from esphome import automation
 
+# Declare action classes
+DeyeReadDeviceInfoAction = deye_inverter_ns.class_(
+    "DeyeReadDeviceInfoAction", automation.Action
+)
+DeyeReadLiveDataAction = deye_inverter_ns.class_(
+    "DeyeReadLiveDataAction", automation.Action
+)
+DeyeReadStatisticsAction = deye_inverter_ns.class_(
+    "DeyeReadStatisticsAction", automation.Action
+)
+DeyeReadSettingsAction = deye_inverter_ns.class_(
+    "DeyeReadSettingsAction", automation.Action
+)
+
 
 # Action: Read Device Info
 @automation.register_action(
     "deye_inverter.read_device_info",
-    automation.Action,
+    DeyeReadDeviceInfoAction,
     cv.Schema(
         {
             cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
@@ -719,7 +733,7 @@ async def deye_inverter_read_device_info_to_code(config, action_id, template_arg
 # Action: Read Live Data
 @automation.register_action(
     "deye_inverter.read_live_data",
-    automation.Action,
+    DeyeReadLiveDataAction,
     cv.Schema(
         {
             cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
@@ -736,7 +750,7 @@ async def deye_inverter_read_live_data_to_code(config, action_id, template_arg, 
 # Action: Read Statistics
 @automation.register_action(
     "deye_inverter.read_statistics",
-    automation.Action,
+    DeyeReadStatisticsAction,
     cv.Schema(
         {
             cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),
@@ -753,7 +767,7 @@ async def deye_inverter_read_statistics_to_code(config, action_id, template_arg,
 # Action: Read Settings
 @automation.register_action(
     "deye_inverter.read_settings",
-    automation.Action,
+    DeyeReadSettingsAction,
     cv.Schema(
         {
             cv.GenerateID(CONF_DEYE_INVERTER_ID): cv.use_id(DeyeInverter),

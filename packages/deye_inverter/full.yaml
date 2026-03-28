@@ -13,6 +13,22 @@
 #           device_id: wr01
 #           modbus_id: modbus_wr1
 #           modbus_address: "1"
+#
+# Update Intervalle:
+#   - 0s = Nie automatisch lesen (nur manuell über Actions)
+#   - 1s, 5s, 60s, etc. = Automatisches Lesen im Intervall
+#
+# Manuelle Read Actions (wenn Interval = 0s):
+#   - deye_inverter.read_device_info
+#   - deye_inverter.read_live_data
+#   - deye_inverter.read_statistics
+#   - deye_inverter.read_settings
+#
+# Beispiel Automation (deye_inverter_id muss angegeben werden):
+#   on_boot:
+#     then:
+#       - deye_inverter.read_device_info:
+#           deye_inverter_id: wechselrichter_01
 # =============================================================================
 
 substitutions:
@@ -20,12 +36,28 @@ substitutions:
   device_id: deye_wr
   modbus_id: modbus_deye
   modbus_address: "1"
+  
+  # Update Intervalle (überschreibbar in der Haupt-YAML)
+  # 0s = Nie automatisch lesen (nur manuell über deye_inverter.read_* actions)
+  interval_live: 1s
+  interval_statistics: 5s
+  interval_settings: 1s
+  interval_battery: 60s
+  interval_device_info: 0s   # Never auto-read (read once on boot via on_boot)
 
 # Gerätedefinition
 esphome:
   devices:
     - name: ${device_name}
       id: device_${device_id}
+  
+  # Read device info once on boot (since interval_device_info is 0s/never)
+  on_boot:
+    priority: -100
+    then:
+      - delay: 3s
+      - deye_inverter.read_device_info:
+          deye_inverter_id: ${device_id}
 
 # =============================================================================
 # SENSOREN - ALLE ENTITIES AKTIVIERT
@@ -37,10 +69,12 @@ sensor:
     modbus_id: ${modbus_id}
     address: ${modbus_address}
 
-    # Update Intervalle
-    update_interval_live: 1s
-    update_interval_statistics: 5s
-    update_interval_device_info: 60s
+    # Update Intervalle (set to 0s for manual mode - use deye_inverter.read_* actions)
+    update_interval_live: ${interval_live}           # 0s = manual read only
+    update_interval_statistics: ${interval_statistics}     # 0s = manual read only
+    update_interval_settings: ${interval_settings}       # 0s = manual read only
+    update_interval_battery_modules: ${interval_battery}  # 0s = manual read only
+    update_interval_device_info: ${interval_device_info}   # 0s = manual read only (read on boot via on_boot)
 
     # =========================================================================
     # DEVICE INFO (2 entities) - Static values, read once

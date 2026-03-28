@@ -52,6 +52,8 @@ from . import (
     CONF_ADDRESS,
     CONF_UPDATE_INTERVAL_LIVE,
     CONF_UPDATE_INTERVAL_STATISTICS,
+    CONF_UPDATE_INTERVAL_SETTINGS,
+    CONF_UPDATE_INTERVAL_BATTERY_MODULES,
     CONF_UPDATE_INTERVAL_DEVICE_INFO,
     # Device Info
     CONF_DEVICE_INFO,
@@ -1493,6 +1495,12 @@ CONFIG_SCHEMA = (
                 CONF_UPDATE_INTERVAL_STATISTICS, default="5s"
             ): cv.positive_time_period_milliseconds,
             cv.Optional(
+                CONF_UPDATE_INTERVAL_SETTINGS, default="1s"
+            ): cv.positive_time_period_milliseconds,
+            cv.Optional(
+                CONF_UPDATE_INTERVAL_BATTERY_MODULES, default="60s"
+            ): cv.positive_time_period_milliseconds,
+            cv.Optional(
                 CONF_UPDATE_INTERVAL_DEVICE_INFO, default="60s"
             ): cv.positive_time_period_milliseconds,
             # Device info
@@ -1551,6 +1559,12 @@ async def to_code(config):
     # Set update intervals
     cg.add(var.set_update_interval_live(config[CONF_UPDATE_INTERVAL_LIVE]))
     cg.add(var.set_update_interval_statistics(config[CONF_UPDATE_INTERVAL_STATISTICS]))
+    cg.add(var.set_update_interval_settings(config[CONF_UPDATE_INTERVAL_SETTINGS]))
+    cg.add(
+        var.set_update_interval_battery_modules(
+            config[CONF_UPDATE_INTERVAL_BATTERY_MODULES]
+        )
+    )
     cg.add(
         var.set_update_interval_device_info(config[CONF_UPDATE_INTERVAL_DEVICE_INFO])
     )
@@ -1562,6 +1576,8 @@ async def to_code(config):
     intervals = [
         config[CONF_UPDATE_INTERVAL_LIVE].total_milliseconds,
         config[CONF_UPDATE_INTERVAL_STATISTICS].total_milliseconds,
+        config[CONF_UPDATE_INTERVAL_SETTINGS].total_milliseconds,
+        config[CONF_UPDATE_INTERVAL_BATTERY_MODULES].total_milliseconds,
         config[CONF_UPDATE_INTERVAL_DEVICE_INFO].total_milliseconds,
     ]
     base_interval = intervals[0]

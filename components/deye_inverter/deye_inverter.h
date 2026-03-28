@@ -332,6 +332,8 @@ class DeyeSensor : public sensor::Sensor, public Component {
 
   uint16_t get_address() const { return address_; }
   uint8_t get_bytes() const { return bytes_; }
+  float get_scale() const { return scale_; }
+  float get_offset() const { return offset_; }
   DataType get_data_type() const { return data_type_; }
   bool get_is_battery_module() const { return is_battery_module_; }
   uint8_t get_module_index() const { return module_index_; }

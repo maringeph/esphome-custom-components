@@ -103,6 +103,10 @@ namespace esphome
 
       ESP_LOGCONFIG(TAG, "  Calculated update interval: %u ms (GCD/5)", update_interval);
       this->set_update_interval(update_interval);
+
+      // Queue device info request immediately on boot
+      ESP_LOGCONFIG(TAG, "Queuing device info request on boot");
+      this->pending_requests_ |= PENDING_DEVICE_INFO;
     }
 
     // =============================================================================
@@ -120,6 +124,8 @@ namespace esphome
       uint32_t now = millis();
       if (now >= this->next_device_info_request_)
       {
+        ESP_LOGD(TAG, "Device info interval elapsed (next: %u, now: %u), queuing request", 
+                 this->next_device_info_request_, now);
         this->pending_requests_ |= PENDING_DEVICE_INFO;
         this->next_device_info_request_ = now + this->interval_device_info_;
       }
@@ -152,6 +158,8 @@ namespace esphome
         return;
       if (this->request_in_progress_ && millis() - this->request_start_time_ < REQUEST_TIMEOUT)
         return;
+
+      ESP_LOGD(TAG, "Processing pending requests, flags: 0x%08X", this->pending_requests_);
 
       // Get the highest priority pending request
       uint32_t now = millis();
@@ -251,7 +259,7 @@ namespace esphome
 
     void DeyeInverter::send_next_request(const uint32_t range_bit, const RegisterRange *range)
     {
-      ESP_LOGV(TAG, "Queueing request: %s (0x%04X, %d registers)",
+      ESP_LOGD(TAG, "Queueing request: %s (0x%04X, %d registers)",
                range->name, range->start, range->count);
 
       auto cmd = modbus_controller::ModbusCommandItem::create_read_command(
@@ -485,7 +493,7 @@ void DeyeInverter::handle_settings_2_response(const std::vector<uint8_t> &data, 
 }
 
 void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address) {
-  ESP_LOGV(TAG, "Received device info response: %zu bytes for register 0x%04X", data.size(), start_address);
+  ESP_LOGD(TAG, "Received device info response: %zu bytes for register 0x%04X", data.size(), start_address);
 
   if (this->consecutive_timeouts_ > 0) {
     this->consecutive_timeouts_ = 0;
@@ -494,12 +502,45 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
   // Note: request_in_progress_, pending flag, timestamp, and device_info_initialized_ are now managed in the callback
   // based on outstanding_commands_ counter
   
-  if (start_address >= REG_RANGE_SERIAL_START && start_address <= REG_RANGE_SERIAL_END) {
+  // Validate data size (must be at least 2 bytes for one register, and even number)
+  if (data.size() < 2) {
+    ESP_LOGW(TAG, "Device info response too small: %zu bytes", data.size());
+    return;
+  }
+  if (data.size() % 2 != 0) {
+    ESP_LOGW(TAG, "Device info response has odd size: %zu bytes (should be even)", data.size());
+    // Continue anyway, but log warning
+  }
+  
+  // Log first few bytes of device info for debugging
+  if (data.size() >= 6) {
+    ESP_LOGD(TAG, "Device info raw bytes: %02X %02X %02X %02X %02X %02X...", 
+             data[0], data[1], data[2], data[3], data[4], data[5]);
+  }
+  
+  // Calculate register range covered by this data
+  // Each register = 2 bytes, so register_count = data.size() / 2
+  // Last register address = start_address + register_count - 1
+  size_t register_count = data.size() / 2;
+  uint16_t data_end_addr = start_address + static_cast<uint16_t>(register_count) - 1;
+  
+  ESP_LOGD(TAG, "Data covers registers 0x%04X to 0x%04X (%zu registers)", 
+           start_address, data_end_addr, register_count);
+  
+  // Check if received data covers serial number range (registers 3-14)
+  if (start_address <= REG_RANGE_SERIAL_END && data_end_addr >= REG_RANGE_SERIAL_START) {
 #ifdef USE_TEXT_SENSOR
+    ESP_LOGD(TAG, "Updating serial number from device info data (range 0x%04X-0x%04X covers 0x%04X-0x%04X)", 
+             start_address, data_end_addr, REG_RANGE_SERIAL_START, REG_RANGE_SERIAL_END);
     this->update_serial_number_from_data(start_address, data);
 #endif
-  } else if (start_address >= REG_RANGE_FW_INFO_START && start_address <= REG_RANGE_FW_INFO_END) {
+  }
+  
+  // Check if received data covers firmware info range (registers 15-18)
+  if (start_address <= REG_RANGE_FW_INFO_END && data_end_addr >= REG_RANGE_FW_INFO_START) {
 #ifdef USE_TEXT_SENSOR
+    ESP_LOGD(TAG, "Updating firmware info from device info data (range 0x%04X-0x%04X covers 0x%04X-0x%04X)", 
+             start_address, data_end_addr, REG_RANGE_FW_INFO_START, REG_RANGE_FW_INFO_END);
     this->update_firmware_info_from_data(start_address, data);
 #endif
   }

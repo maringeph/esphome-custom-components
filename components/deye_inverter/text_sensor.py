@@ -50,17 +50,17 @@ CONFIG_SCHEMA = cv.Schema(
             DeyeTextSensor,
             icon="mdi:barcode",
         ),
-        # Firmware Version (Register 27)
+        # Firmware Version (Register 18 - Comm Board Firmware Version)
         cv.Optional(CONF_FIRMWARE_VERSION): text_sensor.text_sensor_schema(
             DeyeTextSensor,
             icon="mdi:update",
         ),
-        # Hardware Version (Register 29)
+        # Hardware Version (Register 15 - Control Board Firmware Version)
         cv.Optional(CONF_HARDWARE_VERSION): text_sensor.text_sensor_schema(
             DeyeTextSensor,
             icon="mdi:cog",
         ),
-        # Inverter Model (Register 15)
+        # Inverter Model (Register 15 - Control Board Firmware Version)
         cv.Optional(CONF_INVERTER_MODEL): text_sensor.text_sensor_schema(
             DeyeTextSensor,
             icon="mdi:inverter",
@@ -75,7 +75,17 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def register_text_sensor(
-    config, key, parent, address, is_status=False, is_device_type=False, device_obj=None
+    config,
+    key,
+    parent,
+    address,
+    is_status=False,
+    is_device_type=False,
+    is_serial_number=False,
+    is_firmware_version=False,
+    is_hardware_version=False,
+    register_count=1,
+    device_obj=None,
 ):
     """Register a single text sensor with the parent component."""
     if key not in config:
@@ -89,6 +99,10 @@ async def register_text_sensor(
     cg.add(sens.set_address(address))
     cg.add(sens.set_is_status(is_status))
     cg.add(sens.set_is_device_type(is_device_type))
+    cg.add(sens.set_is_serial_number(is_serial_number))
+    cg.add(sens.set_is_firmware_version(is_firmware_version))
+    cg.add(sens.set_is_hardware_version(is_hardware_version))
+    cg.add(sens.set_register_count(register_count))
 
     # Register with parent's text sensor list
     cg.add(parent.register_text_sensor(sens))
@@ -136,7 +150,7 @@ async def to_code(config):
             device_obj=device_obj,
         )
 
-    # Serial Number (Register 3 - start of 12 registers)
+    # Serial Number (Register 3 - start of 12 registers for ASCII serial)
     if CONF_SERIAL_NUMBER in config:
         await register_text_sensor(
             config,
@@ -145,30 +159,36 @@ async def to_code(config):
             cg.RawExpression("esphome::deye_inverter::REG_SERIAL_NUMBER_01"),
             is_status=False,
             is_device_type=False,
+            is_serial_number=True,
+            register_count=12,  # 12 registers for full serial number
             device_obj=device_obj,
         )
 
-    # Firmware Version (Register 27)
+    # Firmware Version (Register 18 - Comm Board Firmware Version)
     if CONF_FIRMWARE_VERSION in config:
         await register_text_sensor(
             config,
             CONF_FIRMWARE_VERSION,
             var,
-            cg.RawExpression("esphome::deye_inverter::REG_RESERVED_SN_05"),
+            cg.RawExpression("esphome::deye_inverter::REG_COMM_BOARD_FIRMWARE_VERSION"),
             is_status=False,
             is_device_type=False,
+            is_firmware_version=True,
             device_obj=device_obj,
         )
 
-    # Hardware Version (Register 29)
+    # Hardware Version (Register 15 - Control Board Firmware Version)
     if CONF_HARDWARE_VERSION in config:
         await register_text_sensor(
             config,
             CONF_HARDWARE_VERSION,
             var,
-            cg.RawExpression("esphome::deye_inverter::REG_RESERVED_SN_09"),
+            cg.RawExpression(
+                "esphome::deye_inverter::REG_CONTROL_BOARD_FIRMWARE_VERSION"
+            ),
             is_status=False,
             is_device_type=False,
+            is_hardware_version=True,
             device_obj=device_obj,
         )
 

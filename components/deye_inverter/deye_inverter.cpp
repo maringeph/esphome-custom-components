@@ -622,6 +622,8 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
     }
 
     void DeyeInverter::update_sensors_from_data(uint16_t start_address, const std::vector<uint8_t>& data) {
+      ESP_LOGD(TAG, "Updating sensors from data block 0x%04X (%zu bytes)", start_address, data.size());
+      
       for (auto *base_sensor : this->sensors_) {
         auto *sensor = static_cast<DeyeSensor*>(base_sensor);
         uint16_t sensor_addr = sensor->get_address();
@@ -640,15 +642,23 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
 
             if (data_type == DataType::S_DWORD || data_type == DataType::S_DWORD_R) {
               int32_t raw_value = reversed ? this->parse_int32_r(data, offset) : this->parse_int32(data, offset);
+              ESP_LOGV(TAG, "Sensor 0x%04X raw=0x%08X (%d) signed32", sensor_addr, raw_value, raw_value);
               sensor->update_value_32_signed(raw_value);
             } else {
               uint32_t raw_value = reversed ? this->parse_uint32_r(data, offset) : this->parse_uint32(data, offset);
+              ESP_LOGV(TAG, "Sensor 0x%04X raw=0x%08X (%u) uint32", sensor_addr, raw_value, raw_value);
               sensor->update_value_32(raw_value);
             }
           } else {
             // 16-bit value
             uint16_t raw_value = this->parse_uint16(data, offset);
             DataType data_type = sensor->get_data_type();
+            
+            // Debug logging for voltage sensors (LIVE_PART2 range)
+            if (sensor_addr >= LIVE_PART2_ADDR && sensor_addr < (LIVE_PART2_ADDR + LIVE_PART2_LEN)) {
+              ESP_LOGD(TAG, "Sensor 0x%04X raw=0x%04X (%u) scale=%f offset=%f", 
+                       sensor_addr, raw_value, raw_value, sensor->get_scale(), sensor->get_offset());
+            }
 
             if (data_type == DataType::S_WORD) {
               sensor->update_value_signed(static_cast<int16_t>(raw_value));

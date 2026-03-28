@@ -47,8 +47,8 @@ namespace esphome
 // Device Info Ranges for address checking
 constexpr uint16_t REG_RANGE_SERIAL_START = 3;              // Serial number range start
 constexpr uint16_t REG_RANGE_SERIAL_END = 14;               // Serial number range end (incl. firmware part2)
-constexpr uint16_t REG_RANGE_FW_INFO_START = 27;            // Firmware info range start
-constexpr uint16_t REG_RANGE_FW_INFO_END = 29;              // Firmware info range end
+constexpr uint16_t REG_RANGE_FW_INFO_START = 15;            // Firmware info range start (Control Board FW Version)
+constexpr uint16_t REG_RANGE_FW_INFO_END = 18;              // Firmware info range end (Comm Board FW Version)
 
 // =============================================================================
 // MODBUS READ RANGES (ADDR + LEN for all request blocks)

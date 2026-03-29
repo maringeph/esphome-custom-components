@@ -571,21 +571,6 @@ sensor:
         production:
           name: "${device_name}: Gesamterzeugung"
           id: ${device_id}_total_production
-        battery_charge:
-          name: "${device_name}: Gesamte Batterie-Ladung"
-          id: ${device_id}_total_battery_charge
-        battery_discharge:
-          name: "${device_name}: Gesamte Batterie-Entladung"
-          id: ${device_id}_total_battery_discharge
-        grid_import:
-          name: "${device_name}: Gesamter Netzbezug"
-          id: ${device_id}_total_grid_import
-        grid_export:
-          name: "${device_name}: Gesamte Netzeinspeisung"
-          id: ${device_id}_total_grid_export
-        consumption:
-          name: "${device_name}: Gesamtverbrauch"
-          id: ${device_id}_total_consumption
         pv_production:
           name: "${device_name}: Gesamte PV-Erzeugung"
           id: ${device_id}_total_pv_production

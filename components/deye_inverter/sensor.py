@@ -1181,36 +1181,6 @@ TOTAL_STATISTICS_SCHEMA = cv.Schema(
             device_class=DEVICE_CLASS_ENERGY,
             state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
-        cv.Optional(CONF_BATTERY_CHARGE): deye_sensor_schema(
-            unit_of_measurement=UNIT_KILOWATT_HOURS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_ENERGY,
-            state_class=STATE_CLASS_TOTAL_INCREASING,
-        ),
-        cv.Optional(CONF_BATTERY_DISCHARGE): deye_sensor_schema(
-            unit_of_measurement=UNIT_KILOWATT_HOURS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_ENERGY,
-            state_class=STATE_CLASS_TOTAL_INCREASING,
-        ),
-        cv.Optional(CONF_GRID_IMPORT): deye_sensor_schema(
-            unit_of_measurement=UNIT_KILOWATT_HOURS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_ENERGY,
-            state_class=STATE_CLASS_TOTAL_INCREASING,
-        ),
-        cv.Optional(CONF_GRID_EXPORT): deye_sensor_schema(
-            unit_of_measurement=UNIT_KILOWATT_HOURS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_ENERGY,
-            state_class=STATE_CLASS_TOTAL_INCREASING,
-        ),
-        cv.Optional(CONF_CONSUMPTION): deye_sensor_schema(
-            unit_of_measurement=UNIT_KILOWATT_HOURS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_ENERGY,
-            state_class=STATE_CLASS_TOTAL_INCREASING,
-        ),
         cv.Optional(CONF_PV_PRODUCTION): deye_sensor_schema(
             unit_of_measurement=UNIT_KILOWATT_HOURS,
             accuracy_decimals=1,
@@ -2608,51 +2578,6 @@ async def register_sensors(parent, config, device_obj=None):
                 cg.RawExpression(
                     "esphome::deye_inverter::REG_ACTIVE_POWER_GEN_TOTAL_LOW"
                 ),
-                scale=0.1,
-                value_type="U_DWORD_R",
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                total_conf,
-                CONF_BATTERY_CHARGE,
-                parent,
-                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_BATTERY_CHARGE"),
-                scale=0.1,
-                value_type="U_DWORD_R",
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                total_conf,
-                CONF_BATTERY_DISCHARGE,
-                parent,
-                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_BATTERY_DISCHARGE"),
-                scale=0.1,
-                value_type="U_DWORD_R",
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                total_conf,
-                CONF_GRID_IMPORT,
-                parent,
-                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_ENERGY_BOUGHT"),
-                scale=0.1,
-                value_type="U_DWORD_R",
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                total_conf,
-                CONF_GRID_EXPORT,
-                parent,
-                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_ENERGY_SOLD_524"),
-                scale=0.1,
-                value_type="U_DWORD_R",
-                device_obj=device_obj,
-            )
-            await register_single_sensor(
-                total_conf,
-                CONF_CONSUMPTION,
-                parent,
-                cg.RawExpression("esphome::deye_inverter::REG_TOTAL_CONSUMPTION"),
                 scale=0.1,
                 value_type="U_DWORD_R",
                 device_obj=device_obj,

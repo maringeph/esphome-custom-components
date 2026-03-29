@@ -742,94 +742,6 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr uint16_t REG_PV4_CURRENT = 683; // PV4 Strom (A)
 
     // =============================================================================
-    // BATTERY MANAGEMENT SYSTEM (BMS) REGISTERS (2000-2999 range)
-    // Note: These registers are in the 2000-2999 range (add 2000 to table addresses)
-    // =============================================================================
-
-    // -----------------------------------------------------------------------------
-    // BMS ID BLOCKS - ASCII Battery Identification (6 registers per module)
-    // -----------------------------------------------------------------------------
-
-    constexpr uint16_t BMS_ID_BASE_1 = 2500;  // Module 1: 2500-2505
-    constexpr uint16_t BMS_ID_BASE_2 = 2506;  // Module 2: 2506-2511
-    constexpr uint16_t BMS_ID_BASE_3 = 2512;  // Module 3: 2512-2517
-    constexpr uint16_t BMS_ID_BASE_4 = 2518;  // Module 4: 2518-2523
-    constexpr uint16_t BMS_ID_BASE_5 = 2524;  // Module 5: 2524-2529
-    constexpr uint16_t BMS_ID_BASE_6 = 2530;  // Module 6: 2530-2535
-    constexpr uint16_t BMS_ID_BASE_7 = 2536;  // Module 7: 2536-2541
-    constexpr uint16_t BMS_ID_BASE_8 = 2542;  // Module 8: 2542-2547
-    constexpr uint16_t BMS_ID_BASE_9 = 2548;  // Module 9: 2548-2553
-    constexpr uint16_t BMS_ID_BASE_10 = 2554; // Module 10: 2554-2559
-    constexpr uint16_t BMS_ID_BASE_11 = 2560; // Module 11: 2560-2565
-    constexpr uint16_t BMS_ID_BASE_12 = 2566; // Module 12: 2566-2571
-    constexpr uint16_t BMS_ID_BASE_13 = 2572; // Module 13: 2572-2577
-    constexpr uint16_t BMS_ID_BASE_14 = 2578; // Module 14: 2578-2583
-    constexpr uint16_t BMS_ID_BASE_15 = 2584; // Module 15: 2584-2589
-    constexpr uint16_t BMS_ID_BASE_16 = 2590; // Module 16: 2590-2595
-
-    constexpr uint16_t BMS_ID_BASES[16] = {
-        BMS_ID_BASE_1, BMS_ID_BASE_2, BMS_ID_BASE_3, BMS_ID_BASE_4,
-        BMS_ID_BASE_5, BMS_ID_BASE_6, BMS_ID_BASE_7, BMS_ID_BASE_8,
-        BMS_ID_BASE_9, BMS_ID_BASE_10, BMS_ID_BASE_11, BMS_ID_BASE_12,
-        BMS_ID_BASE_13, BMS_ID_BASE_14, BMS_ID_BASE_15, BMS_ID_BASE_16};
-
-    // ID Offsets (0-5): Usage: BMS_ID_BASES[module_index] + offset
-
-    // -----------------------------------------------------------------------------
-    // BMS DATA BLOCKS - Battery Telemetry (14 registers per module)
-    // -----------------------------------------------------------------------------
-    constexpr uint16_t BMS_DATA_BASE_1 = 2600;  // Module 1: 2600-2613
-    constexpr uint16_t BMS_DATA_BASE_2 = 2614;  // Module 2: 2614-2627
-    constexpr uint16_t BMS_DATA_BASE_3 = 2628;  // Module 3: 2628-2641
-    constexpr uint16_t BMS_DATA_BASE_4 = 2642;  // Module 4: 2642-2655
-    constexpr uint16_t BMS_DATA_BASE_5 = 2656;  // Module 5: 2656-2669
-    constexpr uint16_t BMS_DATA_BASE_6 = 2670;  // Module 6: 2670-2683
-    constexpr uint16_t BMS_DATA_BASE_7 = 2684;  // Module 7: 2684-2697
-    constexpr uint16_t BMS_DATA_BASE_8 = 2698;  // Module 8: 2698-2711
-    constexpr uint16_t BMS_DATA_BASE_9 = 2712;  // Module 9: 2712-2725
-    constexpr uint16_t BMS_DATA_BASE_10 = 2726; // Module 10: 2726-2739
-    constexpr uint16_t BMS_DATA_BASE_11 = 2740; // Module 11: 2740-2753
-    constexpr uint16_t BMS_DATA_BASE_12 = 2754; // Module 12: 2754-2767
-    constexpr uint16_t BMS_DATA_BASE_13 = 2768; // Module 13: 2768-2781
-    constexpr uint16_t BMS_DATA_BASE_14 = 2782; // Module 14: 2782-2795
-    constexpr uint16_t BMS_DATA_BASE_15 = 2796; // Module 15: 2796-2809
-    constexpr uint16_t BMS_DATA_BASE_16 = 2810; // Module 16: 2810-2823
-
-    constexpr uint16_t BMS_DATA_BASES[16] = {
-        BMS_DATA_BASE_1, BMS_DATA_BASE_2, BMS_DATA_BASE_3, BMS_DATA_BASE_4,
-        BMS_DATA_BASE_5, BMS_DATA_BASE_6, BMS_DATA_BASE_7, BMS_DATA_BASE_8,
-        BMS_DATA_BASE_9, BMS_DATA_BASE_10, BMS_DATA_BASE_11, BMS_DATA_BASE_12,
-        BMS_DATA_BASE_13, BMS_DATA_BASE_14, BMS_DATA_BASE_15, BMS_DATA_BASE_16};
-
-    // Data Offsets (0-13): Usage: BMS_DATA_BASES[module_index] + offset
-    constexpr uint16_t BMS_OFFSET_VOLTAGE = 0;        // +0: Module Voltage (0.01V)
-    constexpr uint16_t BMS_OFFSET_CURRENT = 1;        // +1: Module Current (0.1A)
-    constexpr uint16_t BMS_OFFSET_TEMP = 2;           // +2: Temperature-AVE (1250=25.0°C)
-    constexpr uint16_t BMS_OFFSET_SOC = 3;            // +3: SOC (0.1%)
-    constexpr uint16_t BMS_OFFSET_REMAIN_CAP = 4;     // +4: Remain Capacity (0.1AH)
-    constexpr uint16_t BMS_OFFSET_TOTAL_CAP = 5;      // +5: Total Capacity (0.1AH)
-    constexpr uint16_t BMS_OFFSET_CHARGE_VOLT = 6;    // +6: Charge Voltage (0.01V)
-    constexpr uint16_t BMS_OFFSET_CHARGE_CURR = 7;    // +7: Charge Current (0.1A)
-    constexpr uint16_t BMS_OFFSET_DISCHARGE_CURR = 8; // +8: Discharge Current (0.1A)
-    constexpr uint16_t BMS_OFFSET_MAX_CELL_V = 9;     // +9: Max Cell V (0.01V)
-    constexpr uint16_t BMS_OFFSET_MIN_CELL_V = 10;    // +10: Min Cell V (0.01V)
-    constexpr uint16_t BMS_OFFSET_CYCLE = 11;         // +11: Cycle number
-    constexpr uint16_t BMS_OFFSET_WARMING = 12;       // +12: Warming
-    constexpr uint16_t BMS_OFFSET_FAULT = 13;         // +13: Fault
-
-    // -----------------------------------------------------------------------------
-    // BMS READ RANGES (ADDR + LEN for Modbus requests)
-    // -----------------------------------------------------------------------------
-    constexpr uint16_t BMS_IDS_ADDR = 2500;     // Start address for BMS IDs
-    constexpr uint16_t BMS_IDS_LEN = 96;        // 16 modules × 6 ID registers
-
-    constexpr uint16_t BMS_DATA_1_8_ADDR = 2600;  // Start address for modules 1-8 data
-    constexpr uint16_t BMS_DATA_1_8_LEN = 112;    // 8 modules × 14 data registers
-
-    constexpr uint16_t BMS_DATA_9_16_ADDR = 2712; // Start address for modules 9-16 data
-    constexpr uint16_t BMS_DATA_9_16_LEN = 112;   // 8 modules × 14 data registers
-
-    // =============================================================================
     // SPECIAL EXTENDED REGISTERS
     // =============================================================================
 
@@ -903,17 +815,6 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr RegisterRange RANGE_WIND_INPUT = {REG_SOLAR_AS_WIND_INPUT_ENABLE, 30, "Wind Input Settings"};   // 310-339
     constexpr RegisterRange RANGE_CALIFORNIA_COMPLIANCE = {REG_RESERVED_341, 79, "California Compliance"};    // 341-419
 
-    // BMS Ranges (2000-2999 range, actual addresses = table + 2000)
-    // Structure: 16 BMS modules
-    // - Each module has 6 ID registers (ASCII) = 96 total (2500-2595)
-    // - Each module has 14 data registers = 224 total (2600-2823)
-    constexpr RegisterRange RANGE_BMS_IDS = {2500, 96, "BMS IDs"};              // 2500-2595: 16 modules × 6 ID registers
-    constexpr RegisterRange RANGE_BMS_DATA_1_8 = {2600, 112, "BMS Data 1-8"};   // 2600-2711: Modules 1-8 × 14 data registers
-    constexpr RegisterRange RANGE_BMS_DATA_9_16 = {2712, 112, "BMS Data 9-16"}; // 2712-2823: Modules 9-16 × 14 data registers
-
-    // BMS PACK1 specific range (most commonly used)
-    constexpr RegisterRange RANGE_BMS_PACK1 = {BMS_DATA_BASE_1, 14, "BMS PACK1"}; // 2600-2613
-
     // =============================================================================
     // DEFAULT UPDATE INTERVALS (in milliseconds)
     // =============================================================================
@@ -922,7 +823,6 @@ constexpr uint16_t SETTINGS2_LEN = 110;
     constexpr uint32_t DEFAULT_INTERVAL_STATISTICS = 5000;     // Statistics: 5 seconds
     constexpr uint32_t DEFAULT_INTERVAL_SETTINGS = 60000;      // Settings: 60 seconds
     constexpr uint32_t DEFAULT_INTERVAL_SETTINGS_2 = 120000;   // Settings 2: 120 seconds
-    constexpr uint32_t DEFAULT_INTERVAL_BATTERY_MODULES = 5000; // Battery modules: 5 seconds
     constexpr uint32_t DEFAULT_INTERVAL_DEVICE_INFO = 300000;  // Device info: 5 minutes
 
     // =============================================================================

@@ -90,7 +90,6 @@ class DeyeInverter : public modbus_controller::ModbusController {
   uint32_t interval_statistics_{DEFAULT_INTERVAL_STATISTICS};
   uint32_t interval_settings_{DEFAULT_INTERVAL_SETTINGS};
   uint32_t interval_settings_2_{DEFAULT_INTERVAL_SETTINGS_2};   // Settings 2 (310-419)
-  uint32_t interval_battery_modules_{DEFAULT_INTERVAL_BATTERY_MODULES};
   uint32_t interval_device_info_{DEFAULT_INTERVAL_DEVICE_INFO};
 
   void setup() override;
@@ -105,14 +104,11 @@ class DeyeInverter : public modbus_controller::ModbusController {
   void set_update_interval_live(uint32_t interval) { interval_live_ = interval; }
   void set_update_interval_statistics(uint32_t interval) { interval_statistics_ = interval; }
   void set_update_interval_settings(uint32_t interval) { interval_settings_ = interval; interval_settings_2_ = interval; }
-  void set_update_interval_battery_modules(uint32_t interval) { interval_battery_modules_ = interval; }
   void set_update_interval_device_info(uint32_t interval) { interval_device_info_ = interval; }
 
   // Register entities with the component
   void register_sensor(sensor::Sensor *sensor);
 
-  // Get BMS module base address from registers.h (module_id: 1-9)
-  static uint16_t get_bms_base_address(uint8_t module_id);
 #ifdef USE_BINARY_SENSOR
   void register_binary_sensor(binary_sensor::BinarySensor *sensor);
 #endif
@@ -162,28 +158,17 @@ class DeyeInverter : public modbus_controller::ModbusController {
   int32_t parse_int32_r(const std::vector<uint8_t>& data, size_t offset);
   std::string parse_ascii(const std::vector<uint8_t>& data, size_t offset, size_t len);
 
-  // Request queue management (following ds100_meter pattern)
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
-  enum class RequestType : uint8_t {
-    TIME = 0,               // Highest priority - system time sync
-    LIVEDATA = 1,           // Real-time data
-    STATISTICS = 2,         // Energy statistics
-    SETTINGS = 3,           // Device settings (60-228)
-    SETTINGS_2 = 4,         // Settings 2 (310-419)
-    BATTERY_MODULES = 5,    // Battery module data
-    DEVICE_INFO = 6,        // Device information (lowest priority)
-  };
-
+  // Request queue management
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → DEVICE_INFO
   void check_request_due();
   void get_next_request();
   void send_next_request(const uint32_t range_bit, const RegisterRange *range);
 
   // Response handlers for ModbusCommandItem callbacks
-  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → BATTERY_MODULES → DEVICE_INFO
+  // Priority order: TIME → LIVEDATA → STATISTICS → SETTINGS → SETTINGS_2 → DEVICE_INFO
   void handle_time_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_live_data_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_statistics_response(const std::vector<uint8_t> &data, uint16_t start_address);
-  void handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t block_index);
   void handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_settings_2_response(const std::vector<uint8_t> &data, uint16_t start_address);
   void handle_device_info_response(const std::vector<uint8_t> &data, uint16_t start_address);
@@ -222,7 +207,6 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static const RegisterRange STATS_RANGES[];
   static const RegisterRange SETTINGS_RANGES[];
   static const RegisterRange SETTINGS_2_RANGES[];
-  static const RegisterRange BATTERY_MODULE_RANGES[];
 
   // Range counts
   static constexpr size_t DEVICE_INFO_RANGES_COUNT = 1;
@@ -231,7 +215,6 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static constexpr size_t STATS_RANGES_COUNT = 4;
   static constexpr size_t SETTINGS_RANGES_COUNT = 2;   // Split into 2 blocks (60-177, 178-230)
   static constexpr size_t SETTINGS_2_RANGES_COUNT = 1; // Single block 310-419
-  static constexpr size_t BATTERY_MODULE_RANGES_COUNT = 3;
 
   // Pending request bits - one per range (not per category)
   // Priority: DEVICE_INFO(0) → TIME(1) → LIVE_0(2) → LIVE_1(3) → STATS_0(4) → ... → BATTERY_2(16)
@@ -246,10 +229,6 @@ class DeyeInverter : public modbus_controller::ModbusController {
   static constexpr uint32_t PENDING_SETTINGS_0 = 0x00000100;
   static constexpr uint32_t PENDING_SETTINGS_1 = 0x00000200;
   static constexpr uint32_t PENDING_SETTINGS_2 = 0x00000400;
-  static constexpr uint32_t PENDING_BATTERY_0 = 0x00000800;
-  static constexpr uint32_t PENDING_BATTERY_1 = 0x00001000;
-  static constexpr uint32_t PENDING_BATTERY_2 = 0x00002000;
-  static constexpr uint32_t PENDING_BATTERY_MODULES = PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
 
   static constexpr uint32_t REQUEST_TIMEOUT = REQUEST_TIMEOUT_MS;  // 500ms timeout
 
@@ -263,14 +242,9 @@ class DeyeInverter : public modbus_controller::ModbusController {
   uint32_t next_settings_request_{0};
   uint32_t next_live_request_{0};
   uint32_t next_stats_request_{0};
-  uint32_t next_battery_request_{0};
-
-  // Last update timestamps (for handlers)
-  uint32_t last_battery_modules_update_{0};
 
   // State tracking
   bool device_info_initialized_{false};
-  uint8_t current_battery_module_range_{0};  // Current index for phased BMS requests
 
   // Consecutive timeout tracking
   uint8_t consecutive_timeouts_{0};
@@ -307,11 +281,6 @@ class DeyeInverter : public modbus_controller::ModbusController {
   // Unified entity update helper - ensures ALL entity types are updated consistently
   void update_all_entities(uint16_t start_address, const std::vector<uint8_t>& data);
 
-  // Battery module helper
-  float parse_battery_module_value(const std::vector<uint8_t>& data, size_t offset, 
-                                   uint8_t module_index, uint8_t cell_index, 
-                                   bool is_cell_voltage);
-
   // Helper to send register range read command
   void send_register_range_read(const RegisterRange& range);
 };
@@ -332,20 +301,12 @@ class DeyeSensor : public sensor::Sensor, public Component {
   void set_data_type(DataType data_type) { data_type_ = data_type; }
   void set_bytes(uint8_t bytes) { bytes_ = bytes; }
   void set_signed(bool signed_val) { signed_ = signed_val; }
-  void set_is_battery_module(bool is_module) { is_battery_module_ = is_module; }
-  void set_module_index(uint8_t index) { module_index_ = index; }
-  void set_is_cell_voltage(bool is_cell) { is_cell_voltage_ = is_cell; }
-  void set_cell_index(uint8_t index) { cell_index_ = index; }
 
   uint16_t get_address() const { return address_; }
   uint8_t get_bytes() const { return bytes_; }
   float get_scale() const { return scale_; }
   float get_offset() const { return offset_; }
   DataType get_data_type() const { return data_type_; }
-  bool get_is_battery_module() const { return is_battery_module_; }
-  uint8_t get_module_index() const { return module_index_; }
-  bool get_is_cell_voltage() const { return is_cell_voltage_; }
-  uint8_t get_cell_index() const { return cell_index_; }
 
   void update_value(uint16_t raw_value);
   void update_value_32(uint32_t raw_value);
@@ -360,10 +321,6 @@ class DeyeSensor : public sensor::Sensor, public Component {
   DataType data_type_{DataType::U_WORD};
   uint8_t bytes_{2};
   bool signed_{false};
-  bool is_battery_module_{false};
-  uint8_t module_index_{0};
-  bool is_cell_voltage_{false};
-  uint8_t cell_index_{0};
 };
 #endif
 

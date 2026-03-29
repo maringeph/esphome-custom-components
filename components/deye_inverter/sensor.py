@@ -53,7 +53,6 @@ from . import (
     CONF_UPDATE_INTERVAL_LIVE,
     CONF_UPDATE_INTERVAL_STATISTICS,
     CONF_UPDATE_INTERVAL_SETTINGS,
-    CONF_UPDATE_INTERVAL_BATTERY_MODULES,
     CONF_UPDATE_INTERVAL_DEVICE_INFO,
     # Device Info
     CONF_DEVICE_INFO,
@@ -203,30 +202,6 @@ from . import (
     CONF_DC7_CURRENT,
     CONF_DC8_VOLTAGE,
     CONF_DC8_CURRENT,
-    # Battery Modules
-    CONF_BATTERY_MODULE_1,
-    CONF_BATTERY_MODULE_2,
-    CONF_BATTERY_MODULE_3,
-    CONF_BATTERY_MODULE_4,
-    CONF_BATTERY_MODULE_5,
-    CONF_BATTERY_MODULE_6,
-    CONF_BATTERY_MODULE_7,
-    CONF_BATTERY_MODULE_8,
-    CONF_BATTERY_MODULE_9,
-    CONF_BM_VOLTAGE,
-    CONF_BM_CURRENT,
-    CONF_BM_SOC,
-    CONF_BM_TEMPERATURE,
-    CONF_BM_STATUS,
-    CONF_BM_FAULT_CODE,
-    CONF_BM_CYCLE_COUNT,
-    CONF_BM_CAPACITY_REMAINING,
-    CONF_BM_CAPACITY_TOTAL,
-    CONF_BM_POWER,
-    CONF_BM_CELL_MAX_VOLTAGE,
-    CONF_BM_CELL_MIN_VOLTAGE,
-    CONF_BM_CELL_MAX_TEMP,
-    CONF_BM_CELL_MIN_TEMP,
     # Statistics
     CONF_STATISTICS,
     CONF_DAILY,
@@ -452,91 +427,6 @@ BATTERY_SCHEMA = cv.Schema(
         cv.Optional(CONF_BATTERY_CAPACITY): deye_sensor_schema(
             unit_of_measurement="Ah",
             accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-    }
-)
-
-# Battery Module Schema
-BATTERY_MODULE_SCHEMA = cv.Schema(
-    {
-        cv.Optional(CONF_BM_VOLTAGE): deye_sensor_schema(
-            unit_of_measurement=UNIT_VOLT,
-            accuracy_decimals=2,
-            device_class=DEVICE_CLASS_VOLTAGE,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_CURRENT): deye_sensor_schema(
-            unit_of_measurement=UNIT_AMPERE,
-            accuracy_decimals=2,
-            device_class=DEVICE_CLASS_CURRENT,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_SOC): deye_sensor_schema(
-            unit_of_measurement=UNIT_PERCENT,
-            accuracy_decimals=0,
-            device_class=DEVICE_CLASS_BATTERY,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_TEMPERATURE): deye_sensor_schema(
-            unit_of_measurement=UNIT_CELSIUS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_TEMPERATURE,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_STATUS): deye_sensor_schema(
-            accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
-            icon="mdi:information",
-        ),
-        cv.Optional(CONF_BM_FAULT_CODE): deye_sensor_schema(
-            accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT,
-            icon="mdi:alert",
-        ),
-        cv.Optional(CONF_BM_CYCLE_COUNT): deye_sensor_schema(
-            accuracy_decimals=0,
-            state_class=STATE_CLASS_TOTAL_INCREASING,
-            icon="mdi:battery-sync",
-        ),
-        cv.Optional(CONF_BM_CAPACITY_REMAINING): deye_sensor_schema(
-            unit_of_measurement="Ah",
-            accuracy_decimals=1,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_CAPACITY_TOTAL): deye_sensor_schema(
-            unit_of_measurement="Ah",
-            accuracy_decimals=1,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_POWER): deye_sensor_schema(
-            unit_of_measurement=UNIT_WATT,
-            accuracy_decimals=0,
-            device_class=DEVICE_CLASS_POWER,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_CELL_MAX_VOLTAGE): deye_sensor_schema(
-            unit_of_measurement=UNIT_VOLT,
-            accuracy_decimals=3,
-            device_class=DEVICE_CLASS_VOLTAGE,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_CELL_MIN_VOLTAGE): deye_sensor_schema(
-            unit_of_measurement=UNIT_VOLT,
-            accuracy_decimals=3,
-            device_class=DEVICE_CLASS_VOLTAGE,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_CELL_MAX_TEMP): deye_sensor_schema(
-            unit_of_measurement=UNIT_CELSIUS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_TEMPERATURE,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BM_CELL_MIN_TEMP): deye_sensor_schema(
-            unit_of_measurement=UNIT_CELSIUS,
-            accuracy_decimals=1,
-            device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
     }
@@ -1498,9 +1388,6 @@ CONFIG_SCHEMA = (
                 CONF_UPDATE_INTERVAL_SETTINGS, default="1s"
             ): cv.positive_time_period_milliseconds,
             cv.Optional(
-                CONF_UPDATE_INTERVAL_BATTERY_MODULES, default="60s"
-            ): cv.positive_time_period_milliseconds,
-            cv.Optional(
                 CONF_UPDATE_INTERVAL_DEVICE_INFO, default="60s"
             ): cv.positive_time_period_milliseconds,
             # Device info
@@ -1523,16 +1410,6 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_DC): DC_SCHEMA,
             cv.Optional(CONF_STATISTICS): STATISTICS_SCHEMA,
             cv.Optional(CONF_STATUS): STATUS_SCHEMA,
-            # Battery Modules
-            cv.Optional(CONF_BATTERY_MODULE_1): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_2): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_3): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_4): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_5): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_6): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_7): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_8): BATTERY_MODULE_SCHEMA,
-            cv.Optional(CONF_BATTERY_MODULE_9): BATTERY_MODULE_SCHEMA,
         }
     )
     .extend(cv.polling_component_schema("1s"))
@@ -1561,11 +1438,6 @@ async def to_code(config):
     cg.add(var.set_update_interval_statistics(config[CONF_UPDATE_INTERVAL_STATISTICS]))
     cg.add(var.set_update_interval_settings(config[CONF_UPDATE_INTERVAL_SETTINGS]))
     cg.add(
-        var.set_update_interval_battery_modules(
-            config[CONF_UPDATE_INTERVAL_BATTERY_MODULES]
-        )
-    )
-    cg.add(
         var.set_update_interval_device_info(config[CONF_UPDATE_INTERVAL_DEVICE_INFO])
     )
 
@@ -1577,7 +1449,6 @@ async def to_code(config):
         config[CONF_UPDATE_INTERVAL_LIVE].total_milliseconds,
         config[CONF_UPDATE_INTERVAL_STATISTICS].total_milliseconds,
         config[CONF_UPDATE_INTERVAL_SETTINGS].total_milliseconds,
-        config[CONF_UPDATE_INTERVAL_BATTERY_MODULES].total_milliseconds,
         config[CONF_UPDATE_INTERVAL_DEVICE_INFO].total_milliseconds,
     ]
     base_interval = intervals[0]
@@ -2595,61 +2466,6 @@ async def register_sensors(parent, config, device_obj=None):
             offset=-100.0,
             device_obj=device_obj,
         )
-
-    # =============================================================================
-    # PROCESS BATTERY MODULE SENSORS
-    # =============================================================================
-    # Battery module configuration - addresses come from registers.h via C++
-    battery_modules = [
-        (CONF_BATTERY_MODULE_1, 1),
-        (CONF_BATTERY_MODULE_2, 2),
-        (CONF_BATTERY_MODULE_3, 3),
-        (CONF_BATTERY_MODULE_4, 4),
-        (CONF_BATTERY_MODULE_5, 5),
-        (CONF_BATTERY_MODULE_6, 6),
-        (CONF_BATTERY_MODULE_7, 7),
-        (CONF_BATTERY_MODULE_8, 8),
-        (CONF_BATTERY_MODULE_9, 9),
-    ]
-
-    for module_conf_name, module_id in battery_modules:
-        if module_conf_name in config:
-            bm_conf = config[module_conf_name]
-            # BMS offsets per registers.h:
-            # +0: Voltage (0.01V), +1: Current (0.1A), +2: Temp (1250=25.0°C)
-            # +3: SOC (0.1%), +4: Remain Cap (0.1AH), +5: Total Cap (0.1AH)
-            # +6: Charge Volt (0.01V), +7: Charge Curr (0.1A), +8: Discharge Curr (0.1A)
-            # +9: Max Cell V (0.01V), +10: Min Cell V (0.01V), +11: Cycle, +12: Warming, +13: Fault
-            # Register addresses calculated at compile time from registers.h via C++
-            # Offsets: 0=Voltage, 1=Current, 2=Temp, 3=SOC, 4=RemainCap, 5=TotalCap
-            #          11=Cycles, 9=MaxCellV, 10=MinCellV, 12=Status, 13=Fault
-            for conf_key, offset, scale, signed, offset_val in [
-                (CONF_BM_VOLTAGE, 0, 0.01, False, 0.0),
-                (CONF_BM_CURRENT, 1, 0.1, True, 0.0),
-                (CONF_BM_TEMPERATURE, 2, 0.1, False, -100.0),
-                (CONF_BM_SOC, 3, 0.1, False, 0.0),
-                (CONF_BM_CAPACITY_REMAINING, 4, 0.1, False, 0.0),
-                (CONF_BM_CAPACITY_TOTAL, 5, 0.1, False, 0.0),
-                (CONF_BM_CYCLE_COUNT, 11, 1.0, False, 0.0),
-                (CONF_BM_CELL_MAX_VOLTAGE, 9, 0.01, False, 0.0),
-                (CONF_BM_CELL_MIN_VOLTAGE, 10, 0.01, False, 0.0),
-                (CONF_BM_STATUS, 12, 1.0, False, 0.0),
-                (CONF_BM_FAULT_CODE, 13, 1.0, False, 0.0),
-            ]:
-                if conf_key in bm_conf:
-                    addr_expr = cg.RawExpression(
-                        f"esphome::deye_inverter::DeyeInverter::get_bms_base_address({module_id}) + {offset}"
-                    )
-                    await register_single_sensor(
-                        bm_conf,
-                        conf_key,
-                        parent,
-                        addr_expr,
-                        scale=scale,
-                        offset=offset_val,
-                        signed=signed,
-                        device_obj=device_obj,
-                    )
 
     # =============================================================================
     # PROCESS STATISTICS SENSORS

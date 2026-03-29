@@ -28,8 +28,13 @@ CONF_ADDRESS = "address"
 CONF_UPDATE_INTERVAL_LIVE = "update_interval_live"
 CONF_UPDATE_INTERVAL_STATISTICS = "update_interval_statistics"
 CONF_UPDATE_INTERVAL_SETTINGS = "update_interval_settings"
-CONF_UPDATE_INTERVAL_BATTERY_MODULES = "update_interval_battery_modules"
 CONF_UPDATE_INTERVAL_DEVICE_INFO = "update_interval_device_info"
+
+# Manual read actions
+CONF_ACTION_READ_DEVICE_INFO = "read_device_info"
+CONF_ACTION_READ_LIVE_DATA = "read_live_data"
+CONF_ACTION_READ_STATISTICS = "read_statistics"
+CONF_ACTION_READ_SETTINGS = "read_settings"
 
 # Manual read actions
 CONF_ACTION_READ_DEVICE_INFO = "read_device_info"
@@ -208,38 +213,6 @@ CONF_DC7_VOLTAGE = "dc7_voltage"
 CONF_DC7_CURRENT = "dc7_current"
 CONF_DC8_VOLTAGE = "dc8_voltage"
 CONF_DC8_CURRENT = "dc8_current"
-
-# =============================================================================
-# CONF CONSTANTS - Battery Modules (NEW - 9 modules with 14 registers each)
-# BMS Data Base Addresses (from registers.h BMS_DATA_BASE_1-9)
-# =============================================================================
-CONF_BATTERY_MODULES = "battery_modules"
-
-CONF_BATTERY_MODULE_1 = "battery_module_1"
-CONF_BATTERY_MODULE_2 = "battery_module_2"
-CONF_BATTERY_MODULE_3 = "battery_module_3"
-CONF_BATTERY_MODULE_4 = "battery_module_4"
-CONF_BATTERY_MODULE_5 = "battery_module_5"
-CONF_BATTERY_MODULE_6 = "battery_module_6"
-CONF_BATTERY_MODULE_7 = "battery_module_7"
-CONF_BATTERY_MODULE_8 = "battery_module_8"
-CONF_BATTERY_MODULE_9 = "battery_module_9"
-
-# Battery Module sensor fields
-CONF_BM_VOLTAGE = "voltage"
-CONF_BM_CURRENT = "current"
-CONF_BM_SOC = "soc"
-CONF_BM_TEMPERATURE = "temperature"
-CONF_BM_STATUS = "status"
-CONF_BM_FAULT_CODE = "fault_code"
-CONF_BM_CYCLE_COUNT = "cycle_count"
-CONF_BM_CAPACITY_REMAINING = "capacity_remaining"
-CONF_BM_CAPACITY_TOTAL = "capacity_total"
-CONF_BM_POWER = "power"
-CONF_BM_CELL_MAX_VOLTAGE = "cell_max_voltage"
-CONF_BM_CELL_MIN_VOLTAGE = "cell_min_voltage"
-CONF_BM_CELL_MAX_TEMP = "cell_max_temp"
-CONF_BM_CELL_MIN_TEMP = "cell_min_temp"
 
 # =============================================================================
 # CONF CONSTANTS - Statistics Group

@@ -41,11 +41,7 @@ namespace esphome
     const RegisterRange DeyeInverter::SETTINGS_2_RANGES[] = {
         {SETTINGS2_ADDR, SETTINGS2_LEN, "Settings 2"}};
 
-    // BMS Registers (2000-2999 range, actual = table + 2000)
-    const RegisterRange DeyeInverter::BATTERY_MODULE_RANGES[] = {
-        {BMS_IDS_ADDR, BMS_IDS_LEN, "BMS IDs"},
-        {BMS_DATA_1_8_ADDR, BMS_DATA_1_8_LEN, "BMS Data 1-8"},
-        {BMS_DATA_9_16_ADDR, BMS_DATA_9_16_LEN, "BMS Data 9-16"}};
+
 
     // =============================================================================
     // SETUP METHOD
@@ -86,7 +82,6 @@ namespace esphome
       ESP_LOGCONFIG(TAG, "    Live: %u ms", this->interval_live_);
       ESP_LOGCONFIG(TAG, "    Statistics: %u ms", this->interval_statistics_);
       ESP_LOGCONFIG(TAG, "    Settings: %u ms", this->interval_settings_);
-      ESP_LOGCONFIG(TAG, "    Battery: %u ms", this->interval_battery_modules_);
       ESP_LOGCONFIG(TAG, "    Device Info: %u ms", this->interval_device_info_);
 
       // Calculate GCD of all non-zero intervals and set update interval to GCD/5
@@ -96,7 +91,6 @@ namespace esphome
       if (this->interval_live_ > 0) g = (g == 0) ? this->interval_live_ : gcd(g, this->interval_live_);
       if (this->interval_statistics_ > 0) g = (g == 0) ? this->interval_statistics_ : gcd(g, this->interval_statistics_);
       if (this->interval_settings_ > 0) g = (g == 0) ? this->interval_settings_ : gcd(g, this->interval_settings_);
-      if (this->interval_battery_modules_ > 0) g = (g == 0) ? this->interval_battery_modules_ : gcd(g, this->interval_battery_modules_);
       if (this->interval_device_info_ > 0) g = (g == 0) ? this->interval_device_info_ : gcd(g, this->interval_device_info_);
 
       // Default interval if all are set to 0 (manual mode)
@@ -162,13 +156,6 @@ namespace esphome
       {
         this->pending_requests_ |= PENDING_STATS_0 | PENDING_STATS_1 | PENDING_STATS_2 | PENDING_STATS_3;
         this->next_stats_request_ = now + this->interval_statistics_;
-      }
-      
-      // Battery Modules (0 = never)
-      if (this->interval_battery_modules_ > 0 && now >= this->next_battery_request_)
-      {
-        this->pending_requests_ |= PENDING_BATTERY_0 | PENDING_BATTERY_1 | PENDING_BATTERY_2;
-        this->next_battery_request_ = now + this->interval_battery_modules_;
       }
     }
 
@@ -253,24 +240,6 @@ namespace esphome
         range = &SETTINGS_2_RANGES[0];
         this->pending_requests_ &= ~PENDING_SETTINGS_2;
       }
-      else if (this->pending_requests_ & PENDING_BATTERY_0)
-      {
-        range_bit = PENDING_BATTERY_0;
-        range = &BATTERY_MODULE_RANGES[0];
-        this->pending_requests_ &= ~PENDING_BATTERY_0;
-      }
-      else if (this->pending_requests_ & PENDING_BATTERY_1)
-      {
-        range_bit = PENDING_BATTERY_1;
-        range = &BATTERY_MODULE_RANGES[1];
-        this->pending_requests_ &= ~PENDING_BATTERY_1;
-      }
-      else if (this->pending_requests_ & PENDING_BATTERY_2)
-      {
-        range_bit = PENDING_BATTERY_2;
-        range = &BATTERY_MODULE_RANGES[2];
-        this->pending_requests_ &= ~PENDING_BATTERY_2;
-      }
       else
         return;
 
@@ -318,15 +287,6 @@ namespace esphome
         case PENDING_SETTINGS_1:
         case PENDING_SETTINGS_2:
           this->handle_settings_response(data, range->start);
-          break;
-        case PENDING_BATTERY_0:
-          this->handle_battery_module_response(data, range->start, 0);
-          break;
-        case PENDING_BATTERY_1:
-          this->handle_battery_module_response(data, range->start, 1);
-          break;
-        case PENDING_BATTERY_2:
-          this->handle_battery_module_response(data, range->start, 2);
           break;
         }
       };
@@ -440,32 +400,6 @@ void DeyeInverter::handle_statistics_response(const std::vector<uint8_t> &data, 
 #endif
 }
 
-void DeyeInverter::handle_battery_module_response(const std::vector<uint8_t> &data, uint16_t start_address, uint8_t block_index) {
-  ESP_LOGV(TAG, "Received battery block %d response: %zu bytes for register 0x%04X", 
-           block_index + 1, data.size(), start_address);
-  
-  if (this->consecutive_timeouts_ > 0) {
-    this->consecutive_timeouts_ = 0;
-  }
-  
-  this->request_in_progress_ = false;
-  
-  // For phased requests: clear flag and update timestamp only when last range completes
-  // The index was already incremented in process_next_request(), so 0 means we just wrapped
-  if (this->current_battery_module_range_ == 0) {
-    this->pending_requests_ &= ~PENDING_BATTERY_MODULES;
-    this->last_battery_modules_update_ = millis();
-  }
-  
-  // Update battery sensors (2000-2999 range)
-#ifdef USE_SENSOR
-  this->update_sensors_from_data(start_address, data);
-#endif
-  
-  // Then update all other entity types consistently
-  this->update_all_entities(start_address, data);
-}
-
 void DeyeInverter::handle_settings_response(const std::vector<uint8_t> &data, uint16_t start_address) {
   ESP_LOGV(TAG, "Received settings response: %zu bytes for register 0x%04X", data.size(), start_address);
 
@@ -576,19 +510,6 @@ void DeyeInverter::handle_device_info_response(const std::vector<uint8_t> &data,
     void DeyeInverter::register_sensor(sensor::Sensor *sensor)
     {
       this->sensors_.push_back(sensor);
-    }
-
-    uint16_t DeyeInverter::get_bms_base_address(uint8_t module_id)
-    {
-      // BMS module base addresses from registers.h
-      static const uint16_t BMS_DATA_BASES[] = {
-          BMS_DATA_BASE_1, BMS_DATA_BASE_2, BMS_DATA_BASE_3,
-          BMS_DATA_BASE_4, BMS_DATA_BASE_5, BMS_DATA_BASE_6,
-          BMS_DATA_BASE_7, BMS_DATA_BASE_8, BMS_DATA_BASE_9};
-      if (module_id >= 1 && module_id <= 9) {
-        return BMS_DATA_BASES[module_id - 1];
-      }
-      return 0; // Invalid module ID
     }
 
 #ifdef USE_BINARY_SENSOR

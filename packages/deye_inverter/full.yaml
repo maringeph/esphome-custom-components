@@ -89,7 +89,7 @@ sensor:
         id: ${device_id}_communication_protocol
 
     # =========================================================================
-    # BATTERIE (6 entities)
+    # BATTERIE (5 entities)
     # =========================================================================
     battery:
       voltage:
@@ -107,9 +107,6 @@ sensor:
       temperature:
         name: "${device_name}: Batterie Temperatur"
         id: ${device_id}_battery_temperature
-      capacity:
-        name: "${device_name}: Batterie Kapazität"
-        id: ${device_id}_battery_capacity
 
     # =========================================================================
     # PV STRINGS 1-4 (12 entities)
@@ -984,6 +981,19 @@ switch:
       generator_required_power_start:
         name: "${device_name}: Generator Erforderliche Startleistung"
         id: ${device_id}_generator_required_power_start
+
+# =============================================================================
+# NUMBER - ALLE (1 entity) - Einstellbare Werte
+# =============================================================================
+number:
+  - platform: deye_inverter
+    deye_inverter_id: ${device_id}
+    device_id: device_${device_id}
+
+    settings_battery_additional:
+      battery_capacity_ah:
+        name: "${device_name}: Batterie Kapazität"
+        id: ${device_id}_battery_capacity_ah
 
 # =============================================================================
 # SELECT - ALLE (12 entities)

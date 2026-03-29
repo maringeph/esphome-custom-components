@@ -76,7 +76,6 @@ from . import (
     CONF_BATTERY_POWER,
     CONF_BATTERY_SOC,
     CONF_BATTERY_TEMPERATURE,
-    CONF_BATTERY_CAPACITY,
     # PV
     CONF_PV1,
     CONF_PV2,
@@ -430,11 +429,6 @@ BATTERY_SCHEMA = cv.Schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
-            state_class=STATE_CLASS_MEASUREMENT,
-        ),
-        cv.Optional(CONF_BATTERY_CAPACITY): deye_sensor_schema(
-            unit_of_measurement="Ah",
-            accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
     }
@@ -1576,14 +1570,6 @@ async def register_sensors(parent, config, device_obj=None):
             cg.RawExpression("esphome::deye_inverter::REG_BATTERY_TEMPERATURE"),
             scale=0.1,
             offset=-100.0,
-            device_obj=device_obj,
-        )
-        await register_single_sensor(
-            battery_conf,
-            CONF_BATTERY_CAPACITY,
-            parent,
-            cg.RawExpression("esphome::deye_inverter::REG_BATTERY_CORRECTED_AH"),
-            scale=1.0,
             device_obj=device_obj,
         )
 

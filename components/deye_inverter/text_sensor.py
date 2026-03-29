@@ -20,6 +20,7 @@ CONF_SERIAL_NUMBER = "serial_number"
 CONF_FIRMWARE_VERSION = "firmware_version"
 CONF_HARDWARE_VERSION = "hardware_version"
 CONF_INVERTER_MODEL = "inverter_model"
+CONF_COMMUNICATION_PROTOCOL = "communication_protocol"
 
 # =============================================================================
 # LOCAL SCHEMA DEFINITIONS
@@ -135,6 +136,18 @@ async def to_code(config):
             cg.RawExpression("esphome::deye_inverter::REG_DEVICE_TYPE"),
             is_status=False,
             is_device_type=True,
+            device_obj=device_obj,
+        )
+
+    # Communication Protocol Version (Register 2)
+    if CONF_COMMUNICATION_PROTOCOL in config:
+        await register_text_sensor(
+            config,
+            CONF_COMMUNICATION_PROTOCOL,
+            var,
+            cg.RawExpression("esphome::deye_inverter::REG_COMM_PROTOCOL_VERSION"),
+            is_status=False,
+            is_device_type=False,
             device_obj=device_obj,
         )
 

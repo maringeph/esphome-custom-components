@@ -58,6 +58,7 @@ from . import (
     CONF_DEVICE_INFO,
     CONF_DEVICE_TYPE,
     CONF_MODBUS_ADDRESS,
+    CONF_COMMUNICATION_PROTOCOL,
     CONF_DEVICE_INFO_EXTENDED,
     CONF_SERIAL_NUMBER,
     CONF_FIRMWARE_VERSION,
@@ -311,6 +312,13 @@ DEVICE_INFO_SCHEMA = cv.Schema(
         cv.Optional(CONF_MODBUS_ADDRESS): cv.Schema(
             {
                 cv.Required(CONF_ID): cv.declare_id(DeyeSensor),
+                cv.Optional(CONF_NAME): cv.string,
+                cv.Optional(CONF_DISABLED_BY_DEFAULT, default=True): cv.boolean,
+            }
+        ),
+        cv.Optional(CONF_COMMUNICATION_PROTOCOL): cv.Schema(
+            {
+                cv.Required(CONF_ID): cv.declare_id(text_sensor.TextSensor),
                 cv.Optional(CONF_NAME): cv.string,
                 cv.Optional(CONF_DISABLED_BY_DEFAULT, default=True): cv.boolean,
             }

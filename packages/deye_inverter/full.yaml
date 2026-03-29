@@ -84,6 +84,9 @@ sensor:
       modbus_address:
         name: "${device_name}: Modbus Adresse"
         id: ${device_id}_modbus_address
+      communication_protocol:
+        name: "${device_name}: Protokollversion"
+        id: ${device_id}_communication_protocol
 
     # =========================================================================
     # BATTERIE (6 entities)

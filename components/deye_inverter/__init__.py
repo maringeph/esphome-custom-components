@@ -48,6 +48,7 @@ CONF_ACTION_READ_SETTINGS = "read_settings"
 CONF_DEVICE_INFO = "device_info"
 CONF_DEVICE_TYPE = "device_type"
 CONF_MODBUS_ADDRESS = "modbus_address"
+CONF_COMMUNICATION_PROTOCOL = "communication_protocol"
 
 # Device Info Extended (NEW - registers 0-59)
 CONF_DEVICE_INFO_EXTENDED = "device_info_extended"

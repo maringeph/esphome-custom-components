@@ -770,7 +770,7 @@ binary_sensor:
         id: ${device_id}_warn_overload
 
 # =============================================================================
-# SWITCHES - ALLE (41 entities)
+# SWITCHES - ALLE (36 entities)
 # =============================================================================
 switch:
   - platform: deye_inverter
@@ -778,7 +778,7 @@ switch:
     device_id: device_${device_id}
 
     # -------------------------------------------------------------------------
-    # SETTINGS GRID (10 entities)
+    # SETTINGS GRID (7 entities)
     # -------------------------------------------------------------------------
     settings_grid:
       grid_charge:
@@ -799,18 +799,7 @@ switch:
       microinverter_export_to_grid:
         name: "${device_name}: Microinverter Export to Grid"
         id: ${device_id}_microinverter_export_to_grid
-      zero_export_power:
-        name: "${device_name}: Zero Export Leistung"
-        id: ${device_id}_zero_export_power
-      max_solar_sell_power:
-        name: "${device_name}: Max Solar Verkaufsleistung"
-        id: ${device_id}_max_solar_sell_power
-      grid_max_power:
-        name: "${device_name}: Grid Max Leistung"
-        id: ${device_id}_grid_max_power
-      restore_connection_time:
-        name: "${device_name}: Wiederherstellungszeit"
-        id: ${device_id}_restore_connection_time
+
 
     # -------------------------------------------------------------------------
     # SETTINGS SYSTEM (4 entities) - Debug/Factory settings (60-97)
@@ -950,8 +939,7 @@ switch:
         id: ${device_id}_battery_loss_report_fault
 
     # -------------------------------------------------------------------------
-    # SETTINGS GENERATOR (4 entities) - Generator Port Relay
-    # Note: Gen Port Control Mode is in SELECT section below
+    # SETTINGS GENERATOR (3 entities) - Generator Port Relay
     # -------------------------------------------------------------------------
     settings_generator:
       external_relay:
@@ -963,17 +951,33 @@ switch:
       gen_port_couple_frequency_limit:
         name: "${device_name}: Gen Port Frequenzlimit"
         id: ${device_id}_gen_port_couple_freq_limit
-      generator_required_power_start:
-        name: "${device_name}: Generator Erforderliche Startleistung"
-        id: ${device_id}_generator_required_power_start
 
 # =============================================================================
-# NUMBER - ALLE (1 entity) - Einstellbare Werte
+# NUMBER - ALLE (7 entities) - Einstellbare Werte
 # =============================================================================
 number:
   - platform: deye_inverter
     deye_inverter_id: ${device_id}
     device_id: device_${device_id}
+
+    settings_grid:
+      zero_export_power:
+        name: "${device_name}: Zero Export Leistung"
+        id: ${device_id}_zero_export_power
+      max_solar_sell_power:
+        name: "${device_name}: Max Solar Verkaufsleistung"
+        id: ${device_id}_max_solar_sell_power
+      grid_max_power:
+        name: "${device_name}: Grid Max Leistung"
+        id: ${device_id}_grid_max_power
+      restore_connection_time:
+        name: "${device_name}: Wiederherstellungszeit"
+        id: ${device_id}_restore_connection_time
+
+    settings_generator:
+      generator_required_power_start:
+        name: "${device_name}: Generator Erforderliche Startleistung"
+        id: ${device_id}_generator_required_power_start
 
     settings_battery_additional:
       battery_capacity_ah:

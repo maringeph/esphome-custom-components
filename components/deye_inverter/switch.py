@@ -37,10 +37,6 @@ CONF_GRID_PEAK_SHAVING = "grid_peak_shaving"
 CONF_GEN_PEAK_SHAVING = "gen_peak_shaving"
 CONF_ON_GRID_ALWAYS_ON = "on_grid_always_on"
 CONF_MICROINVERTER_EXPORT_TO_GRID = "microinverter_export_to_grid"
-CONF_ZERO_EXPORT_POWER = "zero_export_power"
-CONF_MAX_SOLAR_SELL_POWER = "max_solar_sell_power"
-CONF_GRID_MAX_POWER = "grid_max_power"
-CONF_RESTORE_CONNECTION_TIME = "restore_connection_time"
 
 # Device switches
 CONF_EXTERNAL_CT_DIRECTION_CHECK = "external_ct_direction_check"
@@ -56,7 +52,6 @@ CONF_BATTERY_LOSS_REPORT_FAULT = "battery_loss_report_fault"
 CONF_EXTERNAL_RELAY = "external_relay"
 CONF_GEN_PORT_FORCE_ON = "gen_port_force_on"
 CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT = "gen_port_couple_frequency_limit"
-CONF_GENERATOR_REQUIRED_POWER_START = "generator_required_power_start"
 
 # Time of Use switches
 CONF_TIME_OF_USE = "time_of_use"
@@ -131,18 +126,6 @@ SETTINGS_GRID_SCHEMA = cv.Schema(
         cv.Optional(CONF_MICROINVERTER_EXPORT_TO_GRID): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
-        cv.Optional(CONF_ZERO_EXPORT_POWER): deye_switch_schema(
-            device_class=DEVICE_CLASS_SWITCH,
-        ),
-        cv.Optional(CONF_MAX_SOLAR_SELL_POWER): deye_switch_schema(
-            device_class=DEVICE_CLASS_SWITCH,
-        ),
-        cv.Optional(CONF_GRID_MAX_POWER): deye_switch_schema(
-            device_class=DEVICE_CLASS_SWITCH,
-        ),
-        cv.Optional(CONF_RESTORE_CONNECTION_TIME): deye_switch_schema(
-            device_class=DEVICE_CLASS_SWITCH,
-        ),
     }
 )
 
@@ -186,9 +169,6 @@ SETTINGS_GENERATOR_SCHEMA = cv.Schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
         cv.Optional(CONF_GEN_PORT_COUPLE_FREQUENCY_LIMIT): deye_switch_schema(
-            device_class=DEVICE_CLASS_SWITCH,
-        ),
-        cv.Optional(CONF_GENERATOR_REQUIRED_POWER_START): deye_switch_schema(
             device_class=DEVICE_CLASS_SWITCH,
         ),
     }
@@ -477,50 +457,6 @@ async def to_code(config):
                 cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE"),
                 cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE"),
                 cg.RawExpression("esphome::deye_inverter::SHIFT_MICROINVERTER_EXPORT"),
-                device_obj,
-            )
-
-        # Zero Export Power (Register 145, Bit 1)
-        if CONF_ZERO_EXPORT_POWER in grid_config:
-            await register_switch_entity(
-                grid_config,
-                CONF_ZERO_EXPORT_POWER,
-                var,
-                cg.RawExpression("esphome::deye_inverter::REG_SOLAR_SELL"),
-                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_1"),
-                device_obj,
-            )
-
-        # Max Solar Sell Power (Register 145, Bit 2)
-        if CONF_MAX_SOLAR_SELL_POWER in grid_config:
-            await register_switch_entity(
-                grid_config,
-                CONF_MAX_SOLAR_SELL_POWER,
-                var,
-                cg.RawExpression("esphome::deye_inverter::REG_SOLAR_SELL"),
-                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_2"),
-                device_obj,
-            )
-
-        # Grid Max Power (Register 146, Bit 1)
-        if CONF_GRID_MAX_POWER in grid_config:
-            await register_switch_entity(
-                grid_config,
-                CONF_GRID_MAX_POWER,
-                var,
-                cg.RawExpression("esphome::deye_inverter::REG_TIME_OF_USE"),
-                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_1"),
-                device_obj,
-            )
-
-        # Restore Connection Time (Register 146, Bit 2)
-        if CONF_RESTORE_CONNECTION_TIME in grid_config:
-            await register_switch_entity(
-                grid_config,
-                CONF_RESTORE_CONNECTION_TIME,
-                var,
-                cg.RawExpression("esphome::deye_inverter::REG_TIME_OF_USE"),
-                cg.RawExpression("esphome::deye_inverter::BITMASK_BIT_2"),
                 device_obj,
             )
 
@@ -886,21 +822,5 @@ async def to_code(config):
                 cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 12"),
                 cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 12"),
                 cg.RawExpression("esphome::deye_inverter::SHIFT_GEN_PORT_COUPLE_FREQ"),
-                device_obj,
-            )
-
-        # Generator Required Power Start (Register 178, Bits 14-15)
-        if CONF_GENERATOR_REQUIRED_POWER_START in generator_config:
-            await register_switch_entity_2bit(
-                generator_config,
-                CONF_GENERATOR_REQUIRED_POWER_START,
-                var,
-                cg.RawExpression("esphome::deye_inverter::REG_SPECIAL_FUNCTION_1"),
-                cg.RawExpression("esphome::deye_inverter::BITMASK_2BIT_14_15"),
-                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_ENABLE << 14"),
-                cg.RawExpression("esphome::deye_inverter::VALUE_2BIT_DISABLE << 14"),
-                cg.RawExpression(
-                    "esphome::deye_inverter::SHIFT_GEN_REQUIRED_POWER_START"
-                ),
                 device_obj,
             )

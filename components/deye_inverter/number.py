@@ -298,6 +298,10 @@ SETTINGS_GENERATOR_SCHEMA = cv.Schema(
             device_class=DEVICE_CLASS_CURRENT,
         ),
         cv.Optional(CONF_GEN_ENABLE): deye_number_schema(),
+        cv.Optional(CONF_GENERATOR_REQUIRED_POWER_START): deye_number_schema(
+            unit_of_measurement=UNIT_WATT,
+            device_class=DEVICE_CLASS_POWER,
+        ),
     }
 )
 

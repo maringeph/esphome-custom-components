@@ -84,9 +84,6 @@ sensor:
       modbus_address:
         name: "${device_name}: Modbus Adresse"
         id: ${device_id}_modbus_address
-      communication_protocol:
-        name: "${device_name}: Protokollversion"
-        id: ${device_id}_communication_protocol
 
     # =========================================================================
     # BATTERIE (5 entities)
@@ -642,7 +639,7 @@ sensor:
         disabled_by_default: true
 
 # =============================================================================
-# TEXT SENSOREN (5 entities)
+# TEXT SENSOREN (6 entities)
 # =============================================================================
 text_sensor:
   - platform: deye_inverter
@@ -654,6 +651,9 @@ text_sensor:
     device_type:
       name: "${device_name}: Gerätetyp"
       id: ${device_id}_device_type_text
+    communication_protocol:
+      name: "${device_name}: Protokollversion"
+      id: ${device_id}_communication_protocol
     serial_number:
       name: "${device_name}: Seriennummer"
       id: ${device_id}_serial_number

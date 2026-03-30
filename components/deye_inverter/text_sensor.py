@@ -41,6 +41,11 @@ CONFIG_SCHEMA = cv.Schema(
             DeyeTextSensor,
             icon="mdi:server",
         ),
+        # Communication Protocol Version (Register 2)
+        cv.Optional(CONF_COMMUNICATION_PROTOCOL): text_sensor.text_sensor_schema(
+            DeyeTextSensor,
+            icon="mdi:protocol",
+        ),
         # Running Status (Register 500)
         cv.Optional(CONF_RUNNING_STATUS): text_sensor.text_sensor_schema(
             DeyeTextSensor,
